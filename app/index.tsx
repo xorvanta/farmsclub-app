@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
-import { View, Text, ScrollView, FlatList, Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, FlatList, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
+import Head from "expo-router/head";
 import { useTheme } from "@/constants/theme-context";
-import { Header } from "@/components/Header";
+import { AppShell } from "@/components/AppShell";
 import { ListingCard } from "@/components/ListingCard";
 import { LoadingState, ErrorState } from "@/components/StateViews";
 import { Button } from "@/components/Button";
@@ -29,8 +30,14 @@ export default function Home() {
   useEffect(() => void load(), [load]);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.paper }} contentContainerStyle={{ paddingBottom: spacing.xxxl }}>
-      <Header />
+    <AppShell>
+      <Head>
+        <title>FarmsClub — Bulk Plants, Pots, Tools &amp; Fertiliser</title>
+        <meta
+          name="description"
+          content="Formulate India's B2B wholesale trade platform for bulk plants, pots, tools, and soil & fertiliser — tiered pricing, sourced and delivered pan-India."
+        />
+      </Head>
 
       {/* ── Hero — search-first, per B2B convention: the job to be done up top, not a mood shot ── */}
       <View style={[styles.hero, { paddingHorizontal: spacing.lg, paddingTop: spacing.xxl, paddingBottom: spacing.xl }]}>
@@ -123,7 +130,7 @@ export default function Home() {
           />
         )}
       </View>
-    </ScrollView>
+    </AppShell>
   );
 }
 

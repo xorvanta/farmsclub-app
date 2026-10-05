@@ -1,7 +1,8 @@
-import { View, Text, ScrollView, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { router } from "expo-router";
+import Head from "expo-router/head";
 import { useTheme } from "@/constants/theme-context";
-import { Header } from "@/components/Header";
+import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 
 const POINTS = [
@@ -26,37 +27,38 @@ const POINTS = [
 export default function About() {
   const { colors, fonts, spacing, radius } = useTheme();
   return (
-    <View style={{ flex: 1, backgroundColor: colors.paper }}>
-      <Header />
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl }}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 26, color: colors.ink, maxWidth: 520 }}>
-          How FarmsClub sourcing works
-        </Text>
-        <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, marginTop: 10, maxWidth: 540, lineHeight: 21 }}>
-          FarmsClub is run by Formulate India, a dedicated bulk-trade entity separate from Paudhewale's
-          retail storefront. It exists for one thing: buying plants, pots, tools, and soil &amp; fertiliser
-          in volume, reliably, with paperwork that holds up.
-        </Text>
+    <AppShell contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl }}>
+      <Head>
+        <title>How Sourcing Works · FarmsClub</title>
+        <meta name="description" content="How Formulate India sources, prices, and delivers bulk orders through FarmsClub." />
+      </Head>
+      <Text style={{ fontFamily: fonts.display, fontSize: 26, color: colors.ink, maxWidth: 520 }}>
+        How FarmsClub sourcing works
+      </Text>
+      <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, marginTop: 10, maxWidth: 540, lineHeight: 21 }}>
+        FarmsClub is run by Formulate India, a dedicated bulk-trade entity separate from Paudhewale's
+        retail storefront. It exists for one thing: buying plants, pots, tools, and soil &amp; fertiliser
+        in volume, reliably, with paperwork that holds up.
+      </Text>
 
-        <View style={{ marginTop: spacing.xxl, gap: spacing.lg }}>
-          {POINTS.map((p) => (
-            <View
-              key={p.title}
-              style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.lg }]}
-            >
-              <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink }}>{p.title}</Text>
-              <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: colors.inkSoft, marginTop: 6, lineHeight: 19 }}>
-                {p.body}
-              </Text>
-            </View>
-          ))}
-        </View>
+      <View style={{ marginTop: spacing.xxl, gap: spacing.lg }}>
+        {POINTS.map((p) => (
+          <View
+            key={p.title}
+            style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.lg }]}
+          >
+            <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink }}>{p.title}</Text>
+            <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: colors.inkSoft, marginTop: 6, lineHeight: 19 }}>
+              {p.body}
+            </Text>
+          </View>
+        ))}
+      </View>
 
-        <View style={{ marginTop: spacing.xxl }}>
-          <Button label="Browse the catalogue" onPress={() => router.push("/listings")} />
-        </View>
-      </ScrollView>
-    </View>
+      <View style={{ marginTop: spacing.xxl }}>
+        <Button label="Browse the catalogue" onPress={() => router.push("/listings")} />
+      </View>
+    </AppShell>
   );
 }
 

@@ -1,35 +1,89 @@
-import { View, Text, StyleSheet } from "react-native";
-import { router } from "expo-router";
-import { Pressable } from "react-native";
+import { useState } from "react";
+import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { router, usePathname } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
+
+const NAV = [
+  { href: "/", label: "Home" },
+  { href: "/listings", label: "Catalogue" },
+  { href: "/about", label: "How it works" },
+  { href: "/contact", label: "Contact" },
+] as const;
 
 export function Header() {
   const { colors, fonts, spacing } = useTheme();
+  const { width } = useWindowDimensions();
+  const pathname = usePathname();
+  const compact = width < 760;
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <View
-      style={[
-        styles.wrap,
-        { backgroundColor: colors.surface, borderBottomColor: colors.border, paddingHorizontal: spacing.lg },
-      ]}
-    >
-      <Pressable onPress={() => router.push("/")} hitSlop={8}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 20, color: colors.brand, letterSpacing: -0.3 }}>
-          FarmsClub
-        </Text>
-      </Pressable>
-      <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11, color: colors.inkFaint, letterSpacing: 0.3 }}>
-        B2B TRADE · BY FORMULATE INDIA
-      </Text>
+    <View style={{ backgroundColor: colors.surface, borderBottomColor: colors.border, borderBottomWidth: 1 }}>
+      <View style={[styles.bar, { paddingHorizontal: spacing.lg }]}>
+        <Pressable onPress={() => router.push("/")} hitSlop={8} style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
+          <Text style={{ fontFamily: fonts.display, fontSize: 20, color: colors.brand, letterSpacing: -0.3 }}>
+            FarmsClub
+          </Text>
+          {!compact && (
+            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 10.5, color: colors.inkFaint, letterSpacing: 0.3 }}>
+              BY FORMULATE INDIA
+            </Text>
+          )}
+        </Pressable>
+
+        {compact ? (
+          <Pressable onPress={() => setMenuOpen((v) => !v)} hitSlop={10} style={styles.menuBtn}>
+            <View style={{ gap: 4 }}>
+              <View style={[styles.menuLine, { backgroundColor: colors.ink }]} />
+              <View style={[styles.menuLine, { backgroundColor: colors.ink }]} />
+              <View style={[styles.menuLine, { backgroundColor: colors.ink, width: 14 }]} />
+            </View>
+          </Pressable>
+        ) : (
+          <View style={{ flexDirection: "row", gap: spacing.xl, alignItems: "center" }}>
+            {NAV.map((item) => {
+              const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+              return (
+                <Pressable key={item.href} onPress={() => router.push(item.href)} hitSlop={6}>
+                  <Text
+                    style={{
+                      fontFamily: active ? fonts.bodySemiBold : fonts.bodyMedium,
+                      fontSize: 14,
+                      color: active ? colors.brand : colors.inkSoft,
+                    }}
+                  >
+                    {item.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+      </View>
+
+      {compact && menuOpen && (
+        <View style={[styles.mobileMenu, { borderTopColor: colors.border, paddingHorizontal: spacing.lg }]}>
+          {NAV.map((item) => (
+            <Pressable
+              key={item.href}
+              onPress={() => {
+                setMenuOpen(false);
+                router.push(item.href);
+              }}
+              style={{ paddingVertical: 12 }}
+            >
+              <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.ink }}>{item.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    height: 60,
-    borderBottomWidth: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
+  bar: { height: 60, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  menuBtn: { padding: 8 },
+  menuLine: { width: 20, height: 2, borderRadius: 1 },
+  mobileMenu: { borderTopWidth: 1 },
 });

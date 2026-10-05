@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import { View, Text, Image, ScrollView, Pressable, StyleSheet } from "react-native";
+import { View, Text, Image, ScrollView, StyleSheet } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
+import Head from "expo-router/head";
 import { useTheme } from "@/constants/theme-context";
-import { Header } from "@/components/Header";
+import { AppShell } from "@/components/AppShell";
+import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/Badge";
 import { PriceTierTable } from "@/components/PriceTierTable";
 import { Button } from "@/components/Button";
@@ -30,24 +32,25 @@ export default function ListingDetail() {
 
   if (!listing && !error) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.paper }}>
-        <Header />
+      <AppShell noScroll>
         <LoadingState label="Loading listing…" />
-      </View>
+      </AppShell>
     );
   }
   if (error || !listing) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.paper }}>
-        <Header />
+      <AppShell noScroll>
         <ErrorState message={error ?? "This listing isn't available."} onRetry={load} />
-      </View>
+      </AppShell>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.paper }}>
-      <Header />
+    <AppShell noScroll>
+      <Head>
+        <title>{listing.title} · FarmsClub</title>
+        <meta name="description" content={`${listing.title} — bulk pricing from ${listing.priceTiers[0]?.buyer_price ?? "request"} per ${listing.unit} on FarmsClub.`} />
+      </Head>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <View style={[styles.imageWrap, { backgroundColor: colors.brandSoft }]}>
           {listing.photo_url ? (
@@ -126,6 +129,7 @@ export default function ListingDetail() {
             </Text>
           </View>
         </View>
+        <Footer />
       </ScrollView>
 
       {/* Sticky CTA — the one action this whole page exists to drive. */}
@@ -141,7 +145,7 @@ export default function ListingDetail() {
           onPress={() => router.push({ pathname: "/rfq/[listingId]", params: { listingId: String(listing.id) } })}
         />
       </View>
-    </View>
+    </AppShell>
   );
 }
 

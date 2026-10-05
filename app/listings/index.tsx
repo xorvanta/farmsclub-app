@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { View, Text, FlatList, useWindowDimensions } from "react-native";
+import { View, FlatList, useWindowDimensions } from "react-native";
 import { useLocalSearchParams } from "expo-router";
+import Head from "expo-router/head";
 import { useTheme } from "@/constants/theme-context";
-import { Header } from "@/components/Header";
+import { AppShell } from "@/components/AppShell";
+import { Footer } from "@/components/Footer";
 import { SearchBar } from "@/components/SearchBar";
 import { CategoryChip } from "@/components/CategoryChip";
 import { ListingCard } from "@/components/ListingCard";
@@ -12,7 +14,7 @@ import { b2bApi, ApiError } from "@/lib/api";
 import type { B2bListing, Category } from "@/lib/types";
 
 export default function Listings() {
-  const { colors, spacing } = useTheme();
+  const { spacing } = useTheme();
   const { width } = useWindowDimensions();
   const columns = width >= 980 ? 4 : width >= 680 ? 3 : 2;
   const params = useLocalSearchParams<{ category?: string }>();
@@ -45,37 +47,51 @@ export default function Listings() {
     });
   }, [all, category, query]);
 
+  const filterBar = (
+    <View style={{ padding: spacing.lg, gap: spacing.md }}>
+      <SearchBar value={query} onChangeText={setQuery} />
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={[{ value: null, label: "All categories" }, ...CATEGORIES]}
+        keyExtractor={(c) => String(c.value)}
+        contentContainerStyle={{ gap: spacing.sm }}
+        renderItem={({ item }) => (
+          <CategoryChip label={item.label} active={category === item.value} onPress={() => setCategory(item.value as Category | null)} />
+        )}
+      />
+    </View>
+  );
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.paper }}>
-      <Header />
-      <View style={{ padding: spacing.lg, gap: spacing.md }}>
-        <SearchBar value={query} onChangeText={setQuery} />
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={[{ value: null, label: "All categories" }, ...CATEGORIES]}
-          keyExtractor={(c) => String(c.value)}
-          contentContainerStyle={{ gap: spacing.sm }}
-          renderItem={({ item }) => (
-            <CategoryChip label={item.label} active={category === item.value} onPress={() => setCategory(item.value as Category | null)} />
-          )}
-        />
-      </View>
+    <AppShell noScroll>
+      <Head>
+        <title>Catalogue · FarmsClub</title>
+        <meta name="description" content="Browse bulk plants, pots, tools, and soil & fertiliser listings with volume pricing on FarmsClub." />
+      </Head>
 
       {filtered === null && !error ? (
-        <LoadingState label="Loading catalogue…" />
+        <>
+          {filterBar}
+          <LoadingState label="Loading catalogue…" />
+        </>
       ) : error ? (
-        <ErrorState message={error} onRetry={load} />
-      ) : filtered!.length === 0 ? (
-        <EmptyState title="No matching listings" body="Try a different category or search term." />
+        <>
+          {filterBar}
+          <ErrorState message={error} onRetry={load} />
+        </>
       ) : (
         <FlatList
           data={filtered!}
           key={columns}
           numColumns={columns}
           keyExtractor={(item) => String(item.id)}
-          columnWrapperStyle={columns > 1 ? { gap: spacing.md } : undefined}
-          contentContainerStyle={{ gap: spacing.md, padding: spacing.lg, paddingTop: 0 }}
+          columnWrapperStyle={{ gap: spacing.md, paddingHorizontal: spacing.lg }}
+          contentContainerStyle={{ gap: spacing.md }}
+          ListHeaderComponent={filterBar}
+          ListFooterComponent={<Footer />}
+          ListFooterComponentStyle={{ marginTop: spacing.xl }}
+          ListEmptyComponent={<EmptyState title="No matching listings" body="Try a different category or search term." />}
           renderItem={({ item }) => (
             <View style={{ flex: 1 }}>
               <ListingCard listing={item} />
@@ -83,6 +99,6 @@ export default function Listings() {
           )}
         />
       )}
-    </View>
+    </AppShell>
   );
 }

@@ -67,13 +67,27 @@ npm run web      # http://localhost:8081
 
 ## What's built, what isn't (as of 2026-10-06)
 
-Done: home, catalogue browse with category/search filtering, listing detail with the full
-tiered-price table, RFQ form with the complete field set from `B2B_Admin_Spec_v1.2` §3, an
-about/trust page. Verified with a full `expo export --platform web` — builds clean, 7 static
-routes.
+Done: home, catalogue browse (category/search filtering), listing detail with the full
+tiered-price table, RFQ form with the complete field set from `B2B_Admin_Spec_v1.2` §3 (shared
+between a per-listing enquiry and a general one at `/contact`), a persistent nav header + footer
+on every page, an about/trust page, and placeholder Terms/Privacy pages (structurally complete,
+clearly flagged where real legal/company details are still needed — see those files). Verified
+with a full `expo export --platform web` — builds clean, 10 static routes, zero TS errors.
+
+**Known limitation — per-page SEO meta tags**: each route sets its own `<title>`/`<meta
+name="description">` via `expo-router/head`, and this correctly updates the browser tab/title for
+an actual visitor navigating the app. It does **not** currently make it into the pre-rendered
+static HTML Vercel serves — a confirmed Expo Router limitation with `web.output: "static"`
+(open since SDK 49: only `app/+html.tsx`'s tags survive into the static file). Every route today
+serves the same site-wide title/description from `+html.tsx` to a crawler or link-preview
+scraper that doesn't execute JS. Fixing this properly means moving to `web.output: "server"`
+(real SSR, a different — more complex — Vercel deployment shape than a static site), which
+wasn't worth the added deployment complexity for a first version. Revisit once per-listing SEO
+actually matters.
 
 Not yet: branded app icon/splash (placeholder Expo defaults still in `assets/`), native
 (iOS/Android) build config via EAS, any seller-identity-bearing screens (deliberately out of
 scope for this public surface — see the admin/seller B2B console in the dashboard repo instead),
 server-side search (currently filters client-side against the full listing set — fine at today's
-catalogue size, revisit if it grows).
+catalogue size, revisit if it grows), real company contact details (phone/email/registered
+address) on the Terms/Privacy/Contact pages.
