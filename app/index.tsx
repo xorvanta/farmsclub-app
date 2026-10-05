@@ -7,6 +7,9 @@ import { AppShell } from "@/components/AppShell";
 import { ListingCard } from "@/components/ListingCard";
 import { LoadingState, ErrorState } from "@/components/StateViews";
 import { Button } from "@/components/Button";
+import { HeroGraphic } from "@/components/graphics/HeroGraphic";
+import { CategoryIcon } from "@/components/graphics/CategoryIcon";
+import { DotGrid } from "@/components/graphics/DotGrid";
 import { CATEGORIES } from "@/constants/categories";
 import { b2bApi, ApiError } from "@/lib/api";
 import type { B2bListing } from "@/lib/types";
@@ -15,6 +18,7 @@ export default function Home() {
   const { colors, fonts, spacing, radius } = useTheme();
   const { width } = useWindowDimensions();
   const columns = width >= 980 ? 4 : width >= 680 ? 3 : 2;
+  const wide = width >= 860;
 
   const [listings, setListings] = useState<B2bListing[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -39,46 +43,61 @@ export default function Home() {
         />
       </Head>
 
-      {/* ── Hero — search-first, per B2B convention: the job to be done up top, not a mood shot ── */}
-      <View style={[styles.hero, { paddingHorizontal: spacing.lg, paddingTop: spacing.xxl, paddingBottom: spacing.xl }]}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 30, lineHeight: 36, color: colors.ink, maxWidth: 560 }}>
-          Bulk plants, pots, tools &amp; fertiliser — sourced and delivered pan-India.
-        </Text>
-        <Text style={{ fontFamily: fonts.body, fontSize: 15, color: colors.inkSoft, marginTop: 10, maxWidth: 520 }}>
-          FarmsClub is Formulate India's wholesale trade platform. Compare tiered pricing, submit a
-          requirement, and our team confirms sourcing, invoicing and dispatch — direct to your site.
-        </Text>
-        <View style={{ marginTop: spacing.lg, flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
-          <Button label="Browse the catalogue" onPress={() => router.push("/listings")} />
-          <Button label="How sourcing works" variant="outline" onPress={() => router.push("/about")} />
+      {/* ── Hero — asymmetric: bold statement left, abstract "volume" graphic right ── */}
+      <View style={[styles.heroWrap, { backgroundColor: colors.brandSoft, paddingHorizontal: spacing.lg }, wide && styles.heroWrapWide]}>
+        <View style={[styles.heroText, wide && { maxWidth: 480 }]}>
+          <View style={[styles.kicker, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.kickerDot, { backgroundColor: colors.accent }]} />
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, letterSpacing: 0.4, color: colors.brand, textTransform: "uppercase" }}>
+              Wholesale trade platform
+            </Text>
+          </View>
+          <Text style={{ fontFamily: fonts.display, fontSize: wide ? 44 : 32, lineHeight: wide ? 50 : 38, color: colors.ink, marginTop: 14 }}>
+            Bulk plants, pots, tools &amp; fertiliser — priced for volume.
+          </Text>
+          <Text style={{ fontFamily: fonts.body, fontSize: 15.5, color: colors.inkSoft, marginTop: 12, maxWidth: 440, lineHeight: 23 }}>
+            FarmsClub is Formulate India's wholesale arm. One flat bulk price per listing, sourced
+            and delivered pan-India — our trade desk handles the rest.
+          </Text>
+          <View style={{ marginTop: spacing.xl, flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
+            <Button label="Browse the catalogue" onPress={() => router.push("/listings")} />
+            <Button label="How sourcing works" variant="outline" onPress={() => router.push("/about")} />
+          </View>
+        </View>
+
+        <View style={[styles.heroGraphic, !wide && { marginTop: spacing.xl, alignSelf: "center" }]}>
+          <HeroGraphic size={wide ? 320 : 240} />
         </View>
       </View>
 
-      {/* ── Categories ── */}
-      <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
+      {/* ── Categories — icon cards ── */}
+      <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
         <SectionLabel>Shop by category</SectionLabel>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.md }}>
           {CATEGORIES.map((c) => (
             <Pressable
               key={c.value}
               onPress={() => router.push({ pathname: "/listings", params: { category: c.value } })}
-              style={[
+              style={({ pressed }) => [
                 styles.categoryCard,
-                { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg },
+                { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, opacity: pressed ? 0.85 : 1 },
               ]}
             >
-              <Text style={{ fontFamily: fonts.heading, fontSize: 14, color: colors.ink }}>{c.label}</Text>
+              <View style={[styles.categoryIconBadge, { backgroundColor: colors.brandSoft, borderRadius: radius.md }]}>
+                <CategoryIcon category={c.value} size={22} color={colors.brand} />
+              </View>
+              <Text style={{ fontFamily: fonts.heading, fontSize: 14, color: colors.ink, marginTop: 10 }}>{c.label}</Text>
             </Pressable>
           ))}
         </View>
       </View>
 
-      {/* ── How it works — sets the right expectation: this is enquiry-led, not self-checkout ── */}
+      {/* ── How it works ── */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
         <SectionLabel>How sourcing works</SectionLabel>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.md }}>
           {[
-            { step: "01", title: "Compare tiers", body: "Browse live listings with volume pricing by quantity band." },
+            { step: "01", title: "Find your product", body: "Browse live listings at one flat bulk price, no haggling." },
             { step: "02", title: "Submit your requirement", body: "Tell us quantity, delivery city and destination station." },
             { step: "03", title: "We confirm the order", body: "Our team sources, invoices and dispatches — one point of contact." },
           ].map((s) => (
@@ -96,6 +115,9 @@ export default function Home() {
         </View>
       </View>
 
+      {/* ── Poster / promo banner — brand statement, breaks up the page rhythm ── */}
+      <PromoBanner />
+
       {/* ── Listings ── */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
@@ -110,9 +132,7 @@ export default function Home() {
         ) : error ? (
           <ErrorState message={error} onRetry={load} />
         ) : listings!.length === 0 ? (
-          <Text style={{ fontFamily: fonts.body, color: colors.inkSoft, marginTop: spacing.lg }}>
-            No listings are live yet — check back soon.
-          </Text>
+          <EmptyCatalogueNote />
         ) : (
           <FlatList
             data={listings!.slice(0, 8)}
@@ -143,8 +163,66 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
+function PromoBanner() {
+  const { colors, fonts, spacing, radius } = useTheme();
+  const { width } = useWindowDimensions();
+  const panelWidth = Math.min(width - 32, 1088);
+  const panelHeight = 180;
+
+  return (
+    <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
+      <View
+        style={[
+          styles.promo,
+          { backgroundColor: colors.brand, borderRadius: radius.lg, padding: spacing.xl, height: panelHeight, overflow: "hidden" },
+        ]}
+      >
+        <DotGrid width={panelWidth} height={panelHeight} />
+        <Text style={{ fontFamily: fonts.display, fontSize: 24, color: "#FFFFFF", maxWidth: 480 }}>
+          Built for volume. Priced like it.
+        </Text>
+        <Text style={{ fontFamily: fonts.body, fontSize: 14, color: "rgba(255,255,255,0.8)", marginTop: 8, maxWidth: 440, lineHeight: 20 }}>
+          No per-item markup games, no negotiating from scratch every time — one flat bulk rate,
+          confirmed by a real trade desk.
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function EmptyCatalogueNote() {
+  const { colors, fonts, spacing, radius } = useTheme();
+  return (
+    <View
+      style={[
+        styles.emptyNote,
+        { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.xl, marginTop: spacing.md },
+      ]}
+    >
+      <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink }}>
+        Listings are going live shortly
+      </Text>
+      <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: colors.inkSoft, marginTop: 6, maxWidth: 420, lineHeight: 19 }}>
+        Sellers are flagging their first bulk-priced products. Check back soon, or tell us what
+        you're sourcing and our trade desk will get ahead of it for you.
+      </Text>
+      <View style={{ marginTop: spacing.lg, alignSelf: "flex-start" }}>
+        <Button label="Tell us what you need" variant="outline" onPress={() => router.push("/contact")} />
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  hero: {},
-  categoryCard: { borderWidth: 1, paddingHorizontal: 18, paddingVertical: 16, minWidth: 140 },
+  heroWrap: { paddingTop: 40, paddingBottom: 40, flexDirection: "column", alignItems: "flex-start" },
+  heroWrapWide: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 56 },
+  heroText: {},
+  heroGraphic: {},
+  kicker: { flexDirection: "row", alignItems: "center", gap: 7, alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
+  kickerDot: { width: 6, height: 6, borderRadius: 3 },
+  categoryCard: { borderWidth: 1, paddingHorizontal: 18, paddingVertical: 18, minWidth: 150, alignItems: "flex-start" },
+  categoryIconBadge: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   stepCard: { borderWidth: 1, padding: 16, flexGrow: 1, flexBasis: 220 },
+  promo: { justifyContent: "center" },
+  emptyNote: { borderWidth: 1 },
 });

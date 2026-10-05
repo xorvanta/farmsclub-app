@@ -2,13 +2,13 @@ import { View, Text, Image, Pressable, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
 import { categoryLabel } from "@/constants/categories";
-import { priceRange } from "@/lib/format";
+import { formatRupees, formatQty } from "@/lib/format";
 import { Badge } from "./Badge";
 import type { B2bListing } from "@/lib/types";
 
 export function ListingCard({ listing }: { listing: B2bListing }) {
   const { colors, fonts, radius, spacing } = useTheme();
-  const lowestMoq = listing.moq;
+  const showMrp = listing.compare_price != null && listing.compare_price > listing.bulk_price;
 
   return (
     <Pressable
@@ -36,27 +36,29 @@ export function ListingCard({ listing }: { listing: B2bListing }) {
       </View>
 
       <View style={{ padding: spacing.md, gap: 6 }}>
-        <Badge label={categoryLabel(listing.category)} tone="brand" />
+        <Badge label={categoryLabel(listing.bulk_category)} tone="brand" />
         <Text
           numberOfLines={2}
           style={{ fontFamily: fonts.heading, fontSize: 15, color: colors.ink, lineHeight: 20 }}
         >
           {listing.title}
         </Text>
-        {listing.manufacturer_brand ? (
-          <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.inkFaint }}>
-            {listing.manufacturer_brand}
-          </Text>
-        ) : null}
 
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 16, color: colors.brand }}>
-          {priceRange(listing.priceTiers)}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 16, color: colors.brand }}>
+            {formatRupees(listing.bulk_price)}
+          </Text>
+          {showMrp && (
+            <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.inkFaint, textDecorationLine: "line-through" }}>
+              {formatRupees(listing.compare_price!)}
+            </Text>
+          )}
+        </View>
         <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.inkSoft }}>
-          per {listing.unit}
-          {lowestMoq ? ` · MOQ ${lowestMoq.toLocaleString("en-IN")}` : ""}
+          {listing.bulk_unit ? `per ${listing.bulk_unit}` : "per unit"}
+          {listing.bulk_min_quantity ? ` · MOQ ${formatQty(listing.bulk_min_quantity)}` : ""}
         </Text>
       </View>
     </Pressable>

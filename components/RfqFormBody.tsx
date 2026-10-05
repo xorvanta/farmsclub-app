@@ -152,11 +152,11 @@ export function RfqFormBody({ listing, listingId }: { listing?: B2bListing | nul
       <FormSection title="Requirement">
         {listing ? (
           <TextField
-            label={`Quantity interested in (${listing.unit})`}
+            label={`Quantity interested in (${listing.bulk_unit ?? "units"})`}
             value={quantityInterest}
             onChangeText={setQuantityInterest}
             keyboardType="number-pad"
-            placeholder={listing.moq ? `MOQ is ${listing.moq}` : undefined}
+            placeholder={listing.bulk_min_quantity ? `MOQ is ${listing.bulk_min_quantity}` : undefined}
           />
         ) : (
           <TextField label="What are you looking to source?" value={notes} onChangeText={setNotes} multiline placeholder="Product, approximate quantity, and timeline" />

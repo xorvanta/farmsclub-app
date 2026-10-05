@@ -6,10 +6,11 @@ import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/Badge";
-import { PriceTierTable } from "@/components/PriceTierTable";
+import { BulkPriceCard } from "@/components/BulkPriceCard";
 import { Button } from "@/components/Button";
 import { LoadingState, ErrorState } from "@/components/StateViews";
 import { categoryLabel } from "@/constants/categories";
+import { formatRupees } from "@/lib/format";
 import { b2bApi, ApiError } from "@/lib/api";
 import type { B2bListing } from "@/lib/types";
 
@@ -49,7 +50,7 @@ export default function ListingDetail() {
     <AppShell noScroll>
       <Head>
         <title>{listing.title} · FarmsClub</title>
-        <meta name="description" content={`${listing.title} — bulk pricing from ${listing.priceTiers[0]?.buyer_price ?? "request"} per ${listing.unit} on FarmsClub.`} />
+        <meta name="description" content={`${listing.title} — bulk price ${formatRupees(listing.bulk_price)} per ${listing.bulk_unit ?? "unit"} on FarmsClub.`} />
       </Head>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <View style={[styles.imageWrap, { backgroundColor: colors.brandSoft }]}>
@@ -64,58 +65,21 @@ export default function ListingDetail() {
 
         <View style={{ padding: spacing.lg, gap: spacing.sm }}>
           <View style={{ flexDirection: "row", gap: spacing.sm }}>
-            <Badge label={categoryLabel(listing.category)} tone="brand" />
+            <Badge label={categoryLabel(listing.bulk_category)} tone="brand" />
             <Badge label="Live" tone="success" />
           </View>
           <Text style={{ fontFamily: fonts.display, fontSize: 24, color: colors.ink, lineHeight: 30 }}>
             {listing.title}
           </Text>
-          {listing.manufacturer_brand ? (
-            <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.inkFaint }}>
-              Manufacturer: {listing.manufacturer_brand}
-            </Text>
-          ) : null}
           {listing.specification ? (
             <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, marginTop: 4, lineHeight: 20 }}>
               {listing.specification}
             </Text>
           ) : null}
 
-          {/* ── Pricing ── */}
           <View style={{ marginTop: spacing.lg }}>
-            <SectionLabel>Volume pricing</SectionLabel>
-            <View style={{ marginTop: spacing.sm }}>
-              <PriceTierTable tiers={listing.priceTiers} unit={listing.unit} />
-            </View>
+            <BulkPriceCard listing={listing} />
           </View>
-
-          {/* ── Meta ── */}
-          <View style={[styles.metaGrid, { marginTop: spacing.lg }]}>
-            <MetaItem label="MOQ" value={listing.moq ? `${listing.moq.toLocaleString("en-IN")} ${listing.unit}` : "On request"} />
-            <MetaItem label="Unit" value={listing.unit} />
-          </View>
-
-          {listing.dispatchStates.length > 0 && (
-            <View style={{ marginTop: spacing.lg }}>
-              <SectionLabel>Dispatches from</SectionLabel>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.sm }}>
-                {listing.dispatchStates.map((s) => (
-                  <Badge key={s} label={s} tone="neutral" />
-                ))}
-              </View>
-            </View>
-          )}
-
-          {listing.transportModes.length > 0 && (
-            <View style={{ marginTop: spacing.lg }}>
-              <SectionLabel>Transport</SectionLabel>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.sm }}>
-                {listing.transportModes.map((t) => (
-                  <Badge key={t} label={t} tone="neutral" />
-                ))}
-              </View>
-            </View>
-          )}
 
           <View
             style={[
@@ -149,31 +113,9 @@ export default function ListingDetail() {
   );
 }
 
-function SectionLabel({ children }: { children: string }) {
-  const { colors, fonts } = useTheme();
-  return (
-    <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: colors.inkFaint }}>
-      {children}
-    </Text>
-  );
-}
-
-function MetaItem({ label, value }: { label: string; value: string }) {
-  const { colors, fonts } = useTheme();
-  return (
-    <View style={{ minWidth: 120 }}>
-      <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11, color: colors.inkFaint, textTransform: "uppercase", letterSpacing: 0.3 }}>
-        {label}
-      </Text>
-      <Text style={{ fontFamily: fonts.heading, fontSize: 15, color: colors.ink, marginTop: 2 }}>{value}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   imageWrap: { aspectRatio: 1.6, alignItems: "center", justifyContent: "center" },
   image: { width: "100%", height: "100%" },
-  metaGrid: { flexDirection: "row", gap: 24, flexWrap: "wrap" },
   trustNote: {},
   ctaBar: {
     position: "absolute",

@@ -40,7 +40,7 @@ export default function Listings() {
   const filtered = useMemo(() => {
     if (!all) return null;
     return all.filter((l) => {
-      const matchesCategory = !category || l.category === category;
+      const matchesCategory = !category || l.bulk_category === category;
       const haystack = `${l.title} ${l.specification ?? ""}`.toLowerCase();
       const matchesQuery = !query.trim() || haystack.includes(query.trim().toLowerCase());
       return matchesCategory && matchesQuery;
