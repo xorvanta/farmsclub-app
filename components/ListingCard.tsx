@@ -4,6 +4,7 @@ import { useTheme } from "@/constants/theme-context";
 import { categoryLabel } from "@/constants/categories";
 import { formatRupees, formatQty } from "@/lib/format";
 import { Badge } from "./Badge";
+import { CategoryArt } from "@/components/graphics/CategoryArt";
 import type { B2bListing } from "@/lib/types";
 
 export function ListingCard({ listing }: { listing: B2bListing }) {
@@ -23,15 +24,11 @@ export function ListingCard({ listing }: { listing: B2bListing }) {
         },
       ]}
     >
-      <View style={[styles.imageWrap, { backgroundColor: colors.brandSoft }]}>
+      <View style={styles.imageWrap}>
         {listing.photo_url ? (
           <Image source={{ uri: listing.photo_url }} style={styles.image} resizeMode="cover" />
         ) : (
-          <View style={styles.imageFallback}>
-            <Text style={{ fontFamily: fonts.heading, color: colors.brand, fontSize: 22 }}>
-              {listing.title.charAt(0)}
-            </Text>
-          </View>
+          <CategoryArt category={listing.bulk_category} style={StyleSheet.absoluteFill} />
         )}
       </View>
 
@@ -67,8 +64,7 @@ export function ListingCard({ listing }: { listing: B2bListing }) {
 
 const styles = StyleSheet.create({
   card: { borderWidth: 1, overflow: "hidden", flex: 1 },
-  imageWrap: { aspectRatio: 1.3, width: "100%" },
+  imageWrap: { aspectRatio: 1.3, width: "100%", position: "relative" },
   image: { width: "100%", height: "100%" },
-  imageFallback: { flex: 1, alignItems: "center", justifyContent: "center" },
   divider: { height: 1, marginVertical: 4 },
 });

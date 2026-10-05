@@ -4,6 +4,7 @@ import Head from "expo-router/head";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
+import { SectionBanner } from "@/components/SectionBanner";
 
 const POINTS = [
   {
@@ -40,6 +41,16 @@ export default function About() {
         retail storefront. It exists for one thing: buying plants, pots, tools, and soil &amp; fertiliser
         in volume, reliably, with paperwork that holds up.
       </Text>
+
+      <View style={{ marginTop: spacing.xl }}>
+        <SectionBanner
+          eyebrow="One counterparty"
+          title="Formulate India sells and invoices every order directly."
+          body="Not the grower, not the manufacturer — so you get one GST invoice and one point of contact, however many sellers an order actually draws from."
+          tone="accent"
+          insetHorizontal={false}
+        />
+      </View>
 
       <View style={{ marginTop: spacing.xxl, gap: spacing.lg }}>
         {POINTS.map((p) => (

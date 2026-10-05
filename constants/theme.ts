@@ -17,6 +17,8 @@ export const fonts = {
   bodyMedium: "Inter_500Medium",
   bodySemiBold: "Inter_600SemiBold",
   bodyBold: "Inter_700Bold",
+  devanagari: "NotoSansDevanagari_700Bold",
+  devanagariSemiBold: "NotoSansDevanagari_600SemiBold",
 };
 
 export const spacing = {

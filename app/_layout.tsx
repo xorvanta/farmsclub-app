@@ -16,6 +16,11 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
+import {
+  useFonts as useDevanagari,
+  NotoSansDevanagari_600SemiBold,
+  NotoSansDevanagari_700Bold,
+} from "@expo-google-fonts/noto-sans-devanagari";
 import { ThemeProvider, useTheme } from "@/constants/theme-context";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -38,7 +43,8 @@ function RootStack() {
 export default function RootLayout() {
   const [archivoLoaded] = useArchivo({ Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold });
   const [interLoaded] = useInter({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold });
-  const ready = archivoLoaded && interLoaded;
+  const [devanagariLoaded] = useDevanagari({ NotoSansDevanagari_600SemiBold, NotoSansDevanagari_700Bold });
+  const ready = archivoLoaded && interLoaded && devanagariLoaded;
 
   const onLayoutRootView = useCallback(async () => {
     if (ready) await SplashScreen.hideAsync();

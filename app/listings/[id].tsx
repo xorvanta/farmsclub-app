@@ -9,6 +9,7 @@ import { Badge } from "@/components/Badge";
 import { BulkPriceCard } from "@/components/BulkPriceCard";
 import { Button } from "@/components/Button";
 import { LoadingState, ErrorState } from "@/components/StateViews";
+import { CategoryArt } from "@/components/graphics/CategoryArt";
 import { categoryLabel } from "@/constants/categories";
 import { formatRupees } from "@/lib/format";
 import { b2bApi, ApiError } from "@/lib/api";
@@ -53,13 +54,11 @@ export default function ListingDetail() {
         <meta name="description" content={`${listing.title} — bulk price ${formatRupees(listing.bulk_price)} per ${listing.bulk_unit ?? "unit"} on FarmsClub.`} />
       </Head>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <View style={[styles.imageWrap, { backgroundColor: colors.brandSoft }]}>
+        <View style={styles.imageWrap}>
           {listing.photo_url ? (
             <Image source={{ uri: listing.photo_url }} style={styles.image} resizeMode="cover" />
           ) : (
-            <Text style={{ fontFamily: fonts.display, fontSize: 48, color: colors.brand }}>
-              {listing.title.charAt(0)}
-            </Text>
+            <CategoryArt category={listing.bulk_category} style={StyleSheet.absoluteFill} />
           )}
         </View>
 
@@ -114,7 +113,7 @@ export default function ListingDetail() {
 }
 
 const styles = StyleSheet.create({
-  imageWrap: { aspectRatio: 1.6, alignItems: "center", justifyContent: "center" },
+  imageWrap: { aspectRatio: 1.6, alignItems: "center", justifyContent: "center", position: "relative" },
   image: { width: "100%", height: "100%" },
   trustNote: {},
   ctaBar: {

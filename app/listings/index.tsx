@@ -9,6 +9,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { CategoryChip } from "@/components/CategoryChip";
 import { ListingCard } from "@/components/ListingCard";
 import { LoadingState, ErrorState, EmptyState } from "@/components/StateViews";
+import { SectionBanner } from "@/components/SectionBanner";
 import { CATEGORIES } from "@/constants/categories";
 import { b2bApi, ApiError } from "@/lib/api";
 import type { B2bListing, Category } from "@/lib/types";
@@ -48,7 +49,15 @@ export default function Listings() {
   }, [all, category, query]);
 
   const filterBar = (
-    <View style={{ padding: spacing.lg, gap: spacing.md }}>
+    <View style={{ gap: spacing.lg }}>
+      <View style={{ paddingTop: spacing.lg }}>
+        <SectionBanner
+          eyebrow="Catalogue"
+          title="Every live bulk listing, one flat rate each."
+          tone="accent"
+        />
+      </View>
+      <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm, gap: spacing.md }}>
       <SearchBar value={query} onChangeText={setQuery} />
       <FlatList
         horizontal
@@ -60,6 +69,7 @@ export default function Listings() {
           <CategoryChip label={item.label} active={category === item.value} onPress={() => setCategory(item.value as Category | null)} />
         )}
       />
+      </View>
     </View>
   );
 

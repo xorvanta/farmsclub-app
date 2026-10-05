@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { router, usePathname } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
+import { Logo } from "@/components/Logo";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -20,15 +21,8 @@ export function Header() {
   return (
     <View style={{ backgroundColor: colors.surface, borderBottomColor: colors.border, borderBottomWidth: 1 }}>
       <View style={[styles.bar, { paddingHorizontal: spacing.lg }]}>
-        <Pressable onPress={() => router.push("/")} hitSlop={8} style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
-          <Text style={{ fontFamily: fonts.display, fontSize: 20, color: colors.brand, letterSpacing: -0.3 }}>
-            FarmsClub
-          </Text>
-          {!compact && (
-            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 10.5, color: colors.inkFaint, letterSpacing: 0.3 }}>
-              BY FORMULATE INDIA
-            </Text>
-          )}
+        <Pressable onPress={() => router.push("/")} hitSlop={8}>
+          <Logo size={19} showTagline={!compact} />
         </Pressable>
 
         {compact ? (

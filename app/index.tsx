@@ -9,7 +9,8 @@ import { LoadingState, ErrorState } from "@/components/StateViews";
 import { Button } from "@/components/Button";
 import { HeroGraphic } from "@/components/graphics/HeroGraphic";
 import { CategoryIcon } from "@/components/graphics/CategoryIcon";
-import { DotGrid } from "@/components/graphics/DotGrid";
+import { SectionBanner } from "@/components/SectionBanner";
+import { categoryAccent } from "@/constants/categoryTheme";
 import { CATEGORIES } from "@/constants/categories";
 import { b2bApi, ApiError } from "@/lib/api";
 import type { B2bListing } from "@/lib/types";
@@ -74,21 +75,24 @@ export default function Home() {
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
         <SectionLabel>Shop by category</SectionLabel>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.md }}>
-          {CATEGORIES.map((c) => (
-            <Pressable
-              key={c.value}
-              onPress={() => router.push({ pathname: "/listings", params: { category: c.value } })}
-              style={({ pressed }) => [
-                styles.categoryCard,
-                { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, opacity: pressed ? 0.85 : 1 },
-              ]}
-            >
-              <View style={[styles.categoryIconBadge, { backgroundColor: colors.brandSoft, borderRadius: radius.md }]}>
-                <CategoryIcon category={c.value} size={22} color={colors.brand} />
-              </View>
-              <Text style={{ fontFamily: fonts.heading, fontSize: 14, color: colors.ink, marginTop: 10 }}>{c.label}</Text>
-            </Pressable>
-          ))}
+          {CATEGORIES.map((c) => {
+            const { fg, bg } = categoryAccent(c.value, colors);
+            return (
+              <Pressable
+                key={c.value}
+                onPress={() => router.push({ pathname: "/listings", params: { category: c.value } })}
+                style={({ pressed }) => [
+                  styles.categoryCard,
+                  { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, opacity: pressed ? 0.85 : 1 },
+                ]}
+              >
+                <View style={[styles.categoryIconBadge, { backgroundColor: bg, borderRadius: radius.md }]}>
+                  <CategoryIcon category={c.value} size={22} color={fg} />
+                </View>
+                <Text style={{ fontFamily: fonts.heading, fontSize: 14, color: colors.ink, marginTop: 10 }}>{c.label}</Text>
+              </Pressable>
+            );
+          })}
         </View>
       </View>
 
@@ -116,7 +120,13 @@ export default function Home() {
       </View>
 
       {/* ── Poster / promo banner — brand statement, breaks up the page rhythm ── */}
-      <PromoBanner />
+      <View style={{ marginTop: spacing.xxl }}>
+        <SectionBanner
+          eyebrow="Why FarmsClub"
+          title="Built for volume. Priced like it."
+          body="No per-item markup games, no negotiating from scratch every time — one flat bulk rate, confirmed by a real trade desk."
+        />
+      </View>
 
       {/* ── Listings ── */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
@@ -163,33 +173,6 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
-function PromoBanner() {
-  const { colors, fonts, spacing, radius } = useTheme();
-  const { width } = useWindowDimensions();
-  const panelWidth = Math.min(width - 32, 1088);
-  const panelHeight = 180;
-
-  return (
-    <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
-      <View
-        style={[
-          styles.promo,
-          { backgroundColor: colors.brand, borderRadius: radius.lg, padding: spacing.xl, height: panelHeight, overflow: "hidden" },
-        ]}
-      >
-        <DotGrid width={panelWidth} height={panelHeight} />
-        <Text style={{ fontFamily: fonts.display, fontSize: 24, color: "#FFFFFF", maxWidth: 480 }}>
-          Built for volume. Priced like it.
-        </Text>
-        <Text style={{ fontFamily: fonts.body, fontSize: 14, color: "rgba(255,255,255,0.8)", marginTop: 8, maxWidth: 440, lineHeight: 20 }}>
-          No per-item markup games, no negotiating from scratch every time — one flat bulk rate,
-          confirmed by a real trade desk.
-        </Text>
-      </View>
-    </View>
-  );
-}
-
 function EmptyCatalogueNote() {
   const { colors, fonts, spacing, radius } = useTheme();
   return (
@@ -223,6 +206,5 @@ const styles = StyleSheet.create({
   categoryCard: { borderWidth: 1, paddingHorizontal: 18, paddingVertical: 18, minWidth: 150, alignItems: "flex-start" },
   categoryIconBadge: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   stepCard: { borderWidth: 1, padding: 16, flexGrow: 1, flexBasis: 220 },
-  promo: { justifyContent: "center" },
   emptyNote: { borderWidth: 1 },
 });

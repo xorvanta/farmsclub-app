@@ -2,6 +2,7 @@ import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-na
 import { router } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
 import { CATEGORIES } from "@/constants/categories";
+import { Logo } from "@/components/Logo";
 
 const YEAR = new Date().getFullYear();
 
@@ -13,8 +14,8 @@ export function Footer() {
   return (
     <View style={[styles.wrap, { backgroundColor: colors.brand, paddingHorizontal: spacing.lg }]}>
       <View style={[styles.columns, stacked && { flexDirection: "column", gap: spacing.xl }]}>
-        <View style={{ flex: 1.3, gap: 8 }}>
-          <Text style={{ fontFamily: fonts.display, fontSize: 19, color: "#FFFFFF" }}>FarmsClub</Text>
+        <View style={{ flex: 1.3, gap: 12 }}>
+          <Logo size={19} onDark />
           <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: "rgba(255,255,255,0.75)", lineHeight: 18, maxWidth: 280 }}>
             Formulate India's B2B wholesale trade platform for plants, pots, tools, and
             soil &amp; fertiliser — sourced and delivered pan-India.
