@@ -31,24 +31,28 @@ export function SectionBanner({ eyebrow, title, body, tone = "brand", insetHoriz
         style={{
           backgroundColor: bg,
           borderRadius: radius.lg,
-          padding: spacing.xl,
+          padding: spacing.xxl,
           overflow: "hidden",
-          minHeight: 150,
+          minHeight: 210,
           justifyContent: "center",
         }}
       >
-        <DotGrid width={panelWidth} height={260} color="#FFFFFF" opacity={0.1} />
-        <Svg width={180} height={180} style={{ position: "absolute", right: -40, bottom: -50 }}>
-          <Circle cx={90} cy={90} r={70} fill={blob} opacity={0.55} />
-          <Circle cx={40} cy={40} r={30} fill="#FFFFFF" opacity={0.08} />
+        <DotGrid width={panelWidth} height={320} color="#FFFFFF" opacity={0.1} />
+        <Svg width={260} height={260} style={{ position: "absolute", right: -60, bottom: -80 }}>
+          <Circle cx={130} cy={130} r={105} fill={blob} opacity={0.5} />
+          <Circle cx={70} cy={60} r={42} fill="#FFFFFF" opacity={0.1} />
+          <Circle cx={200} cy={70} r={22} fill="#FFFFFF" opacity={0.14} />
+        </Svg>
+        <Svg width={120} height={120} style={{ position: "absolute", left: -30, top: -30 }}>
+          <Circle cx={60} cy={60} r={50} fill={blob} opacity={0.3} />
         </Svg>
 
         {eyebrow && (
-          <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, letterSpacing: 0.5, textTransform: "uppercase", color: "rgba(255,255,255,0.7)", marginBottom: 6 }}>
+          <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.5, textTransform: "uppercase", color: "rgba(255,255,255,0.72)", marginBottom: 8 }}>
             {eyebrow}
           </Text>
         )}
-        <Text style={{ fontFamily: fonts.display, fontSize: 23, lineHeight: 29, color: "#FFFFFF", maxWidth: 480 }}>
+        <Text style={{ fontFamily: fonts.display, fontSize: 27, lineHeight: 33, color: "#FFFFFF", maxWidth: 500 }}>
           {title}
         </Text>
         {body && (

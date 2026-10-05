@@ -8,9 +8,8 @@ import { ListingCard } from "@/components/ListingCard";
 import { LoadingState, ErrorState } from "@/components/StateViews";
 import { Button } from "@/components/Button";
 import { HeroGraphic } from "@/components/graphics/HeroGraphic";
-import { CategoryIcon } from "@/components/graphics/CategoryIcon";
+import { CategoryArt } from "@/components/graphics/CategoryArt";
 import { SectionBanner } from "@/components/SectionBanner";
-import { categoryAccent } from "@/constants/categoryTheme";
 import { CATEGORIES } from "@/constants/categories";
 import { b2bApi, ApiError } from "@/lib/api";
 import type { B2bListing } from "@/lib/types";
@@ -67,32 +66,30 @@ export default function Home() {
         </View>
 
         <View style={[styles.heroGraphic, !wide && { marginTop: spacing.xl, alignSelf: "center" }]}>
-          <HeroGraphic size={wide ? 320 : 240} />
+          <HeroGraphic size={wide ? 360 : 270} />
         </View>
       </View>
 
-      {/* ── Categories — icon cards ── */}
+      {/* ── Categories — full illustrated tiles, not just icon badges ── */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
         <SectionLabel>Shop by category</SectionLabel>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.md }}>
-          {CATEGORIES.map((c) => {
-            const { fg, bg } = categoryAccent(c.value, colors);
-            return (
-              <Pressable
-                key={c.value}
-                onPress={() => router.push({ pathname: "/listings", params: { category: c.value } })}
-                style={({ pressed }) => [
-                  styles.categoryCard,
-                  { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, opacity: pressed ? 0.85 : 1 },
-                ]}
-              >
-                <View style={[styles.categoryIconBadge, { backgroundColor: bg, borderRadius: radius.md }]}>
-                  <CategoryIcon category={c.value} size={22} color={fg} />
-                </View>
-                <Text style={{ fontFamily: fonts.heading, fontSize: 14, color: colors.ink, marginTop: 10 }}>{c.label}</Text>
-              </Pressable>
-            );
-          })}
+          {CATEGORIES.map((c) => (
+            <Pressable
+              key={c.value}
+              onPress={() => router.push({ pathname: "/listings", params: { category: c.value } })}
+              style={({ pressed }) => [
+                styles.categoryTile,
+                { borderRadius: radius.lg, opacity: pressed ? 0.9 : 1 },
+                columns >= 4 ? { width: "18.4%" } : width >= 680 ? { width: "31%" } : { width: "47%" },
+              ]}
+            >
+              <CategoryArt category={c.value} style={StyleSheet.absoluteFill} />
+              <View style={[styles.categoryTileLabel, { backgroundColor: "rgba(22,32,26,0.56)" }]}>
+                <Text style={{ fontFamily: fonts.heading, fontSize: 13.5, color: "#FFFFFF" }}>{c.label}</Text>
+              </View>
+            </Pressable>
+          ))}
         </View>
       </View>
 
@@ -203,8 +200,8 @@ const styles = StyleSheet.create({
   heroGraphic: {},
   kicker: { flexDirection: "row", alignItems: "center", gap: 7, alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
   kickerDot: { width: 6, height: 6, borderRadius: 3 },
-  categoryCard: { borderWidth: 1, paddingHorizontal: 18, paddingVertical: 18, minWidth: 150, alignItems: "flex-start" },
-  categoryIconBadge: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
+  categoryTile: { aspectRatio: 1.1, overflow: "hidden", position: "relative" },
+  categoryTileLabel: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 10, paddingVertical: 8 },
   stepCard: { borderWidth: 1, padding: 16, flexGrow: 1, flexBasis: 220 },
   emptyNote: { borderWidth: 1 },
 });

@@ -8,7 +8,7 @@ const WORDMARKS = [
   { text: "फार्म्सक्लब", lang: "hi" as const },
 ];
 
-const ROTATE_MS = 3000;
+const ROTATE_MS = 5000;
 const FADE_MS = 320;
 
 /**
