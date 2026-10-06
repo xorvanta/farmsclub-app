@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { View, Text, FlatList, Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, Image, FlatList, Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import Head from "expo-router/head";
 import { useTheme } from "@/constants/theme-context";
@@ -7,10 +8,10 @@ import { AppShell } from "@/components/AppShell";
 import { ListingCard } from "@/components/ListingCard";
 import { LoadingState, ErrorState } from "@/components/StateViews";
 import { Button } from "@/components/Button";
-import { HeroGraphic } from "@/components/graphics/HeroGraphic";
 import { CategoryArt } from "@/components/graphics/CategoryArt";
 import { SectionBanner } from "@/components/SectionBanner";
 import { CATEGORIES } from "@/constants/categories";
+import { HERO_PHOTO, WAREHOUSE_PHOTO, photoUrl } from "@/constants/categoryImages";
 import { b2bApi, ApiError } from "@/lib/api";
 import type { B2bListing } from "@/lib/types";
 
@@ -43,30 +44,38 @@ export default function Home() {
         />
       </Head>
 
-      {/* ── Hero — asymmetric: bold statement left, abstract "volume" graphic right ── */}
-      <View style={[styles.heroWrap, { backgroundColor: colors.brandSoft, paddingHorizontal: spacing.lg }, wide && styles.heroWrapWide]}>
-        <View style={[styles.heroText, wide && { maxWidth: 480 }]}>
-          <View style={[styles.kicker, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      {/* ── Hero — real photo banner, full-bleed with a brand-tinted gradient for text legibility ── */}
+      <View style={[styles.heroWrap, wide ? { height: 460 } : { height: 560 }]}>
+        <Image
+          source={{ uri: photoUrl(HERO_PHOTO, { w: Math.max(width, 900) * 1.5, h: wide ? 920 : 1120, q: 72 }) }}
+          style={StyleSheet.absoluteFill}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          colors={wide ? ["rgba(19,50,34,0.88)", "rgba(19,50,34,0.5)", "rgba(19,50,34,0.2)"] : ["rgba(19,50,34,0.55)", "rgba(19,50,34,0.92)"]}
+          start={wide ? { x: 0, y: 0.5 } : { x: 0.5, y: 0 }}
+          end={wide ? { x: 1, y: 0.5 } : { x: 0.5, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+
+        <View style={[styles.heroContent, { paddingHorizontal: spacing.lg }, wide && { maxWidth: 560 }]}>
+          <View style={[styles.kicker, { backgroundColor: "rgba(255,255,255,0.14)", borderColor: "rgba(255,255,255,0.3)" }]}>
             <View style={[styles.kickerDot, { backgroundColor: colors.accent }]} />
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, letterSpacing: 0.4, color: colors.brand, textTransform: "uppercase" }}>
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, letterSpacing: 0.4, color: "#FFFFFF", textTransform: "uppercase" }}>
               Wholesale trade platform
             </Text>
           </View>
-          <Text style={{ fontFamily: fonts.display, fontSize: wide ? 44 : 32, lineHeight: wide ? 50 : 38, color: colors.ink, marginTop: 14 }}>
+          <Text style={{ fontFamily: fonts.display, fontSize: wide ? 44 : 32, lineHeight: wide ? 50 : 38, color: "#FFFFFF", marginTop: 14 }}>
             Bulk plants, pots, tools &amp; fertiliser — priced for volume.
           </Text>
-          <Text style={{ fontFamily: fonts.body, fontSize: 15.5, color: colors.inkSoft, marginTop: 12, maxWidth: 440, lineHeight: 23 }}>
+          <Text style={{ fontFamily: fonts.body, fontSize: 15.5, color: "rgba(255,255,255,0.88)", marginTop: 12, maxWidth: 440, lineHeight: 23 }}>
             FarmsClub is Formulate India's wholesale arm. One flat bulk price per listing, sourced
             and delivered pan-India — our trade desk handles the rest.
           </Text>
           <View style={{ marginTop: spacing.xl, flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
             <Button label="Browse the catalogue" onPress={() => router.push("/listings")} />
-            <Button label="How sourcing works" variant="outline" onPress={() => router.push("/about")} />
+            <Button label="How sourcing works" variant="outline" onPress={() => router.push("/about")} inverted />
           </View>
-        </View>
-
-        <View style={[styles.heroGraphic, !wide && { marginTop: spacing.xl, alignSelf: "center" }]}>
-          <HeroGraphic size={wide ? 360 : 270} />
         </View>
       </View>
 
@@ -122,6 +131,7 @@ export default function Home() {
           eyebrow="Why FarmsClub"
           title="Built for volume. Priced like it."
           body="No per-item markup games, no negotiating from scratch every time — one flat bulk rate, confirmed by a real trade desk."
+          photo={WAREHOUSE_PHOTO}
         />
       </View>
 
@@ -194,10 +204,8 @@ function EmptyCatalogueNote() {
 }
 
 const styles = StyleSheet.create({
-  heroWrap: { paddingTop: 40, paddingBottom: 40, flexDirection: "column", alignItems: "flex-start" },
-  heroWrapWide: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 56 },
-  heroText: {},
-  heroGraphic: {},
+  heroWrap: { position: "relative", overflow: "hidden", justifyContent: "center" },
+  heroContent: { width: "100%" },
   kicker: { flexDirection: "row", alignItems: "center", gap: 7, alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
   kickerDot: { width: 6, height: 6, borderRadius: 3 },
   categoryTile: { aspectRatio: 1.1, overflow: "hidden", position: "relative" },

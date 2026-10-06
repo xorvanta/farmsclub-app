@@ -10,6 +10,7 @@ import { CategoryChip } from "@/components/CategoryChip";
 import { ListingCard } from "@/components/ListingCard";
 import { LoadingState, ErrorState, EmptyState } from "@/components/StateViews";
 import { SectionBanner } from "@/components/SectionBanner";
+import { NURSERY_WIDE_PHOTO } from "@/constants/categoryImages";
 import { CATEGORIES } from "@/constants/categories";
 import { b2bApi, ApiError } from "@/lib/api";
 import type { B2bListing, Category } from "@/lib/types";
@@ -55,6 +56,7 @@ export default function Listings() {
           eyebrow="Catalogue"
           title="Every live bulk listing, one flat rate each."
           tone="accent"
+          photo={NURSERY_WIDE_PHOTO}
         />
       </View>
       <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm, gap: spacing.md }}>

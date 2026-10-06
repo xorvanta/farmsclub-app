@@ -10,15 +10,30 @@ type Props = {
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
+  /** Use on a dark/photo background — swaps outline/secondary colors for white-on-translucent. */
+  inverted?: boolean;
 };
 
-export function Button({ label, onPress, variant = "primary", disabled, loading, fullWidth }: Props) {
+export function Button({ label, onPress, variant = "primary", disabled, loading, fullWidth, inverted }: Props) {
   const { colors, fonts, radius, spacing } = useTheme();
 
-  const bg =
-    variant === "primary" ? colors.accent : variant === "secondary" ? colors.brandSoft : "transparent";
-  const border = variant === "outline" ? colors.borderStrong : "transparent";
-  const textColor = variant === "primary" ? "#FFFFFF" : variant === "secondary" ? colors.brand : colors.ink;
+  const bg = inverted
+    ? variant === "primary"
+      ? colors.accent
+      : "rgba(255,255,255,0.12)"
+    : variant === "primary"
+      ? colors.accent
+      : variant === "secondary"
+        ? colors.brandSoft
+        : "transparent";
+  const border = inverted ? "rgba(255,255,255,0.5)" : variant === "outline" ? colors.borderStrong : "transparent";
+  const textColor = inverted
+    ? "#FFFFFF"
+    : variant === "primary"
+      ? "#FFFFFF"
+      : variant === "secondary"
+        ? colors.brand
+        : colors.ink;
 
   return (
     <Pressable
