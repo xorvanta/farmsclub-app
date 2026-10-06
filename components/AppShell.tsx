@@ -1,5 +1,6 @@
 import { ScrollView, View, type StyleProp, type ViewStyle } from "react-native";
 import { useTheme } from "@/constants/theme-context";
+import { AnnouncementBar } from "./AnnouncementBar";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 
@@ -27,6 +28,7 @@ export function AppShell({
   if (noScroll) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.paper }}>
+        <AnnouncementBar />
         <Header />
         {children}
       </View>
@@ -35,6 +37,7 @@ export function AppShell({
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
+      <AnnouncementBar />
       <Header />
       <ScrollView>
         <View style={contentContainerStyle}>{children}</View>

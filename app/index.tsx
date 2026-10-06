@@ -11,6 +11,7 @@ import { Button } from "@/components/Button";
 import { CategoryArt } from "@/components/graphics/CategoryArt";
 import { SectionBanner } from "@/components/SectionBanner";
 import { FaqAccordion } from "@/components/FaqAccordion";
+import { TrustBadges } from "@/components/TrustBadges";
 import { CATEGORIES } from "@/constants/categories";
 import { HERO_PHOTO, WAREHOUSE_PHOTO, NURSERY_WIDE_PHOTO, photoUrl } from "@/constants/categoryImages";
 import { b2bApi, ApiError } from "@/lib/api";
@@ -80,6 +81,11 @@ export default function Home() {
             <Button label="How sourcing works" variant="outline" onPress={() => router.push("/about")} inverted />
           </View>
         </View>
+      </View>
+
+      {/* ── Trust badges — B2B credibility signals, not retail's payment/COD/guarantee badges ── */}
+      <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xl }}>
+        <TrustBadges />
       </View>
 
       {/* ── Categories — full illustrated tiles, not just icon badges ── */}
