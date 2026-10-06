@@ -11,6 +11,14 @@ const NAV = [
   { href: "/contact", label: "Contact" },
 ] as const;
 
+// Mobile's hamburger only needs what MobileBottomNav doesn't already cover (Home, Catalogue,
+// and Contact/"Enquire" all have their own bottom-nav tab) — repeating them here too would just
+// be two paths to the same three destinations, not easier navigation.
+const MOBILE_SECONDARY_NAV = [
+  { href: "/about", label: "How it works" },
+  { href: "/faqs", label: "FAQs" },
+] as const;
+
 export function Header() {
   const { colors, fonts, spacing } = useTheme();
   const { width } = useWindowDimensions();
@@ -57,7 +65,7 @@ export function Header() {
 
       {compact && menuOpen && (
         <View style={[styles.mobileMenu, { borderTopColor: colors.border, paddingHorizontal: spacing.lg }]}>
-          {NAV.map((item) => (
+          {MOBILE_SECONDARY_NAV.map((item) => (
             <Pressable
               key={item.href}
               onPress={() => {

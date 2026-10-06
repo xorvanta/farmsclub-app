@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, StyleSheet, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/constants/theme-context";
 import { useChat, CHAT_COMPACT_WIDTH } from "@/lib/chat-context";
 import { SparkleIcon } from "@/components/graphics/SparkleIcon";
@@ -18,11 +19,17 @@ const DEFAULT_SUGGESTIONS = [
 /** Mounted once at the root layout (see app/_layout.tsx) so a conversation survives navigation
  *  — a lightweight RN counterpart to the retail storefront's StorefrontAiChatWidget, same
  *  backend-architecture idea (real admin FAQ content first, AI model only for open-ended
- *  questions — see B2bChatService), separate persona/name ("Trellis") and knowledge base. */
+ *  questions — see B2bChatService), separate persona/name ("Trellis") and knowledge base.
+ *
+ *  No floating bubble on mobile — MobileBottomNav's "Trellis" tab is the entry point there
+ *  (same retail convention: the floating chat button was retired once a bottom-nav tab existed,
+ *  so there's exactly one trigger per breakpoint). Desktop still gets the floating panel,
+ *  triggered from AnnouncementBar's "Ask Trellis" link instead. */
 export function ChatWidget() {
   const { colors, fonts, spacing, radius } = useTheme();
-  const { isOpen, listingContext, openChat, closeChat } = useChat();
+  const { isOpen, listingContext, closeChat } = useChat();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const compact = width < CHAT_COMPACT_WIDTH;
   const [messages, setMessages] = useState<ChatTurn[]>([{ role: "assistant", content: GREETING }]);
   const [input, setInput] = useState("");
@@ -88,27 +95,16 @@ export function ChatWidget() {
     }
   }
 
-  return (
-    <>
-      {!isOpen && compact && (
-        <Pressable
-          onPress={() => openChat()}
-          style={({ pressed }) => [
-            styles.fab,
-            { backgroundColor: colors.brand, borderRadius: 999, opacity: pressed ? 0.9 : 1 },
-          ]}
-        >
-          <SparkleIcon size={22} />
-        </Pressable>
-      )}
+  if (!isOpen) return null;
 
-      {isOpen && (
-        <View
-          style={[
-            compact ? styles.panelMobile : styles.panelDesktop,
-            { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: compact ? 0 : radius.lg },
-          ]}
-        >
+  return (
+    <View
+      style={[
+        compact ? styles.panelMobile : styles.panelDesktop,
+        compact && { paddingTop: insets.top },
+        { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: compact ? 0 : radius.lg },
+      ]}
+    >
           <View style={[styles.header, { backgroundColor: colors.brand }]}>
             <SparkleIcon size={16} />
             <View style={{ flex: 1, marginLeft: 8 }}>
@@ -170,7 +166,7 @@ export function ChatWidget() {
             )}
           </ScrollView>
 
-          <View style={[styles.inputRow, { borderTopColor: colors.border }]}>
+          <View style={[styles.inputRow, { borderTopColor: colors.border, paddingBottom: compact ? 10 + insets.bottom : 10 }]}>
             <TextInput
               value={input}
               onChangeText={setInput}
@@ -189,28 +185,11 @@ export function ChatWidget() {
               <Text style={{ color: "#FFFFFF", fontSize: 16, fontFamily: fonts.bodySemiBold }}>→</Text>
             </Pressable>
           </View>
-        </View>
-      )}
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  fab: {
-    position: "absolute",
-    bottom: 20,
-    right: 20,
-    width: 52,
-    height: 52,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-    zIndex: 50,
-  },
   panelDesktop: {
     position: "absolute",
     bottom: 20,

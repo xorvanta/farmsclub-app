@@ -25,8 +25,8 @@ export function AnnouncementBar() {
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: showChatTrigger ? "space-between" : "center", flexWrap: "wrap", gap: 6 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
           <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#6FC28F" }} />
-          <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11, color: "rgba(255,255,255,0.88)" }} numberOfLines={1}>
-            Trade desk: Mon–Sat, 10am–6pm IST{!compact ? " · Pan-India sourcing & delivery" : ""}
+          <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11, color: "rgba(255,255,255,0.88)" }}>
+            {compact ? "Mon–Sat, 10am–6pm" : "Trade desk: Mon–Sat, 10am–6pm IST · Pan-India sourcing & delivery"}
           </Text>
           <Text style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>·</Text>
           <Pressable onPress={() => Linking.openURL(WHATSAPP_URL)} hitSlop={6}>

@@ -73,6 +73,7 @@ export function Footer() {
         <View
           style={[
             styles.trustCard,
+            !stacked && { maxWidth: 360 },
             { backgroundColor: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.14)", borderRadius: radius.lg, padding: spacing.lg },
           ]}
         >
@@ -112,6 +113,6 @@ const styles = StyleSheet.create({
   wrap: { paddingTop: 40, paddingBottom: 28 },
   columns: { flexDirection: "row", flexWrap: "wrap", gap: 32 },
   lowerRow: { flexDirection: "row", gap: 32, marginTop: 36, paddingTop: 28, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.12)", alignItems: "flex-start" },
-  trustCard: { flex: 1, maxWidth: 360, borderWidth: 1 },
+  trustCard: { flex: 1, borderWidth: 1 },
   bottomBar: { borderTopWidth: 1 },
 });

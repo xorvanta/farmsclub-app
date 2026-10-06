@@ -21,6 +21,7 @@ import {
   NotoSansDevanagari_600SemiBold,
   NotoSansDevanagari_700Bold,
 } from "@expo-google-fonts/noto-sans-devanagari";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "@/constants/theme-context";
 import { ChatProvider } from "@/lib/chat-context";
 import { ChatWidget } from "@/components/ChatWidget";
@@ -60,10 +61,12 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
-    <ThemeProvider>
-      <ChatProvider>
-        <RootStack />
-      </ChatProvider>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <ChatProvider>
+          <RootStack />
+        </ChatProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

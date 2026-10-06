@@ -9,6 +9,7 @@ import { Badge } from "@/components/Badge";
 import { BulkPriceCard } from "@/components/BulkPriceCard";
 import { Button } from "@/components/Button";
 import { LoadingState, ErrorState } from "@/components/StateViews";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CategoryArt } from "@/components/graphics/CategoryArt";
 import { categoryLabel } from "@/constants/categories";
 import { formatRupees } from "@/lib/format";
@@ -20,6 +21,7 @@ export default function ListingDetail() {
   const { colors, fonts, spacing, radius } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { openChat, setListingContext } = useChat();
+  const insets = useSafeAreaInsets();
   const [listing, setListing] = useState<B2bListing | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,21 +52,21 @@ export default function ListingDetail() {
 
   if (!listing && !error) {
     return (
-      <AppShell noScroll>
+      <AppShell noScroll hideBottomNav>
         <LoadingState label="Loading listing…" />
       </AppShell>
     );
   }
   if (error || !listing) {
     return (
-      <AppShell noScroll>
+      <AppShell noScroll hideBottomNav>
         <ErrorState message={error ?? "This listing isn't available."} onRetry={load} />
       </AppShell>
     );
   }
 
   return (
-    <AppShell noScroll>
+    <AppShell noScroll hideBottomNav>
       <Head>
         <title>{listing.title} · FarmsClub</title>
         <meta name="description" content={`${listing.title} — bulk price ${formatRupees(listing.bulk_price)} per ${listing.bulk_unit ?? "unit"} on FarmsClub.`} />
@@ -117,7 +119,7 @@ export default function ListingDetail() {
       <View
         style={[
           styles.ctaBar,
-          { backgroundColor: colors.surface, borderTopColor: colors.border, paddingHorizontal: spacing.lg },
+          { backgroundColor: colors.surface, borderTopColor: colors.border, paddingHorizontal: spacing.lg, paddingBottom: 12 + insets.bottom },
         ]}
       >
         <Button
