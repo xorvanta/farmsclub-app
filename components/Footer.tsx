@@ -30,6 +30,7 @@ export function Footer() {
           title="Company"
           links={[
             { label: "How sourcing works", onPress: () => router.push("/about") },
+            { label: "FAQs", onPress: () => router.push("/faqs") },
             { label: "Enquire / contact us", onPress: () => router.push("/contact") },
           ]}
         />

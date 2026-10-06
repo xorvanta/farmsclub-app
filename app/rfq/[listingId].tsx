@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import Head from "expo-router/head";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { RfqFormBody } from "@/components/RfqFormBody";
 import { LoadingState } from "@/components/StateViews";
+import { SectionBanner } from "@/components/SectionBanner";
+import { WAREHOUSE_PHOTO } from "@/constants/categoryImages";
 import { b2bApi } from "@/lib/api";
 import type { B2bListing } from "@/lib/types";
 
 export default function RfqForScreen() {
-  const { fonts, colors, spacing } = useTheme();
+  const { spacing } = useTheme();
   const { listingId } = useLocalSearchParams<{ listingId: string }>();
 
   const [listing, setListing] = useState<B2bListing | null>(null);
@@ -29,15 +31,15 @@ export default function RfqForScreen() {
         <title>Request a Quote · FarmsClub</title>
         <meta name="description" content="Submit a bulk sourcing enquiry to Formulate India's trade desk." />
       </Head>
-      <View style={{ marginBottom: spacing.lg }}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.ink }}>Request a quote</Text>
-        {!loaded ? (
-          <LoadingState label="" />
-        ) : listing ? (
-          <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft, marginTop: 4 }}>
-            For: {listing.title}
-          </Text>
-        ) : null}
+      <View style={{ marginBottom: spacing.xl }}>
+        <SectionBanner
+          eyebrow="Request a Quote"
+          title={listing ? `Source ${listing.title} in bulk` : "Tell us what you need"}
+          body="Submit your requirement once — our trade desk reviews it and follows up directly, usually within one business day."
+          photo={WAREHOUSE_PHOTO}
+          insetHorizontal={false}
+        />
+        {!loaded && <LoadingState label="" />}
       </View>
       {loaded && <RfqFormBody listing={listing} listingId={listingId ? Number(listingId) : undefined} />}
     </AppShell>

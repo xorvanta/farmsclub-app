@@ -10,9 +10,11 @@ import { LoadingState, ErrorState } from "@/components/StateViews";
 import { Button } from "@/components/Button";
 import { CategoryArt } from "@/components/graphics/CategoryArt";
 import { SectionBanner } from "@/components/SectionBanner";
+import { FaqAccordion } from "@/components/FaqAccordion";
 import { CATEGORIES } from "@/constants/categories";
-import { HERO_PHOTO, WAREHOUSE_PHOTO, photoUrl } from "@/constants/categoryImages";
+import { HERO_PHOTO, WAREHOUSE_PHOTO, NURSERY_WIDE_PHOTO, photoUrl } from "@/constants/categoryImages";
 import { b2bApi, ApiError } from "@/lib/api";
+import { useChat } from "@/lib/chat-context";
 import type { B2bListing } from "@/lib/types";
 
 export default function Home() {
@@ -20,6 +22,7 @@ export default function Home() {
   const { width } = useWindowDimensions();
   const columns = width >= 980 ? 4 : width >= 680 ? 3 : 2;
   const wide = width >= 860;
+  const { openChat } = useChat();
 
   const [listings, setListings] = useState<B2bListing[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -166,6 +169,35 @@ export default function Home() {
             )}
           />
         )}
+      </View>
+
+      {/* ── New-to-bulk promo — second banner, drives the two paths someone unsure might take ── */}
+      <View style={{ marginTop: spacing.xxl }}>
+        <SectionBanner
+          eyebrow="New here?"
+          title="Not sure where to start with bulk sourcing?"
+          body="Chat with Trellis for quick answers, or tell our trade desk what you need and we'll guide you through it."
+          tone="accent"
+          photo={NURSERY_WIDE_PHOTO}
+        >
+          <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
+            <Button label="Ask Trellis" onPress={() => openChat(null)} inverted />
+            <Button label="Talk to the trade desk" variant="outline" onPress={() => router.push("/contact")} inverted />
+          </View>
+        </SectionBanner>
+      </View>
+
+      {/* ── FAQ teaser ── */}
+      <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
+          <SectionLabel>Frequently asked</SectionLabel>
+          <Pressable onPress={() => router.push("/faqs")}>
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.brand }}>View all →</Text>
+          </Pressable>
+        </View>
+        <View style={{ marginTop: spacing.md }}>
+          <FaqAccordion limit={5} />
+        </View>
       </View>
     </AppShell>
   );

@@ -22,6 +22,8 @@ import {
   NotoSansDevanagari_700Bold,
 } from "@expo-google-fonts/noto-sans-devanagari";
 import { ThemeProvider, useTheme } from "@/constants/theme-context";
+import { ChatProvider } from "@/lib/chat-context";
+import { ChatWidget } from "@/components/ChatWidget";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -36,6 +38,7 @@ function RootStack() {
           contentStyle: { backgroundColor: colors.paper },
         }}
       />
+      <ChatWidget />
     </View>
   );
 }
@@ -58,7 +61,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <RootStack />
+      <ChatProvider>
+        <RootStack />
+      </ChatProvider>
     </ThemeProvider>
   );
 }

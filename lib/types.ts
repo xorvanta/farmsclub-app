@@ -27,6 +27,27 @@ export type B2bListing = {
   compare_price: number | null; // retail MRP, shown struck through for a credibility anchor
 };
 
+/** GET /public/b2b/faqs — see B2bFaqService / AdminFaqController's B2B audience. */
+export type B2bFaq = {
+  id: string;
+  category: string;
+  question: string;
+  answer: string;
+  sortOrder: number;
+  active: boolean;
+};
+
+export type ChatTurn = { role: "user" | "assistant"; content: string };
+
+/** POST /public/b2b/chat/ask — see B2bChatService ("Trellis"). */
+export type ChatListingContext = {
+  title?: string;
+  category?: string;
+  bulkPrice?: string;
+  bulkUnit?: string;
+  bulkMinQuantity?: string;
+};
+
 export type RfqRequest = {
   contactName: string;
   phone: string;
