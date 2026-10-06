@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, StyleSheet, Platform } from "react-native";
+import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, StyleSheet, useWindowDimensions } from "react-native";
 import { useTheme } from "@/constants/theme-context";
-import { useChat } from "@/lib/chat-context";
-import { ChatBubbleIcon } from "@/components/graphics/ChatBubbleIcon";
+import { useChat, CHAT_COMPACT_WIDTH } from "@/lib/chat-context";
+import { SparkleIcon } from "@/components/graphics/SparkleIcon";
 import { b2bApi, ApiError } from "@/lib/api";
 import type { ChatTurn } from "@/lib/types";
 
@@ -22,6 +22,8 @@ const DEFAULT_SUGGESTIONS = [
 export function ChatWidget() {
   const { colors, fonts, spacing, radius } = useTheme();
   const { isOpen, listingContext, openChat, closeChat } = useChat();
+  const { width } = useWindowDimensions();
+  const compact = width < CHAT_COMPACT_WIDTH;
   const [messages, setMessages] = useState<ChatTurn[]>([{ role: "assistant", content: GREETING }]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -88,7 +90,7 @@ export function ChatWidget() {
 
   return (
     <>
-      {!isOpen && (
+      {!isOpen && compact && (
         <Pressable
           onPress={() => openChat()}
           style={({ pressed }) => [
@@ -96,19 +98,19 @@ export function ChatWidget() {
             { backgroundColor: colors.brand, borderRadius: 999, opacity: pressed ? 0.9 : 1 },
           ]}
         >
-          <ChatBubbleIcon size={24} />
+          <SparkleIcon size={22} />
         </Pressable>
       )}
 
       {isOpen && (
         <View
           style={[
-            styles.panel,
-            { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg },
+            compact ? styles.panelMobile : styles.panelDesktop,
+            { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: compact ? 0 : radius.lg },
           ]}
         >
           <View style={[styles.header, { backgroundColor: colors.brand }]}>
-            <ChatBubbleIcon size={16} />
+            <SparkleIcon size={16} />
             <View style={{ flex: 1, marginLeft: 8 }}>
               <Text style={{ fontFamily: fonts.heading, fontSize: 13.5, color: "#FFFFFF" }}>Trellis</Text>
               <Text style={{ fontFamily: fonts.body, fontSize: 10.5, color: "rgba(255,255,255,0.72)" }}>
@@ -209,22 +211,31 @@ const styles = StyleSheet.create({
     elevation: 6,
     zIndex: 50,
   },
-  panel: {
+  panelDesktop: {
     position: "absolute",
-    bottom: Platform.OS === "web" ? 20 : 0,
-    right: Platform.OS === "web" ? 20 : 0,
-    left: Platform.OS === "web" ? undefined : 0,
-    top: Platform.OS === "web" ? undefined : 0,
-    width: Platform.OS === "web" ? 360 : "100%",
-    height: Platform.OS === "web" ? 480 : "100%",
-    maxHeight: Platform.OS === "web" ? "80%" : "100%",
-    borderWidth: Platform.OS === "web" ? 1 : 0,
+    bottom: 20,
+    right: 20,
+    width: 360,
+    height: 480,
+    maxHeight: "80%",
+    borderWidth: 1,
     overflow: "hidden",
     shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 8 },
     elevation: 10,
+    zIndex: 50,
+  },
+  panelMobile: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: "100%",
+    height: "100%",
+    overflow: "hidden",
     zIndex: 50,
   },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 12 },

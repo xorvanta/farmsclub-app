@@ -5,7 +5,7 @@ import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { SectionBanner } from "@/components/SectionBanner";
-import { WAREHOUSE_PHOTO } from "@/constants/categoryImages";
+import { TRADE_DESK_PHOTO } from "@/constants/categoryImages";
 
 const POINTS = [
   {
@@ -48,8 +48,7 @@ export default function About() {
           eyebrow="One counterparty"
           title="Formulate India sells and invoices every order directly."
           body="Not the grower, not the manufacturer — so you get one GST invoice and one point of contact, however many sellers an order actually draws from."
-          tone="accent"
-          photo={WAREHOUSE_PHOTO}
+          photo={TRADE_DESK_PHOTO}
           insetHorizontal={false}
         />
       </View>

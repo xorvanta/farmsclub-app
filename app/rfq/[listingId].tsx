@@ -7,7 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { RfqFormBody } from "@/components/RfqFormBody";
 import { LoadingState } from "@/components/StateViews";
 import { SectionBanner } from "@/components/SectionBanner";
-import { WAREHOUSE_PHOTO } from "@/constants/categoryImages";
+import { TRADE_DESK_PHOTO } from "@/constants/categoryImages";
 import { b2bApi } from "@/lib/api";
 import type { B2bListing } from "@/lib/types";
 
@@ -36,7 +36,7 @@ export default function RfqForScreen() {
           eyebrow="Request a Quote"
           title={listing ? `Source ${listing.title} in bulk` : "Tell us what you need"}
           body="Submit your requirement once — our trade desk reviews it and follows up directly, usually within one business day."
-          photo={WAREHOUSE_PHOTO}
+          photo={TRADE_DESK_PHOTO}
           insetHorizontal={false}
         />
         {!loaded && <LoadingState label="" />}

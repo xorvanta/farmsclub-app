@@ -13,7 +13,7 @@ import { SectionBanner } from "@/components/SectionBanner";
 import { FaqAccordion } from "@/components/FaqAccordion";
 import { TrustBadges } from "@/components/TrustBadges";
 import { CATEGORIES } from "@/constants/categories";
-import { HERO_PHOTO, WAREHOUSE_PHOTO, NURSERY_WIDE_PHOTO, photoUrl } from "@/constants/categoryImages";
+import { HERO_PHOTO, TRADE_DESK_PHOTO, NURSERY_WIDE_PHOTO, photoUrl } from "@/constants/categoryImages";
 import { b2bApi, ApiError } from "@/lib/api";
 import { useChat } from "@/lib/chat-context";
 import type { B2bListing } from "@/lib/types";
@@ -140,7 +140,7 @@ export default function Home() {
           eyebrow="Why FarmsClub"
           title="Built for volume. Priced like it."
           body="No per-item markup games, no negotiating from scratch every time — one flat bulk rate, confirmed by a real trade desk."
-          photo={WAREHOUSE_PHOTO}
+          photo={TRADE_DESK_PHOTO}
         />
       </View>
 
@@ -183,7 +183,6 @@ export default function Home() {
           eyebrow="New here?"
           title="Not sure where to start with bulk sourcing?"
           body="Chat with Trellis for quick answers, or tell our trade desk what you need and we'll guide you through it."
-          tone="accent"
           photo={NURSERY_WIDE_PHOTO}
         >
           <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>

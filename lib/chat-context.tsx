@@ -1,6 +1,11 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { ChatListingContext } from "./types";
 
+// Shared with ChatWidget.tsx and AnnouncementBar.tsx so the FAB (mobile) and the header text
+// trigger (desktop) switch over at the exact same width — no gap where neither shows, no
+// overlap where both do. Matches Header.tsx's own compact/desktop breakpoint.
+export const CHAT_COMPACT_WIDTH = 760;
+
 type ChatContextValue = {
   isOpen: boolean;
   listingContext: ChatListingContext | null;

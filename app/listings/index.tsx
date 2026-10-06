@@ -55,7 +55,6 @@ export default function Listings() {
         <SectionBanner
           eyebrow="Catalogue"
           title="Every live bulk listing, one flat rate each."
-          tone="accent"
           photo={NURSERY_WIDE_PHOTO}
         />
       </View>
