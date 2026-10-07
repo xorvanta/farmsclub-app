@@ -9,11 +9,19 @@ import type { ChatTurn } from "@/lib/types";
 
 const GREETING = "Hi! I'm Trellis, FarmsClub's sourcing assistant — ask me about bulk pricing, MOQs, the RFQ process, delivery, or GST invoicing.";
 
+/**
+ * Shown only until the real FAQ list loads (or if that request fails). These MUST stay verbatim
+ * copies of real seeded FAQ questions — the backend answers a tapped chip by exact-matching it
+ * against the FAQ list (B2bChatService.findExactFaqAnswer), so an approximation here would fall
+ * back to fuzzier keyword routing and could answer from the wrong topic. These five mirror what
+ * the live fetch below actually picks: the first question of each of the first five categories.
+ */
 const DEFAULT_SUGGESTIONS = [
-  "How does bulk pricing work?",
+  "How is bulk pricing different from the retail price?",
+  "Is there a minimum order quantity?",
   "How do I actually place an order?",
   "Do you deliver pan-India?",
-  "Will I get a GST invoice?",
+  "Will I receive a GST invoice?",
 ];
 
 /** Mounted once at the root layout (see app/_layout.tsx) so a conversation survives navigation

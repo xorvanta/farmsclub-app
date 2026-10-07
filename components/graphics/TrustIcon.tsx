@@ -1,3 +1,4 @@
+import { Text } from "react-native";
 import Svg, { Path, Circle, Rect, Line } from "react-native-svg";
 
 export type TrustIconKey = "invoice" | "verified" | "panIndia" | "flatPrice" | "tradeDesk";
@@ -36,11 +37,10 @@ export function TrustIcon({ icon, size = 20, color }: Props) {
         </Svg>
       );
     case "flatPrice":
+      // A real ₹ character, not a hand-drawn glyph — an earlier stroke-based attempt at this
+      // ended up reading as a stylized "$" instead of a rupee sign.
       return (
-        <Svg {...common}>
-          <Path d="M12 3v3M12 18v3" />
-          <Path d="M8 8h5a2.5 2.5 0 0 1 0 5H9a2.5 2.5 0 0 0 0 5h6" />
-        </Svg>
+        <Text style={{ fontSize: size * 0.95, lineHeight: size * 1.05, color, fontWeight: "700" }}>₹</Text>
       );
     default: // tradeDesk
       return (

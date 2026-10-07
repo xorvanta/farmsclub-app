@@ -1,4 +1,4 @@
-import type { ApiResponse, B2bFaq, B2bListing, Category, ChatListingContext, ChatTurn, RfqRequest } from "./types";
+import type { ApiResponse, B2bBillingEntity, B2bFaq, B2bListing, Category, ChatListingContext, ChatTurn, RfqRequest } from "./types";
 
 /**
  * Same pattern the dashboard frontend uses: EXPO_PUBLIC_API_URL must include the backend's
@@ -43,6 +43,8 @@ export const b2bApi = {
     }),
 
   getFaqs: () => request<B2bFaq[]>("/public/b2b/faqs"),
+
+  getBillingEntity: () => request<B2bBillingEntity>("/public/b2b/billing-entity"),
 
   askChat: (payload: { message: string; history?: ChatTurn[]; listingContext?: ChatListingContext }) =>
     request<{ reply: string }>("/public/b2b/chat/ask", {

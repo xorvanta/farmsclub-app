@@ -48,6 +48,19 @@ export type ChatListingContext = {
   bulkMinQuantity?: string;
 };
 
+/**
+ * GET /public/b2b/billing-entity — the real "Formulate India" legal entity (admin-editable at
+ * Admin > B2B Console > Billing Entity, same feature retail's own company profile uses). Public
+ * subset only — no GSTIN/PAN/bank fields. `registeredAddress` is null until an admin has
+ * actually entered it; a sole-proprietorship entity distinct from the retail business, so its
+ * address was never assumed or invented here — see B2bFaqService memory / V127 migration note.
+ */
+export type B2bBillingEntity = {
+  legalName: string;
+  registeredAddress: string | null;
+  state: string | null;
+};
+
 export type RfqRequest = {
   contactName: string;
   phone: string;
