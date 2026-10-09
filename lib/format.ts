@@ -8,3 +8,10 @@ export function formatRupees(amount: number): string {
 export function formatQty(n: number): string {
   return n.toLocaleString("en-IN");
 }
+
+/** "₹40–₹55" (or "₹40" when both ends match). Null when the listing has no price range. */
+export function formatPriceRange(from: number | null | undefined, to: number | null | undefined): string | null {
+  if (from == null && to == null) return null;
+  if (from == null || to == null || Number(from) === Number(to)) return formatRupees(Number(from ?? to));
+  return `${formatRupees(Number(from))}–${formatRupees(Number(to))}`;
+}

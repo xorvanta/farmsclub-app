@@ -20,7 +20,7 @@ import { useChat } from "@/lib/chat-context";
 import type { B2bListing } from "@/lib/types";
 
 const STEPS: { icon: StepIconKey; step: string; title: string; body: string }[] = [
-  { icon: "search", step: "01", title: "Find your product", body: "Browse live listings at one flat bulk price, no haggling." },
+  { icon: "search", step: "01", title: "Find your product", body: "Browse live listings with clear quantity-tier pricing, no haggling." },
   { icon: "form", step: "02", title: "Submit your requirement", body: "Tell us quantity, delivery city and destination station." },
   { icon: "truck", step: "03", title: "We confirm the order", body: "Our team sources, invoices and dispatches — one point of contact." },
 ];
@@ -84,8 +84,8 @@ export default function Home() {
             Bulk plants, pots, tools &amp; fertiliser — priced for volume.
           </Text>
           <Text style={{ fontFamily: fonts.body, fontSize: compact ? 13.5 : 15.5, color: "rgba(255,255,255,0.88)", marginTop: compact ? 8 : 12, maxWidth: 440, lineHeight: compact ? 19 : 23 }}>
-            FarmsClub is Formulate India's wholesale arm. One flat bulk price per listing, sourced
-            and delivered pan-India — our trade desk handles the rest.
+            FarmsClub is Formulate India's wholesale arm. Clear quantity-tier pricing on every listing,
+            sourced and delivered pan-India — our trade desk handles the rest.
           </Text>
           <View style={{ marginTop: compact ? spacing.lg : spacing.xl, flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
             <Button label="Browse the catalogue" onPress={() => router.push("/listings")} />
@@ -194,7 +194,7 @@ export default function Home() {
         <SectionBanner
           eyebrow="Why FarmsClub"
           title="Built for volume. Priced like it."
-          body="No per-item markup games, no negotiating from scratch every time — one flat bulk rate, confirmed by a real trade desk."
+          body="No per-item markup games, no negotiating from scratch every time — clear quantity-tier pricing, confirmed by a real trade desk."
           photo={TRADE_DESK_PHOTO}
         />
       </View>

@@ -6,7 +6,7 @@ const BADGES: { icon: TrustIconKey; title: string; body: string }[] = [
   { icon: "invoice", title: "Single GST invoice", body: "Formulate India invoices every order directly, however many sellers it draws from." },
   { icon: "verified", title: "Verified seller network", body: "Every bulk listing comes from the same vetted sellers as our retail marketplace." },
   { icon: "panIndia", title: "Pan-India sourcing", body: "Sourced and delivered nationwide — the trade desk confirms transit for your destination." },
-  { icon: "flatPrice", title: "Flat bulk pricing", body: "One listed price per MOQ, no hidden markup or back-and-forth haggling." },
+  { icon: "flatPrice", title: "Quantity-tier pricing", body: "Clear per-unit prices for each quantity band — no back-and-forth haggling." },
   { icon: "tradeDesk", title: "A real trade desk", body: "Every enquiry gets a human follow-up, not just an automated reply." },
 ];
 

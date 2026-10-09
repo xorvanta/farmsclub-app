@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { View, FlatList, useWindowDimensions } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import Head from "expo-router/head";
@@ -21,40 +21,42 @@ export default function Listings() {
   const columns = width >= 980 ? 4 : width >= 680 ? 3 : 2;
   const params = useLocalSearchParams<{ category?: string }>();
 
-  const [all, setAll] = useState<B2bListing[] | null>(null);
+  const [listings, setListings] = useState<B2bListing[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [category, setCategory] = useState<Category | null>((params.category as Category) ?? null);
 
+  // Search runs server-side (`q` matches title, specification and brand) — debounced so typing
+  // doesn't fire a request per keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query.trim()), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
   const load = useCallback(() => {
+    let cancelled = false;
     setError(null);
+    // Previous results stay on screen while a new search loads — swapping to the loading view
+    // would remount the search box and drop keyboard focus mid-typing.
     b2bApi
-      .getListings()
-      .then(setAll)
-      .catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't reach FarmsClub right now."));
-  }, []);
+      .getListings({ category, q: debouncedQuery })
+      .then((rows) => !cancelled && setListings(rows))
+      .catch((e) => !cancelled && setError(e instanceof ApiError ? e.message : "Couldn't reach FarmsClub right now."));
+    return () => {
+      cancelled = true;
+    };
+  }, [category, debouncedQuery]);
 
-  useEffect(() => void load(), [load]);
-
-  // Backend doesn't expose a text-search param on /public/b2b/listings yet — filtered client-side
-  // against the already-fetched (small, admin-curated) catalogue. Revisit server-side if the
-  // live listing count grows past what's reasonable to ship in one response.
-  const filtered = useMemo(() => {
-    if (!all) return null;
-    return all.filter((l) => {
-      const matchesCategory = !category || l.bulk_category === category;
-      const haystack = `${l.title} ${l.specification ?? ""}`.toLowerCase();
-      const matchesQuery = !query.trim() || haystack.includes(query.trim().toLowerCase());
-      return matchesCategory && matchesQuery;
-    });
-  }, [all, category, query]);
+  useEffect(() => load(), [load]);
+  const filtered = listings;
 
   const filterBar = (
     <View style={{ gap: spacing.lg }}>
       <View style={{ paddingTop: spacing.lg }}>
         <SectionBanner
           eyebrow="Catalogue"
-          title="Every live bulk listing, one flat rate each."
+          title="Every live bulk listing, priced by quantity tier."
           photo={NURSERY_WIDE_PHOTO}
         />
       </View>
@@ -89,7 +91,7 @@ export default function Listings() {
       ) : error ? (
         <>
           {filterBar}
-          <ErrorState message={error} onRetry={load} />
+          <ErrorState message={error} onRetry={() => void load()} />
         </>
       ) : (
         <FlatList

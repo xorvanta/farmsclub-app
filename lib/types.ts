@@ -11,20 +11,38 @@ export type Category = "PLANT" | "POT" | "TOOL" | "SOIL_FERTILISER" | "OTHER";
 
 /**
  * GET /public/b2b/listings and /public/b2b/listings/{id} — see PublicB2bController.
- * As of 2026-10-06 this is sourced directly from `products` (a seller's real retail listing
- * flagged bulk_enabled with its own flat price), not a separate B2B catalogue — "one listing
- * serves two websites". A single flat price + MOQ, no tiered pricing.
+ * Reviewed B2B listings (b2b_listings), priced by quantity tiers. Buyers only ever see the
+ * buyer price range / tier table (before GST) — never a seller rate or retail MRP, which the
+ * backend no longer returns at all.
  */
+export type B2bPriceTier = {
+  minQty: number;
+  maxQty: number | null; // null = "and above"
+  pricePerUnit: number;
+};
+
 export type B2bListing = {
   id: number;
+  category: Category;
   title: string;
+  /** Either a JSON-encoded object of category fields, or plain text. */
   specification: string | null;
-  photo_url: string | null;
-  bulk_price: number;
-  bulk_min_quantity: number | null;
-  bulk_unit: string | null;
-  bulk_category: Category;
-  compare_price: number | null; // retail MRP, shown struck through for a credibility anchor
+  manufacturer_brand: string | null; // packaged goods only
+  unit: string | null;
+  moq: number | null;
+  images: string[];
+  photo_url: string | null; // first image
+  dispatch_states: string[];
+  transport_modes: string[];
+  gst_rate: number | null;
+  price_from: number | null; // per-unit buyer price range, before GST
+  price_to: number | null;
+  /** Only on GET /public/b2b/listings/{id}. */
+  tiers?: B2bPriceTier[];
+  // Legacy aliases the backend still sends (= moq / unit / category).
+  bulk_min_quantity?: number | null;
+  bulk_unit?: string | null;
+  bulk_category?: Category;
 };
 
 /** GET /public/b2b/faqs — see B2bFaqService / AdminFaqController's B2B audience. */
@@ -43,7 +61,7 @@ export type ChatTurn = { role: "user" | "assistant"; content: string };
 export type ChatListingContext = {
   title?: string;
   category?: string;
-  bulkPrice?: string;
+  bulkPrice?: string; // the buyer price range string, e.g. "₹40–₹55 per tray (before GST)"
   bulkUnit?: string;
   bulkMinQuantity?: string;
 };
@@ -73,7 +91,7 @@ export type RfqRequest = {
   deliveryState?: string;
   deliveryPincode?: string;
   destinationRailwayStation?: string;
-  listingId?: number; // a products.id
+  listingId?: number; // a b2b_listings.id (same id the listing pages use)
   quantityInterest?: number;
   // Anti-spam honeypot — AntiSpamGuard rejects a submission where this is filled, or where
   // formRenderedAt is suspiciously recent (a bot submitting faster than a human could type).

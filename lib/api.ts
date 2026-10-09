@@ -31,8 +31,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const b2bApi = {
-  getListings: (category?: Category) =>
-    request<B2bListing[]>(`/public/b2b/listings${category ? `?category=${category}` : ""}`),
+  getListings: (opts?: { category?: Category | null; q?: string }) => {
+    const params = new URLSearchParams();
+    if (opts?.category) params.set("category", opts.category);
+    if (opts?.q?.trim()) params.set("q", opts.q.trim());
+    const qs = params.toString();
+    return request<B2bListing[]>(`/public/b2b/listings${qs ? `?${qs}` : ""}`);
+  },
 
   getListing: (id: number) => request<B2bListing>(`/public/b2b/listings/${id}`),
 

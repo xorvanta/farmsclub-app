@@ -17,7 +17,7 @@ const GREETING = "Hi! I'm Trellis, FarmsClub's sourcing assistant — ask me abo
  * the live fetch below actually picks: the first question of each of the first five categories.
  */
 const DEFAULT_SUGGESTIONS = [
-  "How is bulk pricing different from the retail price?",
+  "How does quantity-tier pricing work?",
   "Is there a minimum order quantity?",
   "How do I actually place an order?",
   "Do you deliver pan-India?",
