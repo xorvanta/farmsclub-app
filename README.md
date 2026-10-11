@@ -40,14 +40,29 @@ Calls three public endpoints on the same Spring Boot backend the dashboard uses
 - `GET /public/b2b/listings` / `/public/b2b/listings/{id}` — browse live listings + price tiers
 - `POST /public/b2b/rfq` — submit a buyer enquiry (creates an admin-brokered `b2b_leads` row)
 
-`lib/api.ts` reads the base URL from `EXPO_PUBLIC_API_URL`. Two ways to point it at the backend:
+`lib/api.ts` resolves the base URL (it must include the `/api/v1` context path) like this:
 
-1. **Direct** (local dev default, no env var needed) — falls back to the Cloud Run backend
-   directly. Works out of the box with `npm run web`.
-2. **Vercel rewrite** (production) — `vercel.json` proxies `/api/v1/*` to the same Cloud Run
-   backend, so set `EXPO_PUBLIC_API_URL=/api/v1` (relative) in Vercel's env vars. Requests then
-   stay same-origin and the backend never needs a CORS entry for this app — the exact pattern
-   `paudhewale-dashboard-frontend` already uses.
+1. `EXPO_PUBLIC_API_URL`, if set, always wins.
+2. **Web, unset** — same-origin `/api/v1`. On Vercel, `vercel.json` rewrites `/api/v1/*` to the
+   Cloud Run backend, so requests stay same-origin and the backend never needs a CORS entry for
+   this app (the same pattern `paudhewale-dashboard-frontend` uses). There is deliberately **no**
+   silent fallback to the absolute backend URL on web.
+3. **Native (iOS/Android), unset** — the absolute Cloud Run URL, since an app binary has no
+   rewrite layer in front of it.
+
+For local `npm run web` there is no Vercel rewrite, so point it at the backend explicitly:
+
+```bash
+EXPO_PUBLIC_API_URL=https://xoms-backend-752519899091.asia-south1.run.app/api/v1 npm run web
+```
+
+(The backend must allow `http://localhost:8081` in CORS for that to work; otherwise use
+`vercel dev`, which applies the same rewrites locally.)
+
+Backend error text is never shown to buyers verbatim: `friendlyMessage()` in `lib/api.ts` only
+passes through plain human sentences and replaces anything technical (SQL, class names,
+status codes, ALL_CAPS codes…) with a generic message; network failures get a
+"check your connection" message.
 
 ## Running locally
 
@@ -59,11 +74,18 @@ npm run web      # http://localhost:8081
 ## Deploying to Vercel
 
 1. Push this repo to GitHub, import it into a new Vercel project.
-2. Vercel auto-detects the Expo web build; **Build Command**: `npm run build:web`,
-   **Output Directory**: `dist`.
-3. Set `EXPO_PUBLIC_API_URL=/api/v1` in Vercel → Project → Settings → Environment Variables
-   (see `.env.production.example`).
-4. Attach the FarmsClub domain in Vercel → Project → Settings → Domains once it's ready.
+2. `vercel.json` already sets **Build Command** `npm run build:web` and **Output Directory**
+   `dist`. `build:web` runs `expo export --platform web` and then `scripts/postexport.js`, which
+   copies `+not-found.html` to `404.html` (Vercel serves it, with a 404 status, for unknown paths).
+3. Routing on Vercel (`vercel.json`): `cleanUrls` serves `/about` from `about.html`; dynamic
+   routes are rewritten to their exported shells — `/listings/:id` → `listings/[id].html`,
+   `/rfq/:listingId` → `rfq/[listingId].html` — so a refresh or deep link works. The
+   `/api/v1/*` backend rewrite stays first. Expo Router's dev `/_sitemap` route is disabled in
+   `app.json` (`"sitemap": false`).
+4. Optional env vars (Vercel → Project → Settings → Environment Variables, see
+   `.env.production.example`): `EXPO_PUBLIC_API_URL` (web defaults to `/api/v1` already) and
+   `EXPO_PUBLIC_SITE_URL` (canonical/og:url origin; defaults to the browser's origin).
+5. Attach the FarmsClub domain in Vercel → Project → Settings → Domains once it's ready.
 
 ## What's built, what isn't (as of 2026-10-06)
 

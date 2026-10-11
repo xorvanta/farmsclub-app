@@ -1,15 +1,22 @@
+import { Platform } from "react-native";
 import type { ApiResponse, B2bBillingEntity, B2bFaq, B2bListing, Category, ChatListingContext, ChatTurn, RfqRequest } from "./types";
 
 /**
- * Same pattern the dashboard frontend uses: EXPO_PUBLIC_API_URL must include the backend's
- * /api/v1 context path. In production on Vercel, set this via a vercel.json rewrite to the
- * same Cloud Run backend (see vercel.json) so requests are same-origin and the backend never
- * needs a CORS entry for this app at all — exactly how paudhewale-dashboard-frontend avoids it.
- * Falls back to the real backend directly for local `expo start` dev, where there's no Vercel
- * rewrite layer in front of you.
+ * Base URL including the backend's /api/v1 context path.
+ *
+ * - EXPO_PUBLIC_API_URL, when set, always wins.
+ * - Web (unset): same-origin "/api/v1" — on Vercel, vercel.json rewrites that to the Cloud Run
+ *   backend, so the browser never makes a cross-origin call and the backend needs no CORS entry.
+ *   For local `expo start --web` without a proxy, set EXPO_PUBLIC_API_URL to the absolute URL.
+ * - Native (unset): there is no rewrite layer in front of an app binary, so fall back to the
+ *   absolute Cloud Run URL.
  */
+const NATIVE_FALLBACK_API = "https://xoms-backend-752519899091.asia-south1.run.app/api/v1";
 const API_BASE =
-  process.env.EXPO_PUBLIC_API_URL ?? "https://xoms-backend-752519899091.asia-south1.run.app/api/v1";
+  process.env.EXPO_PUBLIC_API_URL || (Platform.OS === "web" ? "/api/v1" : NATIVE_FALLBACK_API);
+
+export const GENERIC_ERROR = "Something went wrong — please try again.";
+export const NETWORK_ERROR = "Can't reach the server — check your connection.";
 
 class ApiError extends Error {
   constructor(message: string) {
@@ -18,16 +25,68 @@ class ApiError extends Error {
   }
 }
 
+/**
+ * Backend `error`/`message` text is only shown to a buyer when it reads like a normal,
+ * human-written sentence (e.g. "Please enter a valid 10-digit Indian mobile number.").
+ * Anything that smells like an internal/technical message is replaced with a generic line.
+ */
+const TECHNICAL_PATTERNS: RegExp[] = [
+  /\b(select|insert|update|delete)\b.+\b(from|into|set|where)\b/i, // SQL
+  /\bsql\b|sqlstate|jdbc|hibernate|postgres|psql|constraint|violates|duplicate key|relation "/i,
+  /preparedstatement|resultset|statementcallback|bad sql grammar/i,
+  /failed to convert|cannot deserialize|json parse|jsonparse|unexpected token|unrecognized field|parse error/i,
+  /exception|stack ?trace|nullpointer|\bnull\b|undefined|\bat [\w$.]+\(/i,
+  /\b[a-z]+(\.[a-z_$][\w$]*){2,}\b/i, // dotted class/package names (java.lang.X, com.marketplace...)
+  /\b[A-Z][a-z]+[A-Z]\w*(Exception|Error|Service|Controller|Repository|Request)\b/, // CamelCase class names
+  /status code|\bhttp\s*\/?\s*\d|\b(status|code|error)\s*[:=]?\s*[1-5]\d\d\b|^[1-5]\d\d\b|\b[1-5]\d\d\s+(bad request|not found|unauthori[sz]ed|forbidden|internal|service unavailable|gateway)/i, // status codes
+  /\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\b/, // ALL_CAPS_CODES
+  /^[A-Z0-9_]+$/, // a bare ALL-CAPS token
+  /[{}<>[\]\`]|=>|::/, // code-ish punctuation
+];
+
+export function friendlyMessage(raw: unknown): string {
+  if (typeof raw !== "string") return GENERIC_ERROR;
+  const text = raw.trim();
+  if (text.length < 4 || text.length > 200) return GENERIC_ERROR;
+  if (!/^[A-Z]/.test(text)) return GENERIC_ERROR; // a sentence starts with a capital letter
+  if (TECHNICAL_PATTERNS.some((re) => re.test(text))) return GENERIC_ERROR;
+  return text;
+}
+
+/** Message to show for any caught error — ApiError text is already sanitised. */
+export function errorMessage(e: unknown): string {
+  return e instanceof ApiError ? e.message : GENERIC_ERROR;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  });
-  const body: ApiResponse<T> = await res.json();
-  if (!res.ok || !body.success) {
-    throw new ApiError(body.error ?? body.message ?? "Something went wrong. Please try again.");
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+    });
+  } catch {
+    throw new ApiError(NETWORK_ERROR);
+  }
+  let body: ApiResponse<T> | null = null;
+  try {
+    body = (await res.json()) as ApiResponse<T>;
+  } catch {
+    body = null; // HTML error page, empty body, proxy timeout…
+  }
+  if (!res.ok || !body || !body.success) {
+    if (res.status >= 500 && !body) throw new ApiError(GENERIC_ERROR);
+    throw new ApiError(friendlyMessage(body?.error ?? body?.message));
   }
   return body.data as T;
+}
+
+/** A listing/route id is only ever a positive integer — anything else is a not-found, not a request. */
+export function parseListingId(raw: string | string[] | undefined | null): number | null {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (!value || !/^\d{1,15}$/.test(value)) return null;
+  const n = Number(value);
+  return Number.isSafeInteger(n) && n > 0 ? n : null;
 }
 
 export const b2bApi = {

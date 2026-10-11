@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 import { router } from "expo-router";
-import Head from "expo-router/head";
+import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
@@ -9,9 +9,7 @@ export default function NotFound() {
   const { colors, fonts, spacing } = useTheme();
   return (
     <AppShell noScroll>
-      <Head>
-        <title>Page Not Found · FarmsClub</title>
-      </Head>
+      <SeoHead title="Page Not Found · FarmsClub" noindex />
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.md, padding: spacing.xl }}>
         <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.ink }}>Page not found</Text>
         <Text style={{ fontFamily: fonts.body, color: colors.inkSoft }}>

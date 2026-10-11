@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { View, FlatList, useWindowDimensions } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import Head from "expo-router/head";
+import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { Footer } from "@/components/Footer";
@@ -12,7 +12,7 @@ import { LoadingState, ErrorState, EmptyState } from "@/components/StateViews";
 import { SectionBanner } from "@/components/SectionBanner";
 import { NURSERY_WIDE_PHOTO } from "@/constants/categoryImages";
 import { CATEGORIES } from "@/constants/categories";
-import { b2bApi, ApiError } from "@/lib/api";
+import { b2bApi, errorMessage } from "@/lib/api";
 import type { B2bListing, Category } from "@/lib/types";
 
 export default function Listings() {
@@ -25,7 +25,11 @@ export default function Listings() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [category, setCategory] = useState<Category | null>((params.category as Category) ?? null);
+  // Only a real category from the fixed list is honoured — a hand-typed ?category=xyz is ignored
+  // rather than sent to the backend (it would just come back empty and look like a broken page).
+  const [category, setCategory] = useState<Category | null>(
+    CATEGORIES.some((c) => c.value === params.category) ? (params.category as Category) : null,
+  );
 
   // Search runs server-side (`q` matches title, specification and brand) — debounced so typing
   // doesn't fire a request per keystroke.
@@ -42,14 +46,14 @@ export default function Listings() {
     b2bApi
       .getListings({ category, q: debouncedQuery })
       .then((rows) => !cancelled && setListings(rows))
-      .catch((e) => !cancelled && setError(e instanceof ApiError ? e.message : "Couldn't reach FarmsClub right now."));
+      .catch((e) => !cancelled && setError(errorMessage(e)));
     return () => {
       cancelled = true;
     };
   }, [category, debouncedQuery]);
 
   useEffect(() => load(), [load]);
-  const filtered = listings;
+  const hasFilter = category !== null || debouncedQuery !== "";
 
   const filterBar = (
     <View style={{ gap: spacing.lg }}>
@@ -78,12 +82,9 @@ export default function Listings() {
 
   return (
     <AppShell noScroll>
-      <Head>
-        <title>Catalogue · FarmsClub</title>
-        <meta name="description" content="Browse bulk plants, pots, tools, and soil & fertiliser listings with volume pricing on FarmsClub." />
-      </Head>
+      <SeoHead title="Catalogue · FarmsClub" description="Browse bulk plants, pots, tools, and soil & fertiliser listings with volume pricing on FarmsClub." />
 
-      {filtered === null && !error ? (
+      {listings === null && !error ? (
         <>
           {filterBar}
           <LoadingState label="Loading catalogue…" />
@@ -95,7 +96,7 @@ export default function Listings() {
         </>
       ) : (
         <FlatList
-          data={filtered!}
+          data={listings!}
           key={columns}
           numColumns={columns}
           keyExtractor={(item) => String(item.id)}
@@ -104,7 +105,16 @@ export default function Listings() {
           ListHeaderComponent={filterBar}
           ListFooterComponent={<Footer />}
           ListFooterComponentStyle={{ marginTop: spacing.xl }}
-          ListEmptyComponent={<EmptyState title="No matching listings" body="Try a different category or search term." />}
+          ListEmptyComponent={
+            hasFilter ? (
+              <EmptyState title="No matching listings" body="Try a different category or search term." />
+            ) : (
+              <EmptyState
+                title="Listings are going live shortly"
+                body="New bulk listings are being added — send us an enquiry for what you need."
+              />
+            )
+          }
           renderItem={({ item }) => (
             <View style={{ flex: 1 }}>
               <ListingCard listing={item} />

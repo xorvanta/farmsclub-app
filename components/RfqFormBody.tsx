@@ -4,8 +4,16 @@ import { router } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
 import { TextField } from "./TextField";
 import { Button } from "./Button";
-import { b2bApi, ApiError } from "@/lib/api";
+import { b2bApi, errorMessage } from "@/lib/api";
 import type { B2bListing } from "@/lib/types";
+
+/** Column limits from b2b_leads (V127): names/email 200, city/state 100, pincode 10 (we
+ *  enforce the 6-digit Indian format), station 150, GSTIN 20 (we enforce the 15-char format). */
+const LIMITS = { name: 200, email: 200, gstin: 15, city: 100, state: 100, pincode: 6, station: 150, address: 1000, phone: 10 };
+const GSTIN_RE = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const PINCODE_RE = /^[1-9]\d{5}$/;
+const digitsOnly = (t: string) => t.replace(/\D/g, "");
 
 /** Shared by /rfq/[listingId] (enquiring about one listing) and /contact (a general enquiry,
  *  no listing attached) — same backend call (POST /public/b2b/rfq), same field set per
@@ -22,6 +30,9 @@ export function RfqFormBody({ listing, listingId }: { listing?: B2bListing | nul
   const [customerGstin, setCustomerGstin] = useState("");
   const [billingName, setBillingName] = useState("");
   const [billingAddress, setBillingAddress] = useState("");
+  const [billingCity, setBillingCity] = useState("");
+  const [billingState, setBillingState] = useState("");
+  const [billingPincode, setBillingPincode] = useState("");
   const [sameAsBilling, setSameAsBilling] = useState(true);
   const [deliveryCity, setDeliveryCity] = useState("");
   const [deliveryState, setDeliveryState] = useState("");
@@ -36,12 +47,31 @@ export function RfqFormBody({ listing, listingId }: { listing?: B2bListing | nul
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const stationRequired = !!listing; // a specific-product enquiry needs it to quote transit; a general one doesn't yet
+  const moq = listing ? listing.moq ?? listing.bulk_min_quantity ?? null : null;
+
+  // Ship-to is always captured: with "same as billing" ticked it comes from the billing
+  // city/state/pincode, otherwise from the separate delivery fields.
+  const shipTo = sameAsBilling
+    ? { city: billingCity.trim(), state: billingState.trim(), pincode: billingPincode.trim() }
+    : { city: deliveryCity.trim(), state: deliveryState.trim(), pincode: deliveryPincode.trim() };
 
   function validate(): boolean {
     const next: Record<string, string> = {};
     if (!contactName.trim()) next.contactName = "Enter your name.";
     if (!/^[6-9]\d{9}$/.test(phone.trim())) next.phone = "Enter a valid 10-digit mobile number.";
+    if (email.trim() && !EMAIL_RE.test(email.trim())) next.email = "Enter a valid email address.";
+    if (customerGstin.trim() && !GSTIN_RE.test(customerGstin.trim()))
+      next.customerGstin = "Enter a valid 15-character GSTIN (e.g. 27ABCDE1234F1Z5).";
+    const prefix = sameAsBilling ? "billing" : "delivery";
+    if (!shipTo.city) next[`${prefix}City`] = "Enter the city.";
+    if (!shipTo.state) next[`${prefix}State`] = "Enter the state.";
+    if (!PINCODE_RE.test(shipTo.pincode)) next[`${prefix}Pincode`] = "Enter a valid 6-digit pincode.";
     if (stationRequired && !destinationStation.trim()) next.destinationStation = "Enter the nearest destination railway station.";
+    if (listing) {
+      const qty = quantityInterest.trim();
+      if (!/^\d+$/.test(qty) || Number(qty) <= 0) next.quantityInterest = "Enter the quantity as a whole number.";
+      else if (moq != null && Number(qty) < moq) next.quantityInterest = `Minimum order quantity is ${moq}.`;
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -63,18 +93,18 @@ export function RfqFormBody({ listing, listingId }: { listing?: B2bListing | nul
         billingName: billingName.trim() || undefined,
         billingAddress: billingAddressFinal || undefined,
         deliverySameAsBilling: sameAsBilling,
-        deliveryCity: sameAsBilling ? undefined : deliveryCity.trim() || undefined,
-        deliveryState: sameAsBilling ? undefined : deliveryState.trim() || undefined,
-        deliveryPincode: sameAsBilling ? undefined : deliveryPincode.trim() || undefined,
+        deliveryCity: shipTo.city,
+        deliveryState: shipTo.state,
+        deliveryPincode: shipTo.pincode,
         destinationRailwayStation: destinationStation.trim() || undefined,
         listingId: listingId ?? listing?.id,
-        quantityInterest: quantityInterest ? Number(quantityInterest) : undefined,
+        quantityInterest: listing && quantityInterest.trim() ? Number(quantityInterest.trim()) : undefined,
         honeypot,
         formRenderedAt: renderedAt.current,
       });
       setSubmittedId(id);
     } catch (e) {
-      setSubmitError(e instanceof ApiError ? e.message : "Couldn't submit your enquiry — please try again.");
+      setSubmitError(errorMessage(e));
     } finally {
       setSubmitting(false);
     }
@@ -112,15 +142,51 @@ export function RfqFormBody({ listing, listingId }: { listing?: B2bListing | nul
       />
 
       <FormSection title="Contact">
-        <TextField label="Your name" value={contactName} onChangeText={setContactName} required error={errors.contactName} />
-        <TextField label="Mobile number" value={phone} onChangeText={setPhone} required keyboardType="phone-pad" error={errors.phone} />
-        <TextField label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" />
+        <TextField label="Your name" value={contactName} onChangeText={setContactName} required error={errors.contactName} maxLength={LIMITS.name} />
+        <TextField
+          label="Mobile number"
+          value={phone}
+          onChangeText={(t) => setPhone(digitsOnly(t))}
+          required
+          keyboardType="phone-pad"
+          error={errors.phone}
+          maxLength={LIMITS.phone}
+          placeholder="10-digit mobile number"
+        />
+        <TextField
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          error={errors.email}
+          maxLength={LIMITS.email}
+        />
       </FormSection>
 
       <FormSection title="Billing">
-        <TextField label="GSTIN" value={customerGstin} onChangeText={setCustomerGstin} placeholder="Optional — auto-fills your legal name" />
-        <TextField label="Billing / company name" value={billingName} onChangeText={setBillingName} />
-        <TextField label="Billing address" value={billingAddress} onChangeText={setBillingAddress} multiline />
+        <TextField
+          label="GSTIN"
+          value={customerGstin}
+          onChangeText={(t) => setCustomerGstin(t.toUpperCase().replace(/[^0-9A-Z]/g, ""))}
+          placeholder="Optional — 15-character GSTIN"
+          autoCapitalize="characters"
+          error={errors.customerGstin}
+          maxLength={LIMITS.gstin}
+        />
+        <TextField label="Billing / company name" value={billingName} onChangeText={setBillingName} maxLength={LIMITS.name} />
+        <TextField label="Billing address" value={billingAddress} onChangeText={setBillingAddress} multiline maxLength={LIMITS.address} />
+        <TextField label="City" value={billingCity} onChangeText={setBillingCity} required={sameAsBilling} error={errors.billingCity} maxLength={LIMITS.city} />
+        <TextField label="State" value={billingState} onChangeText={setBillingState} required={sameAsBilling} error={errors.billingState} maxLength={LIMITS.state} />
+        <TextField
+          label="Pincode"
+          value={billingPincode}
+          onChangeText={(t) => setBillingPincode(digitsOnly(t))}
+          required={sameAsBilling}
+          keyboardType="number-pad"
+          error={errors.billingPincode}
+          maxLength={LIMITS.pincode}
+        />
       </FormSection>
 
       <FormSection title="Delivery">
@@ -133,9 +199,17 @@ export function RfqFormBody({ listing, listingId }: { listing?: B2bListing | nul
 
         {!sameAsBilling && (
           <>
-            <TextField label="Delivery city" value={deliveryCity} onChangeText={setDeliveryCity} />
-            <TextField label="Delivery state" value={deliveryState} onChangeText={setDeliveryState} />
-            <TextField label="Delivery pincode" value={deliveryPincode} onChangeText={setDeliveryPincode} keyboardType="number-pad" />
+            <TextField label="Delivery city" value={deliveryCity} onChangeText={setDeliveryCity} required error={errors.deliveryCity} maxLength={LIMITS.city} />
+            <TextField label="Delivery state" value={deliveryState} onChangeText={setDeliveryState} required error={errors.deliveryState} maxLength={LIMITS.state} />
+            <TextField
+              label="Delivery pincode"
+              value={deliveryPincode}
+              onChangeText={(t) => setDeliveryPincode(digitsOnly(t))}
+              required
+              keyboardType="number-pad"
+              error={errors.deliveryPincode}
+              maxLength={LIMITS.pincode}
+            />
           </>
         )}
 
@@ -145,7 +219,8 @@ export function RfqFormBody({ listing, listingId }: { listing?: B2bListing | nul
           onChangeText={setDestinationStation}
           required={stationRequired}
           error={errors.destinationStation}
-          placeholder={stationRequired ? "Needed so the seller can quote transit time" : "If known — helps us quote transit time"}
+          maxLength={LIMITS.station}
+          placeholder={stationRequired ? "Needed so we can quote transit time" : "If known — helps us quote transit time"}
         />
       </FormSection>
 
@@ -154,12 +229,15 @@ export function RfqFormBody({ listing, listingId }: { listing?: B2bListing | nul
           <TextField
             label={`Quantity interested in (${listing.unit ?? listing.bulk_unit ?? "units"})`}
             value={quantityInterest}
-            onChangeText={setQuantityInterest}
+            onChangeText={(t) => setQuantityInterest(digitsOnly(t))}
             keyboardType="number-pad"
-            placeholder={(listing.moq ?? listing.bulk_min_quantity) ? `MOQ is ${listing.moq ?? listing.bulk_min_quantity}` : undefined}
+            required
+            error={errors.quantityInterest}
+            maxLength={9}
+            placeholder={moq != null ? `MOQ is ${moq}` : undefined}
           />
         ) : (
-          <TextField label="What are you looking to source?" value={notes} onChangeText={setNotes} multiline placeholder="Product, approximate quantity, and timeline" />
+          <TextField label="What are you looking to source?" value={notes} onChangeText={setNotes} multiline maxLength={LIMITS.address} placeholder="Product, approximate quantity, and timeline" />
         )}
       </FormSection>
 

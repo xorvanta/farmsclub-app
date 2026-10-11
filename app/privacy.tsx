@@ -1,14 +1,11 @@
-import Head from "expo-router/head";
+import { SeoHead } from "@/components/SeoHead";
 import { AppShell } from "@/components/AppShell";
 import { LegalPage } from "@/components/LegalPage";
 
 export default function Privacy() {
   return (
     <AppShell>
-      <Head>
-        <title>Privacy Policy · FarmsClub</title>
-        <meta name="description" content="How Formulate India collects and uses the information you submit on FarmsClub." />
-      </Head>
+      <SeoHead title="Privacy Policy · FarmsClub" description="How Formulate India collects and uses the information you submit on FarmsClub." />
       <LegalPage
         title="Privacy Policy"
         updated="[date — set before launch]"

@@ -28,7 +28,12 @@
       "output": "static"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "sitemap": false
+        }
+      ],
       "expo-font",
       "expo-status-bar",
       "expo-splash-screen"

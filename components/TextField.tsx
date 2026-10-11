@@ -10,9 +10,11 @@ type Props = {
   keyboardType?: KeyboardTypeOptions;
   multiline?: boolean;
   error?: string;
+  maxLength?: number;
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
 };
 
-export function TextField({ label, value, onChangeText, required, placeholder, keyboardType, multiline, error }: Props) {
+export function TextField({ label, value, onChangeText, required, placeholder, keyboardType, multiline, error, maxLength, autoCapitalize }: Props) {
   const { colors, fonts, radius, spacing } = useTheme();
   return (
     <View style={{ gap: 6 }}>
@@ -27,6 +29,8 @@ export function TextField({ label, value, onChangeText, required, placeholder, k
         placeholderTextColor={colors.inkFaint}
         keyboardType={keyboardType}
         multiline={multiline}
+        maxLength={maxLength}
+        autoCapitalize={autoCapitalize}
         style={[
           styles.input,
           {

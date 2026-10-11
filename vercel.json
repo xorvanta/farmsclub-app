@@ -1,10 +1,16 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build:web",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     {
       "source": "/api/v1/:path*",
       "destination": "https://xoms-backend-752519899091.asia-south1.run.app/api/v1/:path*"
-    }
+    },
+    { "source": "/listings/:id", "destination": "/listings/[id].html" },
+    { "source": "/rfq/:listingId", "destination": "/rfq/[listingId].html" }
   ],
   "headers": [
     {

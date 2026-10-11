@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
 import { router } from "expo-router";
-import Head from "expo-router/head";
+import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
@@ -30,10 +30,7 @@ export default function About() {
   const { colors, fonts, spacing, radius } = useTheme();
   return (
     <AppShell contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl }}>
-      <Head>
-        <title>How Sourcing Works · FarmsClub</title>
-        <meta name="description" content="How Formulate India sources, prices, and delivers bulk orders through FarmsClub." />
-      </Head>
+      <SeoHead title="How Sourcing Works · FarmsClub" description="How Formulate India sources, prices, and delivers bulk orders through FarmsClub." />
       <Text style={{ fontFamily: fonts.display, fontSize: 26, color: colors.ink, maxWidth: 520 }}>
         How FarmsClub sourcing works
       </Text>
