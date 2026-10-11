@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { View, Text, Image, FlatList, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import Head from "expo-router/head";
+import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { ListingCard } from "@/components/ListingCard";
@@ -15,7 +15,7 @@ import { FaqAccordion } from "@/components/FaqAccordion";
 import { TrustBadges } from "@/components/TrustBadges";
 import { CATEGORIES } from "@/constants/categories";
 import { HERO_PHOTO, TRADE_DESK_PHOTO, NURSERY_WIDE_PHOTO, photoUrl } from "@/constants/categoryImages";
-import { b2bApi, ApiError } from "@/lib/api";
+import { b2bApi, errorMessage } from "@/lib/api";
 import { useChat } from "@/lib/chat-context";
 import type { B2bListing } from "@/lib/types";
 
@@ -41,20 +41,14 @@ export default function Home() {
     b2bApi
       .getListings()
       .then(setListings)
-      .catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't reach FarmsClub right now."));
+      .catch((e) => setError(errorMessage(e)));
   }, []);
 
   useEffect(() => void load(), [load]);
 
   return (
     <AppShell>
-      <Head>
-        <title>FarmsClub — Bulk Plants, Pots, Tools &amp; Fertiliser</title>
-        <meta
-          name="description"
-          content="Formulate India's B2B wholesale trade platform for bulk plants, pots, tools, and soil & fertiliser — tiered pricing, sourced and delivered pan-India."
-        />
-      </Head>
+      <SeoHead title="FarmsClub — Bulk Plants, Pots, Tools & Fertiliser" description="Formulate India's B2B wholesale trade platform for bulk plants, pots, tools, and soil & fertiliser — tiered pricing, sourced and delivered pan-India." />
 
       {/* ── Hero — real photo banner, full-bleed with a brand-tinted gradient for text legibility ──
            Deliberately its own mobile proportions, not the desktop layout just scaled down: a
@@ -285,8 +279,7 @@ function EmptyCatalogueNote() {
         Listings are going live shortly
       </Text>
       <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: colors.inkSoft, marginTop: 6, maxWidth: 420, lineHeight: 19 }}>
-        Sellers are flagging their first bulk-priced products. Check back soon, or tell us what
-        you're sourcing and our trade desk will get ahead of it for you.
+        New bulk listings are being added — send us an enquiry for what you need.
       </Text>
       <View style={{ marginTop: spacing.lg, alignSelf: "flex-start" }}>
         <Button label="Tell us what you need" variant="outline" onPress={() => router.push("/contact")} />

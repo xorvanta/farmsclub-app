@@ -1,14 +1,11 @@
-import Head from "expo-router/head";
+import { SeoHead } from "@/components/SeoHead";
 import { AppShell } from "@/components/AppShell";
 import { LegalPage } from "@/components/LegalPage";
 
 export default function Terms() {
   return (
     <AppShell>
-      <Head>
-        <title>Terms of Trade · FarmsClub</title>
-        <meta name="description" content="Terms governing bulk orders placed through FarmsClub." />
-      </Head>
+      <SeoHead title="Terms of Trade · FarmsClub" description="Terms governing bulk orders placed through FarmsClub." />
       <LegalPage
         title="Terms of Trade"
         updated="[date — set before launch]"

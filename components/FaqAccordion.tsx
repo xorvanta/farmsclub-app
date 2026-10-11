@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { useTheme } from "@/constants/theme-context";
-import { b2bApi } from "@/lib/api";
+import { b2bApi, errorMessage } from "@/lib/api";
+import { LoadingState, ErrorState, EmptyState } from "./StateViews";
+import { Button } from "./Button";
+import { router } from "expo-router";
 import type { B2bFaq } from "@/lib/types";
 
 // Admin FAQ answers may contain basic HTML (<a href> links, per the admin form's own hint) —
@@ -23,21 +26,28 @@ export function FaqAccordion({ limit }: { limit?: number }) {
   const { colors, fonts, spacing, radius } = useTheme();
   const [faqs, setFaqs] = useState<B2bFaq[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    setError(null);
+    setFaqs(null);
     b2bApi
       .getFaqs()
       .then((data) => {
-        if (!cancelled) setFaqs(data);
+        if (!cancelled) setFaqs(Array.isArray(data) ? data : []);
       })
-      .catch(() => {
-        if (!cancelled) setFaqs([]);
+      .catch((e) => {
+        if (!cancelled) {
+          setFaqs([]);
+          setError(errorMessage(e));
+        }
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attempt]);
 
   const groups = useMemo(() => {
     if (!faqs) return [];
@@ -68,7 +78,22 @@ export function FaqAccordion({ limit }: { limit?: number }) {
     return [...byCategory.entries()].map(([category, items]) => ({ category, items }));
   }, [faqs, limit]);
 
-  if (!faqs || faqs.length === 0) return null;
+  // Home teaser (`limit`) quietly disappears when there's nothing to show; the full /faqs page
+  // always explains what's happening instead of rendering a blank page.
+  if (limit) {
+    if (!faqs || faqs.length === 0) return null;
+  } else {
+    if (error) return <ErrorState message={error} onRetry={() => setAttempt((n) => n + 1)} />;
+    if (!faqs) return <LoadingState label="Loading FAQs…" />;
+    if (faqs.length === 0) {
+      return (
+        <View style={{ alignItems: "center", gap: spacing.md }}>
+          <EmptyState title="FAQs are on their way" body="Have a question in the meantime? Ask Trellis in the chat, or send us an enquiry." />
+          <Button label="Contact our trade desk" variant="outline" onPress={() => router.push("/contact")} />
+        </View>
+      );
+    }
+  }
 
   return (
     <View style={{ gap: spacing.xl }}>

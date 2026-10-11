@@ -76,14 +76,16 @@ export function ChatWidget() {
     const text = (override ?? input).trim();
     if (!text || sending) return;
     if (override) setSuggestions((prev) => prev.filter((q) => q !== override));
-    const next = [...messages, { role: "user" as const, content: text }];
-    setMessages(next);
+    // The backend appends `message` as the final "Buyer:" turn itself (B2bChatService), so the
+    // history sent is the conversation BEFORE this message — otherwise it would appear twice.
+    const history = messages.slice(-8);
+    setMessages([...messages, { role: "user" as const, content: text }]);
     setInput("");
     setSending(true);
     try {
       const result = await b2bApi.askChat({
         message: text,
-        history: next.slice(-8),
+        history,
         listingContext: listingContext ?? undefined,
       });
       setMessages((prev) => [...prev, { role: "assistant", content: result.reply }]);

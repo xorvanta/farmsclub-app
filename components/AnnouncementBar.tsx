@@ -3,11 +3,7 @@ import { useTheme } from "@/constants/theme-context";
 import { useChat, CHAT_COMPACT_WIDTH } from "@/lib/chat-context";
 import { SparkleIcon } from "@/components/graphics/SparkleIcon";
 
-// Real contact details — same numbers already hardcoded in paudhewale-dashboard-frontend's
-// StorefrontFooter.jsx, no separate public API exposes SupportContactSettingsService today so
-// this follows that same established pattern rather than inventing a new one.
-const WHATSAPP_NUMBER = "917969513372";
-const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
+import { WHATSAPP_URL } from "@/constants/contact";
 
 /** Thin static strip above the main header — trade-desk hours, a WhatsApp link, and (desktop
  *  only) the "Ask Trellis" trigger, same placement retail uses for "Ask Root" in its own header

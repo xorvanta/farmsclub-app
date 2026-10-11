@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import Head from "expo-router/head";
+import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { RfqFormBody } from "@/components/RfqFormBody";
@@ -9,10 +9,7 @@ export default function Contact() {
 
   return (
     <AppShell contentContainerStyle={{ padding: spacing.lg, maxWidth: 640, width: "100%", alignSelf: "center" }}>
-      <Head>
-        <title>Contact · FarmsClub</title>
-        <meta name="description" content="Get in touch with Formulate India's trade desk for a bulk sourcing requirement." />
-      </Head>
+      <SeoHead title="Contact · FarmsClub" description="Get in touch with Formulate India's trade desk for a bulk sourcing requirement." />
       <View style={{ marginBottom: spacing.lg }}>
         <Text style={{ fontFamily: fonts.display, fontSize: 22, color: colors.ink }}>Talk to our trade desk</Text>
         <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, marginTop: 6, maxWidth: 480, lineHeight: 20 }}>

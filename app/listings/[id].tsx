@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import Head from "expo-router/head";
+import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { Footer } from "@/components/Footer";
@@ -9,12 +9,12 @@ import { Badge } from "@/components/Badge";
 import { BulkPriceCard } from "@/components/BulkPriceCard";
 import { SpecificationSection, ImageGallery, specificationSummary } from "@/components/ListingSpecs";
 import { Button } from "@/components/Button";
-import { LoadingState, ErrorState } from "@/components/StateViews";
+import { LoadingState, ErrorState, EmptyState } from "@/components/StateViews";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CategoryArt } from "@/components/graphics/CategoryArt";
 import { categoryLabel } from "@/constants/categories";
 import { formatPriceRange } from "@/lib/format";
-import { b2bApi, ApiError } from "@/lib/api";
+import { b2bApi, errorMessage, parseListingId } from "@/lib/api";
 import { useChat } from "@/lib/chat-context";
 import type { B2bListing } from "@/lib/types";
 
@@ -25,15 +25,17 @@ export default function ListingDetail() {
   const insets = useSafeAreaInsets();
   const [listing, setListing] = useState<B2bListing | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const listingId = parseListingId(id);
 
   const load = useCallback(() => {
     setError(null);
     setListing(null);
+    if (listingId == null) return;
     b2bApi
-      .getListing(Number(id))
+      .getListing(listingId)
       .then(setListing)
-      .catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't load this listing."));
-  }, [id]);
+      .catch((e) => setError(errorMessage(e)));
+  }, [listingId]);
 
   useEffect(() => void load(), [load]);
 
@@ -43,7 +45,8 @@ export default function ListingDetail() {
     if (!listing) return;
     const unit = listing.unit ?? listing.bulk_unit ?? null;
     const moq = listing.moq ?? listing.bulk_min_quantity ?? null;
-    const range = formatPriceRange(listing.price_from, listing.price_to);
+    // Backend prefixes "₹" itself (B2bChatService), so send bare numbers here, e.g. "40–55".
+    const range = bareRange(listing.price_from, listing.price_to);
     setListingContext({
       title: listing.title,
       category: categoryLabel(listing.category ?? listing.bulk_category),
@@ -54,6 +57,18 @@ export default function ListingDetail() {
     });
     return () => setListingContext(null);
   }, [listing, setListingContext]);
+
+  if (listingId == null) {
+    return (
+      <AppShell noScroll hideBottomNav>
+        <SeoHead title="Listing not found · FarmsClub" noindex />
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.md }}>
+          <EmptyState title="Listing not found" body="This listing doesn't exist, or may no longer be live." />
+          <Button label="Browse the catalogue" onPress={() => router.replace("/listings")} />
+        </View>
+      </AppShell>
+    );
+  }
 
   if (!listing && !error) {
     return (
@@ -85,10 +100,7 @@ export default function ListingDetail() {
 
   return (
     <AppShell noScroll hideBottomNav>
-      <Head>
-        <title>{listing.title} · FarmsClub</title>
-        <meta name="description" content={`${metaDescription}.`} />
-      </Head>
+      <SeoHead title={`${listing.title} · FarmsClub`} description={`${metaDescription}.`} image={images[0] ?? null} />
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <ImageGallery
           images={images}
@@ -127,10 +139,7 @@ export default function ListingDetail() {
           <Button label="Ask Trellis about this listing" variant="outline" onPress={() => openChat()} />
 
           <View
-            style={[
-              styles.trustNote,
-              { backgroundColor: colors.infoSoft, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.xl },
-            ]}
+            style={{ backgroundColor: colors.infoSoft, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.xl }}
           >
             <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.ink, lineHeight: 18 }}>
               Formulate India handles sourcing, invoicing and delivery directly — your enquiry goes to our
@@ -158,6 +167,15 @@ export default function ListingDetail() {
   );
 }
 
+const plainNumber = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 });
+
+/** "40–55" / "40" — the price range without the rupee sign (the chat backend adds it). */
+function bareRange(from: number | null | undefined, to: number | null | undefined): string | null {
+  if (from == null && to == null) return null;
+  if (from == null || to == null || Number(from) === Number(to)) return plainNumber.format(Number(from ?? to));
+  return `${plainNumber.format(Number(from))}–${plainNumber.format(Number(to))}`;
+}
+
 function InfoLine({ label, values }: { label: string; values: string[] }) {
   const { colors, fonts, spacing } = useTheme();
   return (
@@ -171,7 +189,6 @@ function InfoLine({ label, values }: { label: string; values: string[] }) {
 }
 
 const styles = StyleSheet.create({
-  trustNote: {},
   ctaBar: {
     position: "absolute",
     bottom: 0,

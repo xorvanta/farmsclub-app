@@ -22,6 +22,10 @@ export default function Root({ children }: PropsWithChildren) {
           name="description"
           content="Formulate India's B2B wholesale trade platform for bulk plants, pots, tools, and soil & fertiliser — tiered pricing, sourced and delivered pan-India."
         />
+        {/* Site-wide Open Graph defaults — the only OG tags a non-JS link-preview scraper sees.
+            Per-page og:title/description/url/canonical are added client-side by SeoHead. */}
+        <meta property="og:site_name" content="FarmsClub" />
+        <meta property="og:type" content="website" />
         <ScrollViewStyleReset />
       </head>
       <body>{children}</body>

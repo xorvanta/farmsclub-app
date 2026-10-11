@@ -7,11 +7,10 @@ import { Logo } from "@/components/Logo";
 import { TrustBadges } from "@/components/TrustBadges";
 import { b2bApi } from "@/lib/api";
 import type { B2bBillingEntity } from "@/lib/types";
+import { WHATSAPP_URL, WHATSAPP_DISPLAY } from "@/constants/contact";
 
 const YEAR = new Date().getFullYear();
-// Same real contact details already hardcoded in paudhewale-dashboard-frontend's
-// StorefrontFooter.jsx — see AnnouncementBar.tsx for why these are hardcoded rather than fetched.
-const WHATSAPP_NUMBER = "917969513372";
+// Support email is hardcoded for the same reason as the WhatsApp number — see constants/contact.ts.
 const SUPPORT_EMAIL = "help@paudhewale.com";
 
 export function Footer() {
@@ -44,9 +43,9 @@ export function Footer() {
           </Text>
 
           <View style={{ gap: 6, marginTop: 4 }}>
-            <Pressable onPress={() => Linking.openURL(`https://wa.me/${WHATSAPP_NUMBER}`)} hitSlop={4}>
+            <Pressable onPress={() => Linking.openURL(WHATSAPP_URL)} hitSlop={4}>
               <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>
-                WhatsApp: +91 {WHATSAPP_NUMBER.slice(2, 7)} {WHATSAPP_NUMBER.slice(7)}
+                WhatsApp: {WHATSAPP_DISPLAY}
               </Text>
             </Pressable>
             <Pressable onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} hitSlop={4}>
