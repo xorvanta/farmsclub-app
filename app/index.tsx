@@ -218,7 +218,7 @@ export default function Home() {
             columnWrapperStyle={columns > 1 ? { gap: spacing.md } : undefined}
             contentContainerStyle={{ gap: spacing.md, marginTop: spacing.md }}
             renderItem={({ item }) => (
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, maxWidth: `${100 / columns}%` as `${number}%` }}>
                 <ListingCard listing={item} />
               </View>
             )}
