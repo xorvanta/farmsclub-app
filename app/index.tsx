@@ -104,7 +104,7 @@ export default function Home() {
               style={({ pressed }) => [
                 styles.categoryTile,
                 { borderRadius: radius.lg, opacity: pressed ? 0.9 : 1 },
-                columns >= 4 ? { width: "18.4%" } : width >= 680 ? { width: "31%" } : { width: "47%" },
+                columns >= 4 ? { flexBasis: "14%", flexGrow: 1 } : width >= 680 ? { flexBasis: "30%", flexGrow: 1 } : { flexBasis: "40%", flexGrow: 1 },
               ]}
             >
               <CategoryArt category={c.value} style={StyleSheet.absoluteFill} />

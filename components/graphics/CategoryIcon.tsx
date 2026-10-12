@@ -16,6 +16,15 @@ export function CategoryIcon({ category, size = 26, color }: Props) {
           <Path d="M12 13C12 13 18 13 18 8C13 8 12 13 12 13Z" />
         </Svg>
       );
+    case "SEED":
+      return (
+        <Svg {...common}>
+          <Path d="M12 21c-3.3 0-5.5-2.6-5.5-5.8C6.5 12 9 9.5 12 9.5s5.5 2.5 5.5 5.7c0 3.2-2.2 5.8-5.5 5.8Z" />
+          <Path d="M12 9.5V6" />
+          <Path d="M12 6c0 0-3.5 0-3.5-3C11.5 3 12 6 12 6Z" />
+          <Path d="M12 6c0 0 3.5 0 3.5-3C12.5 3 12 6 12 6Z" />
+        </Svg>
+      );
     case "POT":
       return (
         <Svg {...common}>
