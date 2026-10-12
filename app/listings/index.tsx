@@ -116,7 +116,7 @@ export default function Listings() {
             )
           }
           renderItem={({ item }) => (
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, maxWidth: `${100 / columns}%` as `${number}%` }}>
               <ListingCard listing={item} />
             </View>
           )}
