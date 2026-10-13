@@ -7,7 +7,7 @@ export type ApiResponse<T> = {
   timestamp: string;
 };
 
-export type Category = "PLANT" | "POT" | "TOOL" | "SOIL_FERTILISER" | "OTHER";
+export type Category = "PLANT" | "SEED" | "POT" | "TOOL" | "SOIL_FERTILISER" | "OTHER";
 
 /**
  * GET /public/b2b/listings and /public/b2b/listings/{id} — see PublicB2bController.

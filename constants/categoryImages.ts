@@ -18,6 +18,7 @@ import type { Category } from "@/lib/types";
  */
 export const CATEGORY_PHOTOS: Record<Category, string> = {
   PLANT: "https://images.unsplash.com/photo-1644615339756-0afa02e886f0", // lush green trellis rows inside a polytunnel
+  SEED: "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", // seeds just sprouted in rows of nursery pots
   POT: "https://images.unsplash.com/photo-1785964165946-ba4a58eebcb6", // potted nursery stock on tables under green tree cover
   TOOL: "https://images.unsplash.com/photo-1748164089130-1311c43b83b7", // wheelbarrow, rake and fork on a grass path
   SOIL_FERTILISER: "https://images.unsplash.com/photo-1611843467160-25afb8df1074", // hands planting seedlings in a garden bed
