@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, TextInput, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
@@ -46,6 +46,11 @@ export function RfqFormBody({ listing, listingId }: { listing?: B2bListing | nul
   const [submittedId, setSubmittedId] = useState<number | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // One "form opened" per mount, for the opens → submits funnel on the trade desk's RFQ stats.
+  useEffect(() => {
+    b2bApi.trackRfqOpen(listingId ?? listing?.id ?? null);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const stationRequired = !!listing; // a specific-product enquiry needs it to quote transit; a general one doesn't yet
   const moq = listing ? listing.moq ?? listing.bulk_min_quantity ?? null : null;
 
@@ -82,16 +87,13 @@ export function RfqFormBody({ listing, listingId }: { listing?: B2bListing | nul
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const billingAddressFinal = [billingAddress.trim(), notes.trim() ? `Notes: ${notes.trim()}` : ""]
-        .filter(Boolean)
-        .join("\n");
       const id = await b2bApi.submitRfq({
         contactName: contactName.trim(),
         phone: phone.trim(),
         email: email.trim() || undefined,
         customerGstin: customerGstin.trim() || undefined,
         billingName: billingName.trim() || undefined,
-        billingAddress: billingAddressFinal || undefined,
+        billingAddress: billingAddress.trim() || undefined,
         deliverySameAsBilling: sameAsBilling,
         deliveryCity: shipTo.city,
         deliveryState: shipTo.state,
@@ -99,6 +101,8 @@ export function RfqFormBody({ listing, listingId }: { listing?: B2bListing | nul
         destinationRailwayStation: destinationStation.trim() || undefined,
         listingId: listingId ?? listing?.id,
         quantityInterest: listing && quantityInterest.trim() ? Number(quantityInterest.trim()) : undefined,
+        notes: notes.trim() || undefined,
+        originUrl: typeof window !== "undefined" && window.location?.href?.startsWith("http") ? window.location.href : undefined,
         honeypot,
         formRenderedAt: renderedAt.current,
       });

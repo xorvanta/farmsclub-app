@@ -93,6 +93,8 @@ export type RfqRequest = {
   destinationRailwayStation?: string;
   listingId?: number; // a b2b_listings.id (same id the listing pages use)
   quantityInterest?: number;
+  notes?: string; // what the buyer wrote — saved as the lead's notes for the trade desk
+  originUrl?: string; // the page the enquiry was sent from (web only)
   // Anti-spam honeypot — AntiSpamGuard rejects a submission where this is filled, or where
   // formRenderedAt is suspiciously recent (a bot submitting faster than a human could type).
   honeypot?: string;
