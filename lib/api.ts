@@ -106,6 +106,18 @@ export const b2bApi = {
       body: JSON.stringify(payload),
     }),
 
+  /** Quote-form funnel for the trade desk's RFQ stats (opens → submits). The submit is recorded
+   *  by the server itself, so only the open is sent from here. Never blocks the form. */
+  trackRfqOpen: (listingId: number | null) =>
+    request<unknown>("/public/rfq/events", {
+      method: "POST",
+      body: JSON.stringify({
+        type: "rfq_open",
+        sourceChannel: listingId != null ? "FARMSCLUB_LISTING" : "FARMSCLUB_GENERAL",
+        page: listingId != null ? `/rfq/${listingId}` : "/contact",
+      }),
+    }).catch(() => undefined),
+
   getFaqs: () => request<B2bFaq[]>("/public/b2b/faqs"),
 
   getBillingEntity: () => request<B2bBillingEntity>("/public/b2b/billing-entity"),
