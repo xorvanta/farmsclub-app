@@ -35,7 +35,7 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
 
   return (
     <View style={{ gap: 6 }}>
-      <Text nativeID={labelId} style={{ fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.inkSoft }}>
+      <Text nativeID={labelId} style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.ink }}>
         {label}
         {required ? <Text style={{ color: colors.danger }}> *</Text> : null}
       </Text>
@@ -65,16 +65,23 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
           {
             fontFamily: fonts.body,
             color: colors.ink,
-            // Focus is shown by the border (brand), errors by danger — the browser outline is
-            // turned off below only because this replaces it.
             borderColor: error ? colors.danger : focused ? colors.brand : colors.border,
             borderWidth: focused || error ? 1.5 : 1,
             borderRadius: radius.md,
-            paddingHorizontal: spacing.md,
-            minHeight: multiline ? 88 : 46,
+            paddingHorizontal: spacing.md + 2,
+            minHeight: multiline ? 96 : 48,
             textAlignVertical: multiline ? "top" : "center",
-            paddingVertical: multiline ? spacing.sm : 0,
+            paddingVertical: multiline ? spacing.md : 0,
             backgroundColor: colors.surface,
+            ...(focused
+              ? {
+                  shadowColor: colors.brand,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 5,
+                  elevation: 1,
+                }
+              : {}),
           },
         ]}
       />
@@ -83,7 +90,7 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
           nativeID={errorId}
           accessibilityLiveRegion="polite"
           aria-live="polite"
-          style={{ color: colors.danger, fontFamily: fonts.body, fontSize: 12 }}
+          style={{ color: colors.danger, fontFamily: fonts.bodyMedium, fontSize: 12, marginTop: 2 }}
         >
           {error}
         </Text>
@@ -93,5 +100,5 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
 });
 
 const styles = StyleSheet.create({
-  input: { fontSize: 15, outlineWidth: 0 },
+  input: { fontSize: 14.5, outlineWidth: 0 },
 });

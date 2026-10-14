@@ -13,7 +13,7 @@ import { b2bApi, errorMessage, isNotFound, parseListingId } from "@/lib/api";
 import type { B2bListing } from "@/lib/types";
 
 export default function RfqForScreen() {
-  const { spacing } = useTheme();
+  const { spacing, colors, radius } = useTheme();
   const { listingId: rawId } = useLocalSearchParams<{ listingId: string }>();
   const listingId = parseListingId(rawId);
   const scrollRef = useRef<ScrollView>(null);
@@ -76,7 +76,7 @@ export default function RfqForScreen() {
       keyboardAware
       hideBottomNav
       scrollRef={scrollRef}
-      contentContainerStyle={{ padding: spacing.lg, maxWidth: 640, width: "100%", alignSelf: "center" }}
+      contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl, maxWidth: 680, width: "100%", alignSelf: "center" }}
     >
       <SeoHead title="Request a quote · FarmsClub" description="Submit a bulk sourcing enquiry to Formulate India's trade desk." noindex />
       {/* The banner describes the quote form — only shown once there is a listing to quote on. */}
@@ -91,7 +91,22 @@ export default function RfqForScreen() {
           />
         </View>
       ) : null}
-      {body}
+      <View
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          borderWidth: 1,
+          borderRadius: radius.lg,
+          padding: spacing.xl,
+          shadowColor: "#111C15",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 10,
+          elevation: 2,
+        }}
+      >
+        {body}
+      </View>
     </AppShell>
   );
 }
