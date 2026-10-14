@@ -5,7 +5,7 @@ export type TrustIconKey = "invoice" | "verified" | "panIndia" | "flatPrice" | "
 
 type Props = { icon: TrustIconKey; size?: number; color: string };
 
-/** One glyph per trust point, built from primitives — matches the CategoryIcon convention
+/** One glyph per trust point, built from primitives — same convention as StepIcon/NavIcon
  *  (no imported icon library anywhere in this app). */
 export function TrustIcon({ icon, size = 20, color }: Props) {
   const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };

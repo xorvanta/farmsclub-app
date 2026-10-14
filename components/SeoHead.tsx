@@ -1,15 +1,15 @@
-import { Platform } from "react-native";
 import { usePathname } from "expo-router";
 import Head from "expo-router/head";
 
 /**
- * Public site origin for canonical/og:url. Set EXPO_PUBLIC_SITE_URL (e.g. https://farmsclub.in)
- * in Vercel once the domain is attached; until then the browser's own origin is used at runtime.
+ * Public site origin for canonical/og:url — only ever EXPO_PUBLIC_SITE_URL (set it in Vercel's
+ * Production environment once the domain is attached). Deliberately no fallback to the browser's
+ * own origin: on a Vercel preview or *.vercel.app host that would declare the preview URL as
+ * canonical. With it unset, canonical/og:url are simply omitted.
  */
 function siteOrigin(): string | null {
-  const env = process.env.EXPO_PUBLIC_SITE_URL;
-  if (env) return env.replace(/\/+$/, "");
-  if (Platform.OS === "web" && typeof window !== "undefined" && window.location?.origin) return window.location.origin;
+  const env = process.env.EXPO_PUBLIC_SITE_URL?.trim();
+  if (env && /^https?:\/\/[^\s/]+/.test(env)) return env.replace(/\/+$/, "");
   return null;
 }
 

@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
-import { View, Text, Image, FlatList, Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, Image, FlatList, StyleSheet, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { Link } from "expo-router";
+import { PressableLink } from "@/components/PressableLink";
 import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
@@ -48,14 +49,18 @@ export default function Home() {
 
   return (
     <AppShell>
-      <SeoHead title="FarmsClub — Bulk Plants, Pots, Tools & Fertiliser" description="Formulate India's B2B wholesale trade platform for bulk plants, pots, tools, and soil & fertiliser — tiered pricing, sourced and delivered pan-India." />
+      <SeoHead title="FarmsClub — Bulk plants, seeds, pots, tools & fertiliser" description="Formulate India's B2B wholesale trade platform for bulk plants, seeds, pots, tools, and soil & fertiliser — quantity-tier pricing, sourced from nurseries and suppliers across India." />
 
       {/* ── Hero — real photo banner, full-bleed with a brand-tinted gradient for text legibility ──
            Deliberately its own mobile proportions, not the desktop layout just scaled down: a
            shorter panel, smaller kicker/heading/body, and tighter spacing so it reads as one
-           quick screenful on a phone instead of a stretched desktop hero. ── */}
-      <View style={[styles.heroWrap, wide ? { height: 460 } : compact ? { height: 400 } : { height: 480 }]}>
+           quick screenful on a phone instead of a stretched desktop hero. A minHeight (not a fixed
+           height) with vertical padding, so a 360px screen or a large accessibility font size grows
+           the panel instead of clipping the heading/buttons. ── */}
+      <View style={[styles.heroWrap, { minHeight: wide ? 460 : compact ? 400 : 480, paddingVertical: compact ? spacing.xxl : spacing.xxxl }]}>
         <Image
+          alt=""
+          accessible={false}
           source={{ uri: photoUrl(HERO_PHOTO, { w: Math.max(width, 900) * 1.5, h: wide ? 920 : 960, q: 72 }) }}
           style={StyleSheet.absoluteFill}
           resizeMode="cover"
@@ -74,16 +79,20 @@ export default function Home() {
               Wholesale trade platform
             </Text>
           </View>
-          <Text style={{ fontFamily: fonts.display, fontSize: wide ? 44 : compact ? 26 : 32, lineHeight: wide ? 50 : compact ? 32 : 38, color: "#FFFFFF", marginTop: compact ? 10 : 14 }}>
-            Bulk plants, pots, tools &amp; fertiliser — priced for volume.
+          <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: wide ? 44 : compact ? 26 : 32, lineHeight: wide ? 50 : compact ? 32 : 38, color: "#FFFFFF", marginTop: compact ? 10 : 14 }}>
+            Bulk plants, seeds, pots, tools &amp; fertiliser — priced for volume.
           </Text>
           <Text style={{ fontFamily: fonts.body, fontSize: compact ? 13.5 : 15.5, color: "rgba(255,255,255,0.88)", marginTop: compact ? 8 : 12, maxWidth: 440, lineHeight: compact ? 19 : 23 }}>
             FarmsClub is Formulate India's wholesale arm. Clear quantity-tier pricing on every listing,
-            sourced and delivered pan-India — our trade desk handles the rest.
+            sourced from nurseries and suppliers across India — our trade desk handles the rest.
           </Text>
           <View style={{ marginTop: compact ? spacing.lg : spacing.xl, flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
-            <Button label="Browse the catalogue" onPress={() => router.push("/listings")} />
-            <Button label="How sourcing works" variant="outline" onPress={() => router.push("/about")} inverted />
+            <Link href="/listings" asChild>
+              <Button label="Browse the catalogue" />
+            </Link>
+            <Link href="/about" asChild>
+              <Button label="How it works" variant="outline" inverted />
+            </Link>
           </View>
         </View>
       </View>
@@ -98,9 +107,10 @@ export default function Home() {
         <SectionLabel>Shop by category</SectionLabel>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.md }}>
           {CATEGORIES.map((c) => (
-            <Pressable
+            <PressableLink
               key={c.value}
-              onPress={() => router.push({ pathname: "/listings", params: { category: c.value } })}
+              href={{ pathname: "/listings", params: { category: c.value } }}
+              accessibilityLabel={`${c.label} — browse the catalogue`}
               style={({ pressed }) => [
                 styles.categoryTile,
                 { borderRadius: radius.lg, opacity: pressed ? 0.9 : 1 },
@@ -111,14 +121,14 @@ export default function Home() {
               <View style={[styles.categoryTileLabel, { backgroundColor: "rgba(22,32,26,0.56)" }]}>
                 <Text style={{ fontFamily: fonts.heading, fontSize: 13.5, color: "#FFFFFF" }}>{c.label}</Text>
               </View>
-            </Pressable>
+            </PressableLink>
           ))}
         </View>
       </View>
 
       {/* ── How it works — a connected flow on wide screens, a vertical timeline on mobile ── */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
-        <SectionLabel>How sourcing works</SectionLabel>
+        <SectionLabel>How it works</SectionLabel>
 
         {wide ? (
           <View style={{ flexDirection: "row", alignItems: "stretch", marginTop: spacing.lg }}>
@@ -188,7 +198,7 @@ export default function Home() {
         <SectionBanner
           eyebrow="Why FarmsClub"
           title="Built for volume. Priced like it."
-          body="No per-item markup games, no negotiating from scratch every time — clear quantity-tier pricing, confirmed by a real trade desk."
+          body="Clear quantity-tier pricing on every listing, no negotiating from scratch every time — and a real trade desk confirming each order."
           photo={TRADE_DESK_PHOTO}
         />
       </View>
@@ -197,9 +207,9 @@ export default function Home() {
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
           <SectionLabel>Live on FarmsClub</SectionLabel>
-          <Pressable onPress={() => router.push("/listings")}>
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.brand }}>View all →</Text>
-          </Pressable>
+          <Link href="/listings" accessibilityLabel="View all listings" style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.brand }}>
+            View all →
+          </Link>
         </View>
 
         {listings === null && !error ? (
@@ -218,7 +228,7 @@ export default function Home() {
             columnWrapperStyle={columns > 1 ? { gap: spacing.md } : undefined}
             contentContainerStyle={{ gap: spacing.md, marginTop: spacing.md }}
             renderItem={({ item }) => (
-              <View style={{ flex: 1, maxWidth: `${100 / columns}%` as `${number}%` }}>
+              <View style={{ flex: 1, maxWidth: `${100 / columns}%` }}>
                 <ListingCard listing={item} />
               </View>
             )}
@@ -236,7 +246,9 @@ export default function Home() {
         >
           <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
             <Button label="Ask Trellis" onPress={() => openChat(null)} inverted />
-            <Button label="Talk to the trade desk" variant="outline" onPress={() => router.push("/contact")} inverted />
+            <Link href="/contact" asChild>
+              <Button label="Talk to the trade desk" variant="outline" inverted />
+            </Link>
           </View>
         </SectionBanner>
       </View>
@@ -245,9 +257,9 @@ export default function Home() {
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
           <SectionLabel>Frequently asked</SectionLabel>
-          <Pressable onPress={() => router.push("/faqs")}>
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.brand }}>View all →</Text>
-          </Pressable>
+          <Link href="/faqs" accessibilityLabel="View all FAQs" style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.brand }}>
+            View all →
+          </Link>
         </View>
         <View style={{ marginTop: spacing.md }}>
           <FaqAccordion limit={5} />
@@ -260,7 +272,7 @@ export default function Home() {
 function SectionLabel({ children }: { children: string }) {
   const { colors, fonts } = useTheme();
   return (
-    <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: colors.inkFaint }}>
+    <Text accessibilityRole="header" style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: colors.inkFaint }}>
       {children}
     </Text>
   );
@@ -282,7 +294,9 @@ function EmptyCatalogueNote() {
         New bulk listings are being added — send us an enquiry for what you need.
       </Text>
       <View style={{ marginTop: spacing.lg, alignSelf: "flex-start" }}>
-        <Button label="Tell us what you need" variant="outline" onPress={() => router.push("/contact")} />
+        <Link href="/contact" asChild>
+          <Button label="Tell us what you need" variant="outline" />
+        </Link>
       </View>
     </View>
   );

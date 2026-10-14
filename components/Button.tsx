@@ -1,4 +1,5 @@
-import { Pressable, Text, StyleSheet, ActivityIndicator, type GestureResponderEvent } from "react-native";
+import { forwardRef } from "react";
+import { Pressable, Text, StyleSheet, ActivityIndicator, View, type GestureResponderEvent } from "react-native";
 import { useTheme } from "@/constants/theme-context";
 
 type Variant = "primary" | "secondary" | "outline";
@@ -12,17 +13,29 @@ type Props = {
   fullWidth?: boolean;
   /** Use on a dark/photo background — swaps outline/secondary colors for white-on-translucent. */
   inverted?: boolean;
+  /** Screen-reader label when it should differ from the visible text. */
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 };
 
-export function Button({ label, onPress, variant = "primary", disabled, loading, fullWidth, inverted }: Props) {
+/** forwardRef + rest props so it can sit inside <Link href asChild> (Link passes href/onPress). */
+export const Button = forwardRef<View, Props>(function Button(
+  { label, onPress, variant = "primary", disabled, loading, fullWidth, inverted, accessibilityLabel, accessibilityHint, ...rest },
+  ref,
+) {
+  // Whatever <Link asChild> injects (href, role, onClick on web) — forwarded untouched so the
+  // Pressable renders as a real <a href> on web.
+  const linkProps: Record<string, unknown> = rest;
+  const isLink = typeof linkProps.href === "string";
   const { colors, fonts, radius, spacing } = useTheme();
 
+  // Primary uses `cta` (white text 4.95:1), never `accent` (3.5:1 — fails WCAG AA).
   const bg = inverted
     ? variant === "primary"
-      ? colors.accent
+      ? colors.cta
       : "rgba(255,255,255,0.12)"
     : variant === "primary"
-      ? colors.accent
+      ? colors.cta
       : variant === "secondary"
         ? colors.brandSoft
         : "transparent";
@@ -34,11 +47,18 @@ export function Button({ label, onPress, variant = "primary", disabled, loading,
       : variant === "secondary"
         ? colors.brand
         : colors.ink;
+  const isDisabled = !!(disabled || loading);
 
   return (
     <Pressable
-      onPress={onPress}
-      disabled={disabled || loading}
+      ref={ref}
+      {...linkProps}
+      onPress={onPress ?? (linkProps.onPress as Props["onPress"])}
+      disabled={isDisabled}
+      accessibilityRole={isLink ? "link" : "button"}
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: isDisabled, busy: !!loading }}
       style={({ pressed }) => [
         styles.base,
         {
@@ -54,13 +74,13 @@ export function Button({ label, onPress, variant = "primary", disabled, loading,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={textColor} />
+        <ActivityIndicator color={textColor} accessibilityLabel="Sending" />
       ) : (
         <Text style={[styles.label, { color: textColor, fontFamily: fonts.bodySemiBold }]}>{label}</Text>
       )}
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   base: {
@@ -70,5 +90,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 15,
+    textAlign: "center",
   },
 });

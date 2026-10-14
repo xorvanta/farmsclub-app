@@ -1,8 +1,8 @@
-import { View, Text, Image, Pressable, StyleSheet } from "react-native";
-import { router } from "expo-router";
+import { View, Text, Image, StyleSheet } from "react-native";
+import { PressableLink } from "./PressableLink";
 import { useTheme } from "@/constants/theme-context";
 import { categoryLabel } from "@/constants/categories";
-import { formatPriceRange, formatQty } from "@/lib/format";
+import { formatPriceRange, formatQtyWithUnit } from "@/lib/format";
 import { Badge } from "./Badge";
 import { CategoryArt } from "@/components/graphics/CategoryArt";
 import type { B2bListing } from "@/lib/types";
@@ -15,8 +15,11 @@ export function ListingCard({ listing }: { listing: B2bListing }) {
   const category = listing.category ?? listing.bulk_category;
 
   return (
-    <Pressable
-      onPress={() => router.push(`/listings/${listing.id}`)}
+    <PressableLink
+      href={`/listings/${listing.id}`}
+      accessibilityLabel={[listing.title, priceRange ? `${priceRange}${unit ? ` per ${unit}` : ""} before GST` : null, moq != null ? `minimum order ${formatQtyWithUnit(moq, unit)}` : null]
+        .filter(Boolean)
+        .join(", ")}
       style={({ pressed }) => [
         styles.card,
         {
@@ -29,7 +32,7 @@ export function ListingCard({ listing }: { listing: B2bListing }) {
     >
       <View style={styles.imageWrap}>
         {listing.photo_url ? (
-          <Image source={{ uri: listing.photo_url }} style={styles.image} resizeMode="cover" />
+          <Image source={{ uri: listing.photo_url }} style={styles.image} resizeMode="cover" alt={listing.title} />
         ) : (
           <CategoryArt category={category} style={StyleSheet.absoluteFill} />
         )}
@@ -59,7 +62,7 @@ export function ListingCard({ listing }: { listing: B2bListing }) {
         )}
         {moq != null && (
           <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.inkSoft }}>
-            MOQ {formatQty(moq)}{unit ? ` ${unit}` : ""}
+            MOQ {formatQtyWithUnit(moq, unit)}
           </Text>
         )}
         {listing.manufacturer_brand ? (
@@ -68,7 +71,7 @@ export function ListingCard({ listing }: { listing: B2bListing }) {
           </Text>
         ) : null}
       </View>
-    </Pressable>
+    </PressableLink>
   );
 }
 

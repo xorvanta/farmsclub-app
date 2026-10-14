@@ -2,14 +2,27 @@ import { useState, type ReactNode } from "react";
 import { View, Text, Image, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useTheme } from "@/constants/theme-context";
 
-/** "pot_diameter_cm" / "potDiameterCm" → "Pot diameter cm". */
-function humanizeKey(key: string): string {
-  const spaced = key
+// Trailing unit tokens in a spec key, and how they read in a label.
+const UNIT_SUFFIXES: Record<string, string> = {
+  mm: "mm", cm: "cm", m: "m", km: "km", inch: "inch", inches: "inch", ft: "ft",
+  g: "g", gm: "g", gms: "g", kg: "kg", mg: "mg", l: "L", ltr: "L", litre: "L", liter: "L", ml: "ml",
+  pct: "%", percent: "%",
+};
+
+/** "pot_diameter_cm" / "potDiameterCm" → "Pot diameter (cm)"; "heightInches" → "Height (inch)". */
+export function humanizeKey(key: string): string {
+  const words = key
     .replace(/[_-]+/g, " ")
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .trim()
-    .toLowerCase();
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+  let unit: string | null = null;
+  if (words.length > 1 && UNIT_SUFFIXES[words[words.length - 1]]) unit = UNIT_SUFFIXES[words.pop() as string];
+  const text = words.join(" ");
+  const label = text.charAt(0).toUpperCase() + text.slice(1);
+  return unit ? `${label} (${unit})` : label;
 }
 
 function formatValue(v: unknown): string | null {
@@ -60,7 +73,7 @@ export function SpecificationSection({ specification, brand }: { specification: 
 
   return (
     <View style={{ gap: spacing.sm }}>
-      <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink }}>Specification</Text>
+      <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink }}>Specification</Text>
       {rows.length > 0 && (
         <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, overflow: "hidden", backgroundColor: colors.surface }}>
           {rows.map((r, i) => (
@@ -86,15 +99,29 @@ export function SpecificationSection({ specification, brand }: { specification: 
 }
 
 /** Main image plus a thumbnail strip when there's more than one image. */
-export function ImageGallery({ images, fallback, aspectRatio }: { images: string[]; fallback: ReactNode; aspectRatio: number }) {
+/** `maxHeight` caps the main image on wide screens (an aspect ratio alone would make it as tall
+ *  as the column is wide). `alt` describes the images for screen readers. */
+export function ImageGallery({
+  images,
+  fallback,
+  aspectRatio,
+  maxHeight,
+  alt,
+}: {
+  images: string[];
+  fallback: ReactNode;
+  aspectRatio: number;
+  maxHeight?: number;
+  alt?: string;
+}) {
   const { colors, radius, spacing } = useTheme();
   const [active, setActive] = useState(0);
   const current = images[Math.min(active, images.length - 1)];
 
   return (
     <View>
-      <View style={{ aspectRatio, position: "relative" }}>
-        {current ? <Image source={{ uri: current }} style={styles.image} resizeMode="cover" /> : fallback}
+      <View style={{ aspectRatio, maxHeight, width: "100%", position: "relative", overflow: "hidden" }}>
+        {current ? <Image source={{ uri: current }} style={styles.image} resizeMode="cover" alt={alt ? `${alt} — photo ${active + 1} of ${images.length}` : ""} /> : fallback}
       </View>
       {images.length > 1 && (
         <ScrollView
@@ -106,6 +133,9 @@ export function ImageGallery({ images, fallback, aspectRatio }: { images: string
             <Pressable
               key={`${uri}-${i}`}
               onPress={() => setActive(i)}
+              accessibilityRole="button"
+              accessibilityLabel={`Show photo ${i + 1} of ${images.length}`}
+              accessibilityState={{ selected: i === active }}
               style={{
                 width: 64,
                 height: 64,
@@ -115,7 +145,7 @@ export function ImageGallery({ images, fallback, aspectRatio }: { images: string
                 borderColor: i === active ? colors.brand : colors.border,
               }}
             >
-              <Image source={{ uri }} style={styles.image} resizeMode="cover" />
+              <Image source={{ uri }} style={styles.image} resizeMode="cover" alt="" accessible={false} />
             </Pressable>
           ))}
         </ScrollView>

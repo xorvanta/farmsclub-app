@@ -2,7 +2,7 @@ import { useEffect, useCallback } from "react";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import {
   useFonts as useArchivo,
   Archivo_500Medium,
@@ -32,7 +32,8 @@ function RootStack() {
   const { colors } = useTheme();
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
-      <StatusBar style="auto" />
+      {/* Light icons: the top of every screen is the dark-green announcement bar (AppShell). */}
+      <StatusBar style="light" />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -58,7 +59,10 @@ export default function RootLayout() {
     onLayoutRootView();
   }, [onLayoutRootView]);
 
-  if (!ready) return null;
+  // Native waits for fonts behind the splash screen. Web renders straight away (system-font
+  // fallback until the web fonts arrive), so the static export contains the real page — headings,
+  // copy and <a href> links — instead of an empty shell for crawlers and slow connections.
+  if (!ready && Platform.OS !== "web") return null;
 
   return (
     <SafeAreaProvider>

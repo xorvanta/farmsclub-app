@@ -5,9 +5,9 @@ import { Button } from "./Button";
 export function LoadingState({ label = "Loading…" }: { label?: string }) {
   const { colors, fonts } = useTheme();
   return (
-    <View style={styles.center}>
+    <View style={styles.center} accessibilityRole="progressbar" accessibilityLabel={label || "Loading"} accessibilityState={{ busy: true }}>
       <ActivityIndicator color={colors.brand} size="large" />
-      <Text style={{ fontFamily: fonts.body, color: colors.inkSoft, marginTop: 12 }}>{label}</Text>
+      {label ? <Text style={{ fontFamily: fonts.body, color: colors.inkSoft, marginTop: 12 }}>{label}</Text> : null}
     </View>
   );
 }
@@ -15,8 +15,8 @@ export function LoadingState({ label = "Loading…" }: { label?: string }) {
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   const { colors, fonts, spacing } = useTheme();
   return (
-    <View style={[styles.center, { paddingHorizontal: spacing.xl }]}>
-      <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink, marginBottom: 6 }}>
+    <View style={[styles.center, { paddingHorizontal: spacing.xl }]} accessibilityLiveRegion="polite" aria-live="polite">
+      <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink, marginBottom: 6 }}>
         Couldn't load this
       </Text>
       <Text style={{ fontFamily: fonts.body, color: colors.inkSoft, textAlign: "center", marginBottom: spacing.lg }}>
@@ -27,14 +27,16 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
   );
 }
 
-export function EmptyState({ title, body }: { title: string; body?: string }) {
+/** `children` — optional actions (buttons/links) rendered under the text. */
+export function EmptyState({ title, body, children }: { title: string; body?: string; children?: React.ReactNode }) {
   const { colors, fonts, spacing } = useTheme();
   return (
     <View style={[styles.center, { paddingHorizontal: spacing.xl }]}>
-      <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink, marginBottom: 6 }}>{title}</Text>
+      <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink, marginBottom: 6, textAlign: "center" }}>{title}</Text>
       {body ? (
         <Text style={{ fontFamily: fonts.body, color: colors.inkSoft, textAlign: "center" }}>{body}</Text>
       ) : null}
+      {children ? <View style={{ marginTop: spacing.lg, alignItems: "center", gap: spacing.sm }}>{children}</View> : null}
     </View>
   );
 }

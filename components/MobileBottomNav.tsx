@@ -45,7 +45,15 @@ export function MobileBottomNav() {
       {items.map((item) => {
         const tint = item.active ? colors.brand : colors.inkFaint;
         return (
-          <Pressable key={item.key} onPress={item.onPress} style={styles.item} hitSlop={4}>
+          <Pressable
+            key={item.key}
+            onPress={item.onPress}
+            style={styles.item}
+            hitSlop={4}
+            accessibilityRole="button"
+            accessibilityLabel={item.key === "trellis" ? (isOpen ? "Close Trellis chat" : "Open Trellis chat") : item.label}
+            accessibilityState={{ selected: item.active }}
+          >
             {item.render(tint)}
             <Text
               style={{

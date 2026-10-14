@@ -4,13 +4,33 @@ import { useTheme } from "@/constants/theme-context";
 import { b2bApi, errorMessage } from "@/lib/api";
 import { LoadingState, ErrorState, EmptyState } from "./StateViews";
 import { Button } from "./Button";
-import { router } from "expo-router";
+import { Link } from "expo-router";
 import type { B2bFaq } from "@/lib/types";
+import { decodeEntities, parseRichText } from "@/lib/richText";
 
-// Admin FAQ answers may contain basic HTML (<a href> links, per the admin form's own hint) —
-// RN Text can't render markup, so strip tags rather than show literal "<a href=...>" text.
-function stripHtml(html: string) {
-  return html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+/** Admin FAQ answers may contain basic HTML (<a href> links, per the admin form's own hint) and
+ *  HTML entities. Rendered as text + safe links only — see lib/richText.ts. */
+function FaqAnswer({ html }: { html: string }) {
+  const { colors, fonts } = useTheme();
+  const segments = parseRichText(html);
+  return (
+    <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.inkSoft, marginTop: 8, lineHeight: 18 }}>
+      {segments.map((seg, i) =>
+        seg.href ? (
+          <Link
+            key={i}
+            href={seg.href}
+            {...(seg.href.startsWith("/") ? {} : { target: "_blank", rel: "noopener noreferrer" })}
+            style={{ color: colors.brand, textDecorationLine: "underline", fontFamily: fonts.bodyMedium }}
+          >
+            {seg.text}
+          </Link>
+        ) : (
+          <Text key={i}>{seg.text}</Text>
+        ),
+      )}
+    </Text>
+  );
 }
 
 /** Real, admin-managed FAQ content (see B2bFaqService, /admin/faqs B2B tab) — same role as the
@@ -89,7 +109,9 @@ export function FaqAccordion({ limit }: { limit?: number }) {
       return (
         <View style={{ alignItems: "center", gap: spacing.md }}>
           <EmptyState title="FAQs are on their way" body="Have a question in the meantime? Ask Trellis in the chat, or send us an enquiry." />
-          <Button label="Contact our trade desk" variant="outline" onPress={() => router.push("/contact")} />
+          <Link href="/contact" asChild>
+            <Button label="Contact our trade desk" variant="outline" />
+          </Link>
         </View>
       );
     }
@@ -101,6 +123,7 @@ export function FaqAccordion({ limit }: { limit?: number }) {
         <View key={group.category ?? `group-${groupIdx}`} style={{ gap: spacing.sm }}>
           {group.category && (
             <Text
+              accessibilityRole="header"
               style={{
                 fontFamily: fonts.bodySemiBold,
                 fontSize: 11.5,
@@ -110,15 +133,15 @@ export function FaqAccordion({ limit }: { limit?: number }) {
                 marginBottom: 2,
               }}
             >
-              {group.category}
+              {decodeEntities(group.category)}
             </Text>
           )}
           {group.items.map((faq) => {
             const isOpen = openId === faq.id;
+            const question = decodeEntities(faq.question);
             return (
-              <Pressable
+              <View
                 key={faq.id}
-                onPress={() => setOpenId(isOpen ? null : faq.id)}
                 style={{
                   backgroundColor: isOpen ? colors.surface : colors.paper,
                   borderColor: isOpen ? colors.brand : colors.border,
@@ -127,20 +150,28 @@ export function FaqAccordion({ limit }: { limit?: number }) {
                   padding: spacing.md,
                 }}
               >
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm }}>
-                  <Text style={{ flex: 1, fontFamily: fonts.heading, fontSize: 13.5, color: colors.ink, lineHeight: 19 }}>
-                    {faq.question}
-                  </Text>
-                  <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: isOpen ? colors.brand : colors.inkFaint }}>
+                {/* The question row is the toggle (a button with expanded state); the answer sits
+                    outside it so its links stay separately focusable and tappable. */}
+                <Pressable
+                  onPress={() => setOpenId(isOpen ? null : faq.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={question}
+                  accessibilityState={{ expanded: isOpen }}
+                  aria-expanded={isOpen}
+                  aria-controls={`faq-answer-${faq.id}`}
+                  style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm }}
+                >
+                  <Text style={{ flex: 1, fontFamily: fonts.heading, fontSize: 13.5, color: colors.ink, lineHeight: 19 }}>{question}</Text>
+                  <Text aria-hidden style={{ fontFamily: fonts.heading, fontSize: 16, color: isOpen ? colors.brand : colors.inkSoft }}>
                     {isOpen ? "–" : "+"}
                   </Text>
-                </View>
+                </Pressable>
                 {isOpen && (
-                  <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.inkSoft, marginTop: 8, lineHeight: 18 }}>
-                    {stripHtml(faq.answer)}
-                  </Text>
+                  <View nativeID={`faq-answer-${faq.id}`}>
+                    <FaqAnswer html={faq.answer} />
+                  </View>
                 )}
-              </Pressable>
+              </View>
             );
           })}
         </View>

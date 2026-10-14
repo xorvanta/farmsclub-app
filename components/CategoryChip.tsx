@@ -5,15 +5,21 @@ export function CategoryChip({
   label,
   active,
   onPress,
+  accessibilityLabel,
 }: {
   label: string;
   active: boolean;
   onPress: () => void;
+  accessibilityLabel?: string;
 }) {
   const { colors, fonts, radius, spacing } = useTheme();
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ selected: active }}
+      aria-pressed={active}
       style={[
         styles.chip,
         {
