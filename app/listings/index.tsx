@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { View, Text, FlatList, useWindowDimensions } from "react-native";
+import { View, Text, FlatList, Pressable, useWindowDimensions } from "react-native";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
@@ -119,24 +119,38 @@ export default function Listings() {
             />
           )}
         />
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-          <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.inkSoft }}>Sort by</Text>
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={SORTS}
-            keyExtractor={(s) => s.value}
-            contentContainerStyle={{ gap: spacing.sm }}
-            accessibilityLabel="Sort listings"
-            renderItem={({ item }) => (
-              <CategoryChip
-                label={item.label}
-                active={sort === item.value}
-                accessibilityLabel={`Sort by ${item.label}`}
-                onPress={() => router.setParams({ sort: item.value === "name" ? undefined : item.value })}
-              />
-            )}
-          />
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: spacing.sm }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, flexShrink: 1 }}>
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.inkSoft }}>Sort:</Text>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={SORTS}
+              keyExtractor={(s) => s.value}
+              contentContainerStyle={{ gap: spacing.sm }}
+              accessibilityLabel="Sort listings"
+              renderItem={({ item }) => (
+                <CategoryChip
+                  label={item.label}
+                  active={sort === item.value}
+                  accessibilityLabel={`Sort by ${item.label}`}
+                  onPress={() => router.setParams({ sort: item.value === "name" ? undefined : item.value })}
+                />
+              )}
+            />
+          </View>
+          {hasFilter && (
+            <Pressable
+              onPress={clearFilters}
+              accessibilityRole="button"
+              accessibilityLabel="Clear all filters"
+              hitSlop={8}
+            >
+              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.cta }}>
+                Reset filters
+              </Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </View>

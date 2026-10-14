@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { View, Text, Image, FlatList, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, Image, FlatList, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import { PressableLink } from "@/components/PressableLink";
@@ -94,6 +94,18 @@ export default function Home() {
               <Button label="How it works" variant="outline" inverted />
             </Link>
           </View>
+
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, marginTop: spacing.lg, flexWrap: "wrap" }}>
+            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: compact ? 11 : 12, color: "rgba(255,255,255,0.85)" }}>
+              ✓ Pan-India Logistics
+            </Text>
+            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: compact ? 11 : 12, color: "rgba(255,255,255,0.85)" }}>
+              ✓ 100% GST Invoiced
+            </Text>
+            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: compact ? 11 : 12, color: "rgba(255,255,255,0.85)" }}>
+              ✓ Verified Nurseries
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -105,6 +117,9 @@ export default function Home() {
       {/* ── Categories — full illustrated tiles, not just icon badges ── */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
         <SectionLabel>Shop by category</SectionLabel>
+        <Text style={{ fontFamily: fonts.heading, fontSize: wide ? 22 : 18, color: colors.ink, marginTop: 4 }}>
+          Browse Commercial Departments
+        </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.md }}>
           {CATEGORIES.map((c) => (
             <PressableLink
@@ -113,13 +128,19 @@ export default function Home() {
               accessibilityLabel={`${c.label} — browse the catalogue`}
               style={({ pressed }) => [
                 styles.categoryTile,
-                { borderRadius: radius.lg, opacity: pressed ? 0.9 : 1 },
-                columns >= 4 ? { flexBasis: "14%", flexGrow: 1 } : width >= 680 ? { flexBasis: "30%", flexGrow: 1 } : { flexBasis: "40%", flexGrow: 1 },
+                {
+                  borderRadius: radius.lg,
+                  borderColor: colors.border,
+                  opacity: pressed ? 0.92 : 1,
+                  transform: [{ scale: pressed ? 0.98 : 1 }],
+                },
+                columns >= 4 ? { flexBasis: "14%", flexGrow: 1 } : width >= 680 ? { flexBasis: "30%", flexGrow: 1 } : { flexBasis: "45%", flexGrow: 1 },
               ]}
             >
               <CategoryArt category={c.value} style={StyleSheet.absoluteFill} />
-              <View style={[styles.categoryTileLabel, { backgroundColor: "rgba(22,32,26,0.56)" }]}>
+              <View style={[styles.categoryTileLabel, { backgroundColor: "rgba(12,41,26,0.68)" }]}>
                 <Text style={{ fontFamily: fonts.heading, fontSize: 13.5, color: "#FFFFFF" }}>{c.label}</Text>
+                <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, color: colors.accent, marginTop: 1 }}>Explore →</Text>
               </View>
             </PressableLink>
           ))}
@@ -129,6 +150,9 @@ export default function Home() {
       {/* ── How it works — a connected flow on wide screens, a vertical timeline on mobile ── */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
         <SectionLabel>How it works</SectionLabel>
+        <Text style={{ fontFamily: fonts.heading, fontSize: wide ? 22 : 18, color: colors.ink, marginTop: 4 }}>
+          Procurement Made Frictionless
+        </Text>
 
         {wide ? (
           <View style={{ flexDirection: "row", alignItems: "stretch", marginTop: spacing.lg }}>
@@ -144,12 +168,12 @@ export default function Home() {
                     <View style={[styles.stepBadge, { backgroundColor: colors.brandSoft, borderRadius: radius.md }]}>
                       <StepIcon icon={s.icon} size={19} color={colors.brand} />
                     </View>
-                    <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, letterSpacing: 0.5, color: colors.inkFaint }}>
+                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.6, color: colors.accent }}>
                       STEP {s.step}
                     </Text>
                   </View>
-                  <Text style={{ fontFamily: fonts.heading, fontSize: 15, color: colors.ink, marginTop: 14 }}>{s.title}</Text>
-                  <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft, marginTop: 4, lineHeight: 18 }}>
+                  <Text style={{ fontFamily: fonts.heading, fontSize: 15.5, color: colors.ink, marginTop: 14 }}>{s.title}</Text>
+                  <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft, marginTop: 5, lineHeight: 18.5 }}>
                     {s.body}
                   </Text>
                 </View>
@@ -179,7 +203,7 @@ export default function Home() {
                   {idx < STEPS.length - 1 && <View style={[styles.timelineLine, { backgroundColor: colors.border }]} />}
                 </View>
                 <View style={{ flex: 1, paddingBottom: idx < STEPS.length - 1 ? spacing.lg : 0, paddingLeft: spacing.md }}>
-                  <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, letterSpacing: 0.5, color: colors.inkFaint }}>
+                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.6, color: colors.accent }}>
                     STEP {s.step}
                   </Text>
                   <Text style={{ fontFamily: fonts.heading, fontSize: 15, color: colors.ink, marginTop: 3 }}>{s.title}</Text>
@@ -205,10 +229,29 @@ export default function Home() {
 
       {/* ── Listings ── */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
-          <SectionLabel>Live on FarmsClub</SectionLabel>
-          <Link href="/listings" accessibilityLabel="View all listings" style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.brand }}>
-            View all →
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <View>
+            <SectionLabel>Live on FarmsClub</SectionLabel>
+            <Text style={{ fontFamily: fonts.heading, fontSize: wide ? 22 : 18, color: colors.ink, marginTop: 4 }}>
+              Featured Wholesale Listings
+            </Text>
+          </View>
+          <Link href="/listings" asChild>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="View all listings"
+              style={({ pressed }) => ({
+                backgroundColor: colors.brandSoft,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: radius.pill,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.brand }}>
+                View all →
+              </Text>
+            </Pressable>
           </Link>
         </View>
 
@@ -308,16 +351,36 @@ const styles = StyleSheet.create({
   kicker: { flexDirection: "row", alignItems: "center", gap: 7, alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
   kickerCompact: { paddingHorizontal: 9, paddingVertical: 4, gap: 5 },
   kickerDot: { width: 6, height: 6, borderRadius: 3 },
-  categoryTile: { aspectRatio: 1.1, overflow: "hidden", position: "relative" },
-  categoryTileLabel: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 10, paddingVertical: 8 },
+  categoryTile: {
+    aspectRatio: 1.15,
+    overflow: "hidden",
+    position: "relative",
+    borderWidth: 1,
+    shadowColor: "#111C15",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  categoryTileLabel: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   stepCard: {
     borderWidth: 1,
-    padding: 18,
-    shadowColor: "#16201A",
-    shadowOpacity: 0.05,
+    padding: 20,
+    shadowColor: "#111C15",
+    shadowOpacity: 0.04,
     shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   stepBadge: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   connector: { width: 32, alignItems: "center", justifyContent: "center" },

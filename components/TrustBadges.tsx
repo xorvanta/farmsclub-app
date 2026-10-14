@@ -45,14 +45,19 @@ export function TrustBadges({ variant = "strip" }: { variant?: "strip" | "list" 
             borderColor: colors.border,
             borderWidth: 1,
             borderRadius: radius.lg,
-            padding: spacing.md,
+            padding: spacing.md + 2,
+            shadowColor: "#111C15",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.03,
+            shadowRadius: 6,
+            elevation: 1,
           }}
         >
-          <View style={{ width: 34, height: 34, borderRadius: radius.md, backgroundColor: colors.brandSoft, alignItems: "center", justifyContent: "center" }}>
-            <TrustIcon icon={b.icon} size={17} color={colors.brand} />
+          <View style={{ width: 36, height: 36, borderRadius: radius.md, backgroundColor: colors.brandSoft, alignItems: "center", justifyContent: "center" }}>
+            <TrustIcon icon={b.icon} size={18} color={colors.brand} />
           </View>
-          <Text style={{ fontFamily: fonts.heading, fontSize: 13, color: colors.ink, marginTop: 10 }}>{b.title}</Text>
-          <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: colors.inkSoft, marginTop: 3, lineHeight: 16 }}>{b.body}</Text>
+          <Text style={{ fontFamily: fonts.heading, fontSize: 13.5, color: colors.ink, marginTop: 10 }}>{b.title}</Text>
+          <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.inkSoft, marginTop: 4, lineHeight: 17 }}>{b.body}</Text>
         </View>
       ))}
     </View>
