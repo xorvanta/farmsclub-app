@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import type { ApiResponse, B2bBillingEntity, B2bFaq, B2bListing, Category, ChatListingContext, ChatTurn, RfqRequest } from "./types";
+import type { ApiResponse, B2bBillingEntity, B2bContact, B2bFaq, B2bListing, Category, ChatListingContext, ChatTurn, ListingSort, RfqRequest } from "./types";
 
 /**
  * Base URL including the backend's /api/v1 context path.
@@ -18,10 +18,20 @@ const API_BASE =
 export const GENERIC_ERROR = "Something went wrong — please try again.";
 export const NETWORK_ERROR = "Can't reach the server — check your connection.";
 
+/**
+ * `network`: the request never got an answer (offline, DNS, timeout).
+ * `server`: a 5xx with no readable body — the backend itself failed.
+ * `rejected`: the backend answered and said no (e.g. "This product isn't available…") — for a
+ * listing lookup that means the listing is gone, not that retrying will help.
+ */
+export type ApiErrorKind = "network" | "server" | "rejected";
+
 class ApiError extends Error {
-  constructor(message: string) {
+  kind: ApiErrorKind;
+  constructor(message: string, kind: ApiErrorKind = "rejected") {
     super(message);
     this.name = "ApiError";
+    this.kind = kind;
   }
 }
 
@@ -58,7 +68,13 @@ export function errorMessage(e: unknown): string {
   return e instanceof ApiError ? e.message : GENERIC_ERROR;
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+/** True when the error means "this thing doesn't exist / isn't available" rather than a failure
+ *  a retry could fix. */
+export function isNotFound(e: unknown): boolean {
+  return e instanceof ApiError && e.kind === "rejected";
+}
+
+async function requestFull<T>(path: string, init?: RequestInit): Promise<{ data: T; message: string | null }> {
   let res: Response;
   try {
     res = await fetch(`${API_BASE}${path}`, {
@@ -66,7 +82,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
     });
   } catch {
-    throw new ApiError(NETWORK_ERROR);
+    throw new ApiError(NETWORK_ERROR, "network");
   }
   let body: ApiResponse<T> | null = null;
   try {
@@ -75,10 +91,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     body = null; // HTML error page, empty body, proxy timeout…
   }
   if (!res.ok || !body || !body.success) {
-    if (res.status >= 500 && !body) throw new ApiError(GENERIC_ERROR);
-    throw new ApiError(friendlyMessage(body?.error ?? body?.message));
+    if (!body) throw new ApiError(GENERIC_ERROR, "server");
+    const message = friendlyMessage(body.error ?? body.message);
+    throw new ApiError(message, res.status >= 500 ? "server" : "rejected");
   }
-  return body.data as T;
+  const message = typeof body.message === "string" && friendlyMessage(body.message) !== GENERIC_ERROR ? body.message.trim() : null;
+  return { data: body.data as T, message };
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  return (await requestFull<T>(path, init)).data;
 }
 
 /** A listing/route id is only ever a positive integer — anything else is a not-found, not a request. */
@@ -90,18 +112,21 @@ export function parseListingId(raw: string | string[] | undefined | null): numbe
 }
 
 export const b2bApi = {
-  getListings: (opts?: { category?: Category | null; q?: string }) => {
+  getListings: (opts?: { category?: Category | null; q?: string; sort?: ListingSort | null }) => {
     const params = new URLSearchParams();
     if (opts?.category) params.set("category", opts.category);
     if (opts?.q?.trim()) params.set("q", opts.q.trim());
+    if (opts?.sort && opts.sort !== "name") params.set("sort", opts.sort);
     const qs = params.toString();
     return request<B2bListing[]>(`/public/b2b/listings${qs ? `?${qs}` : ""}`);
   },
 
   getListing: (id: number) => request<B2bListing>(`/public/b2b/listings/${id}`),
 
+  /** Resolves with the backend's own confirmation message (it differs when an earlier open
+   *  enquiry for the same listing was updated rather than a new one created). */
   submitRfq: (payload: RfqRequest) =>
-    request<number>("/public/b2b/rfq", {
+    requestFull<number>("/public/b2b/rfq", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
@@ -121,6 +146,8 @@ export const b2bApi = {
   getFaqs: () => request<B2bFaq[]>("/public/b2b/faqs"),
 
   getBillingEntity: () => request<B2bBillingEntity>("/public/b2b/billing-entity"),
+
+  getContact: () => request<B2bContact>("/public/b2b/contact"),
 
   askChat: (payload: { message: string; history?: ChatTurn[]; listingContext?: ChatListingContext }) =>
     request<{ reply: string }>("/public/b2b/chat/ask", {

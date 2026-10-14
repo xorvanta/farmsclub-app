@@ -4,8 +4,8 @@ export type StepIconKey = "search" | "form" | "truck";
 
 type Props = { icon: StepIconKey; size?: number; color: string };
 
-/** One glyph per "How sourcing works" step — same primitives-only convention as CategoryIcon/
- *  TrustIcon, scoped to this specific 3-step flow rather than the general glyph library. */
+/** One glyph per "How it works" step — same primitives-only convention as TrustIcon/NavIcon,
+ *  scoped to this specific 3-step flow rather than the general glyph library. */
 export function StepIcon({ icon, size = 20, color }: Props) {
   const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 

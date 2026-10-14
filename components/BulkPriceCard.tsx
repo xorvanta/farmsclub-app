@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
 import { useTheme } from "@/constants/theme-context";
-import { formatRupees, formatQty, formatPriceRange } from "@/lib/format";
+import { formatRupees, formatQty, formatQtyWithUnit, formatPriceRange } from "@/lib/format";
 import type { B2bListing, B2bPriceTier } from "@/lib/types";
 
 /** Quantity-tier pricing (§6.2): the headline buyer price range, then one row per quantity band
@@ -11,6 +11,9 @@ export function BulkPriceCard({ listing }: { listing: B2bListing }) {
   const moq = listing.moq ?? listing.bulk_min_quantity ?? null;
   const priceRange = formatPriceRange(listing.price_from, listing.price_to);
   const tiers = listing.tiers ?? [];
+  const gstRate = listing.gst_rate == null ? null : Number(listing.gst_rate);
+  // A 0% rate is "nil-rated" (e.g. live plants) — "GST 0% extra" reads like a typo.
+  const gstNote = gstRate == null || Number.isNaN(gstRate) ? null : gstRate === 0 ? "GST nil" : `GST ${gstRate}% extra`;
 
   const qtyLabel = (t: B2bPriceTier) =>
     t.maxQty == null
@@ -57,7 +60,7 @@ export function BulkPriceCard({ listing }: { listing: B2bListing }) {
             ))}
           </View>
           <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: "rgba(255,255,255,0.6)", marginTop: 6 }}>
-            Prices per unit, before GST{listing.gst_rate != null ? ` (GST ${Number(listing.gst_rate)}% extra)` : ""}.
+            Prices per unit, before GST{gstNote ? ` (${gstNote})` : ""}.
           </Text>
         </>
       )}
@@ -66,7 +69,7 @@ export function BulkPriceCard({ listing }: { listing: B2bListing }) {
         <View style={[styles.moqRow, { borderTopColor: "rgba(255,255,255,0.18)", marginTop: spacing.md, paddingTop: spacing.md }]}>
           <Text style={{ fontFamily: fonts.body, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>Minimum order quantity</Text>
           <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, color: "#FFFFFF" }}>
-            {formatQty(Number(moq))}{unit ? ` ${unit}` : ""}
+            {formatQtyWithUnit(Number(moq), unit)}
           </Text>
         </View>
       )}

@@ -13,8 +13,8 @@ const FADE_MS = 320;
 
 /**
  * Header/footer wordmark — crosses between the Roman and Devanagari rendering of the brand
- * name every 3s (per the user's direction). Width is pinned to the widest variant so the
- * nav bar doesn't reflow as it rotates.
+ * name every 5s (ROTATE_MS, per the user's direction). It sits at the left edge of the bar, so
+ * the slight width change between the two scripts doesn't shift anything else.
  */
 export function Logo({
   size = 20,
@@ -44,7 +44,8 @@ export function Logo({
   const current = WORDMARKS[index];
 
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: size * 0.4 }}>
+    // One stable accessible name — screen readers shouldn't announce whichever script is showing.
+    <View style={{ flexDirection: "row", alignItems: "center", gap: size * 0.4 }} accessible accessibilityRole="image" accessibilityLabel={showTagline ? "FarmsClub by Formulate India" : "FarmsClub"}>
       <LogoMark size={size * 1.5} onDark={onDark} />
       <View>
         <Animated.Text

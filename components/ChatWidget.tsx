@@ -1,26 +1,47 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, StyleSheet, useWindowDimensions } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  ActivityIndicator,
+  StyleSheet,
+  useWindowDimensions,
+  BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { Link } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/constants/theme-context";
 import { useChat, CHAT_COMPACT_WIDTH } from "@/lib/chat-context";
 import { SparkleIcon } from "@/components/graphics/SparkleIcon";
 import { b2bApi, ApiError } from "@/lib/api";
 import type { ChatTurn } from "@/lib/types";
+import { decodeEntities } from "@/lib/richText";
+
+/** A chat bubble. `contactLink` (local only, never sent to the backend) adds a link to the
+ *  Contact page under a "temporarily unavailable" reply. */
+type ChatMessage = ChatTurn & { contactLink?: boolean };
+
+const UNAVAILABLE_REPLY =
+  "Trellis is temporarily unavailable. Please try again shortly, or send our trade desk your requirement from the Contact page.";
 
 const GREETING = "Hi! I'm Trellis, FarmsClub's sourcing assistant — ask me about bulk pricing, MOQs, the RFQ process, delivery, or GST invoicing.";
 
 /**
  * Shown only until the real FAQ list loads (or if that request fails). These MUST stay verbatim
- * copies of real seeded FAQ questions — the backend answers a tapped chip by exact-matching it
- * against the FAQ list (B2bChatService.findExactFaqAnswer), so an approximation here would fall
- * back to fuzzier keyword routing and could answer from the wrong topic. These five mirror what
- * the live fetch below actually picks: the first question of each of the first five categories.
+ * copies of real seeded FAQ questions (V134) that are still active — the backend answers a tapped
+ * chip by exact-matching it against the FAQ list (B2bChatService.findExactFaqAnswer), so an
+ * approximation here would fall back to fuzzier keyword routing. V184 deactivated the seeded
+ * entries that referred to another site, so none of those are used here.
  */
 const DEFAULT_SUGGESTIONS = [
-  "How does quantity-tier pricing work?",
-  "Is there a minimum order quantity?",
+  "Does the bulk price include GST?",
+  "What does MOQ mean?",
   "How do I actually place an order?",
-  "Do you deliver pan-India?",
+  "How long does delivery take?",
   "Will I receive a GST invoice?",
 ];
 
@@ -39,7 +60,7 @@ export function ChatWidget() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const compact = width < CHAT_COMPACT_WIDTH;
-  const [messages, setMessages] = useState<ChatTurn[]>([{ role: "assistant", content: GREETING }]);
+  const [messages, setMessages] = useState<ChatMessage[]>([{ role: "assistant", content: GREETING }]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>(DEFAULT_SUGGESTIONS);
@@ -57,7 +78,7 @@ export function ChatWidget() {
         for (const faq of faqs) {
           if (!faq.question || seen.has(faq.category)) continue;
           seen.add(faq.category);
-          picked.push(faq.question);
+          picked.push(decodeEntities(faq.question));
           if (picked.length >= 5) break;
         }
         if (picked.length > 0) setSuggestions(picked);
@@ -72,13 +93,23 @@ export function ChatWidget() {
     scrollRef.current?.scrollToEnd({ animated: true });
   }, [messages, isOpen]);
 
+  // Android hardware/gesture back closes the chat first, instead of leaving the page under it.
+  useEffect(() => {
+    if (!isOpen || Platform.OS !== "android") return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      closeChat();
+      return true;
+    });
+    return () => sub.remove();
+  }, [isOpen, closeChat]);
+
   async function send(override?: string) {
     const text = (override ?? input).trim();
     if (!text || sending) return;
     if (override) setSuggestions((prev) => prev.filter((q) => q !== override));
     // The backend appends `message` as the final "Buyer:" turn itself (B2bChatService), so the
     // history sent is the conversation BEFORE this message — otherwise it would appear twice.
-    const history = messages.slice(-8);
+    const history: ChatTurn[] = messages.slice(-8).map(({ role, content }) => ({ role, content }));
     setMessages([...messages, { role: "user" as const, content: text }]);
     setInput("");
     setSending(true);
@@ -88,17 +119,17 @@ export function ChatWidget() {
         history,
         listingContext: listingContext ?? undefined,
       });
-      setMessages((prev) => [...prev, { role: "assistant", content: result.reply }]);
+      // Replies are plain text (FAQ answers have their tags stripped server-side) but may still carry HTML entities.
+      setMessages((prev) => [...prev, { role: "assistant", content: decodeEntities(result.reply) }]);
     } catch (e) {
+      // A specific, human-readable refusal from the backend is shown as-is; anything else
+      // (offline, server error) gets the "unavailable" reply with a way to reach a person.
+      const specific = e instanceof ApiError && e.kind === "rejected";
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content:
-            e instanceof ApiError
-              ? e.message
-              : "Our chat assistant is temporarily unavailable right now. Please try again shortly, or use the Contact page.",
-        },
+        specific
+          ? { role: "assistant", content: (e as ApiError).message }
+          : { role: "assistant", content: UNAVAILABLE_REPLY, contactLink: true },
       ]);
     } finally {
       setSending(false);
@@ -108,13 +139,18 @@ export function ChatWidget() {
   if (!isOpen) return null;
 
   return (
-    <View
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : Platform.OS === "android" ? "height" : undefined}
+      enabled={Platform.OS !== "web"}
+      accessibilityViewIsModal={compact}
+      aria-label="Trellis chat"
       style={[
         compact ? styles.panelMobile : styles.panelDesktop,
-        compact && { paddingTop: insets.top },
         { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: compact ? 0 : radius.lg },
       ]}
     >
+          {/* Status-bar / notch area in the header colour (light status-bar icons sit on it). */}
+          {compact && insets.top > 0 ? <View style={{ height: insets.top, backgroundColor: colors.brand }} /> : null}
           <View style={[styles.header, { backgroundColor: colors.brand }]}>
             <SparkleIcon size={16} />
             <View style={{ flex: 1, marginLeft: 8 }}>
@@ -123,12 +159,19 @@ export function ChatWidget() {
                 FarmsClub's sourcing assistant
               </Text>
             </View>
-            <Pressable onPress={closeChat} hitSlop={8} style={styles.closeBtn}>
-              <Text style={{ color: "#FFFFFF", fontSize: 16, fontFamily: fonts.bodySemiBold }}>×</Text>
+            <Pressable onPress={closeChat} hitSlop={8} style={styles.closeBtn} accessibilityRole="button" accessibilityLabel="Close chat">
+              <Text style={{ color: "#FFFFFF", fontSize: 16, fontFamily: fonts.bodySemiBold }} aria-hidden>×</Text>
             </Pressable>
           </View>
 
-          <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ padding: spacing.md, gap: 8 }}>
+          <ScrollView
+            ref={scrollRef}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ padding: spacing.md, gap: 8 }}
+            keyboardShouldPersistTaps="handled"
+            accessibilityLiveRegion="polite"
+            aria-live="polite"
+          >
             {messages.map((m, idx) => (
               <View key={idx} style={{ alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
                 <View
@@ -150,6 +193,15 @@ export function ChatWidget() {
                   >
                     {m.content}
                   </Text>
+                  {m.contactLink ? (
+                    <Link
+                      href="/contact"
+                      onPress={closeChat}
+                      style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.brand, marginTop: 6, textDecorationLine: "underline" }}
+                    >
+                      Go to the Contact page →
+                    </Link>
+                  ) : null}
                 </View>
               </View>
             ))}
@@ -167,6 +219,8 @@ export function ChatWidget() {
                   <Pressable
                     key={q}
                     onPress={() => send(q)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Ask: ${q}`}
                     style={[styles.suggestion, { borderColor: colors.border, borderRadius: radius.sm }]}
                   >
                     <Text style={{ fontFamily: fonts.body, fontSize: 11, color: colors.inkSoft }}>{q}</Text>
@@ -185,17 +239,22 @@ export function ChatWidget() {
               editable={!sending}
               maxLength={500}
               onSubmitEditing={() => send()}
+              returnKeyType="send"
+              accessibilityLabel="Message Trellis"
               style={[styles.input, { borderColor: colors.border, borderRadius: 999, color: colors.ink }]}
             />
             <Pressable
               onPress={() => send()}
               disabled={sending || !input.trim()}
+              accessibilityRole="button"
+              accessibilityLabel="Send message"
+              accessibilityState={{ disabled: sending || !input.trim() }}
               style={[styles.sendBtn, { backgroundColor: colors.brand, borderRadius: 999, opacity: sending || !input.trim() ? 0.4 : 1 }]}
             >
-              <Text style={{ color: "#FFFFFF", fontSize: 16, fontFamily: fonts.bodySemiBold }}>→</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 16, fontFamily: fonts.bodySemiBold }} aria-hidden>→</Text>
             </Pressable>
           </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

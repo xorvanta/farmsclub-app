@@ -17,10 +17,13 @@ export default function Root({ children }: PropsWithChildren) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="theme-color" content="#1F4530" />
-        <title>FarmsClub — Bulk Plants, Pots, Tools &amp; Fertiliser</title>
+        {/* The web build is light-only (see constants/theme-context.tsx) — tell the browser too, so
+            form controls/scrollbars don't switch to dark under a light page. */}
+        <meta name="color-scheme" content="light" />
+        <title>FarmsClub — Bulk plants, seeds, pots, tools &amp; fertiliser</title>
         <meta
           name="description"
-          content="Formulate India's B2B wholesale trade platform for bulk plants, pots, tools, and soil & fertiliser — tiered pricing, sourced and delivered pan-India."
+          content="Formulate India's B2B wholesale trade platform for bulk plants, seeds, pots, tools, and soil & fertiliser — quantity-tier pricing, sourced from nurseries and suppliers across India."
         />
         {/* Site-wide Open Graph defaults — the only OG tags a non-JS link-preview scraper sees.
             Per-page og:title/description/url/canonical are added client-side by SeoHead. */}

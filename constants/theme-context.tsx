@@ -1,5 +1,5 @@
 import { createContext, useContext, type PropsWithChildren } from "react";
-import { useColorScheme } from "react-native";
+import { Platform, useColorScheme } from "react-native";
 import { light, dark, type ThemeColors, fonts, spacing, radius } from "./theme";
 
 type Theme = {
@@ -13,7 +13,11 @@ type Theme = {
 const ThemeContext = createContext<Theme | null>(null);
 
 export function ThemeProvider({ children }: PropsWithChildren) {
-  const scheme = useColorScheme() === "dark" ? "dark" : "light";
+  // Web is always light: much of the design paints white text over photos/brand panels and
+  // light-surface cards next to them, and the dark tokens were never contrast-checked against
+  // that mix. Native apps are already light-only via app.json's userInterfaceStyle.
+  const systemScheme = useColorScheme();
+  const scheme = Platform.OS !== "web" && systemScheme === "dark" ? "dark" : "light";
   const value: Theme = {
     colors: scheme === "dark" ? dark : light,
     fonts,

@@ -1,23 +1,36 @@
 import { useEffect, useState } from "react";
-import { View, Text, Pressable, Linking, StyleSheet, useWindowDimensions } from "react-native";
-import { router } from "expo-router";
+import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
+import { Link, type Href } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
 import { CATEGORIES } from "@/constants/categories";
 import { Logo } from "@/components/Logo";
 import { TrustBadges } from "@/components/TrustBadges";
 import { b2bApi } from "@/lib/api";
 import type { B2bBillingEntity } from "@/lib/types";
-import { WHATSAPP_URL, WHATSAPP_DISPLAY } from "@/constants/contact";
+import { useB2bContact, telUrl, whatsappUrl } from "@/constants/contact";
 
 const YEAR = new Date().getFullYear();
-// Support email is hardcoded for the same reason as the WhatsApp number — see constants/contact.ts.
-const SUPPORT_EMAIL = "help@paudhewale.com";
+
+/** "Address line, City" + ", State" — the state only when the address doesn't already end with
+ *  (or contain) it, so an admin who typed the full address doesn't see the state twice. */
+export function formatRegisteredAddress(address: string | null | undefined, state: string | null | undefined): string | null {
+  const a = address?.trim() || "";
+  const st = state?.trim() || "";
+  if (!a) return null;
+  if (!st || a.toLowerCase().includes(st.toLowerCase())) return a;
+  return `${a}, ${st}`;
+}
 
 export function Footer() {
   const { colors, fonts, spacing, radius } = useTheme();
   const { width } = useWindowDimensions();
   const stacked = width < 680;
   const [billingEntity, setBillingEntity] = useState<B2bBillingEntity | null>(null);
+  const contact = useB2bContact();
+  const waUrl = contact?.whatsappNumber ? whatsappUrl(contact.whatsappNumber) : null;
+  const phoneUrl = contact?.phone ? telUrl(contact.phone) : null;
+  const address = formatRegisteredAddress(billingEntity?.registeredAddress, billingEntity?.state);
+  const contactTextStyle = { fontFamily: fonts.bodyMedium, fontSize: 12.5, color: "rgba(255,255,255,0.85)" } as const;
 
   useEffect(() => {
     let cancelled = false;
@@ -38,35 +51,48 @@ export function Footer() {
         <View style={[stacked ? styles.fullWidth : styles.brandBlock, { gap: 12 }]}>
           <Logo size={19} onDark />
           <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: "rgba(255,255,255,0.75)", lineHeight: 18, maxWidth: 280 }}>
-            Formulate India's B2B wholesale trade platform for plants, pots, tools, and
-            soil &amp; fertiliser — sourced and delivered pan-India.
+            Formulate India's B2B wholesale trade platform for plants, seeds, pots, tools, and
+            soil &amp; fertiliser — sourced from nurseries and suppliers across India.
           </Text>
 
-          <View style={{ gap: 6, marginTop: 4 }}>
-            <Pressable onPress={() => Linking.openURL(WHATSAPP_URL)} hitSlop={4}>
-              <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>
-                WhatsApp: {WHATSAPP_DISPLAY}
-              </Text>
-            </Pressable>
-            <Pressable onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} hitSlop={4}>
-              <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>{SUPPORT_EMAIL}</Text>
-            </Pressable>
-          </View>
+          {/* Only what an admin has actually configured (B2B Console > Settings) — nothing else. */}
+          {contact && (waUrl || phoneUrl || contact.supportEmail || contact.hoursLabel) ? (
+            <View style={{ gap: 6, marginTop: 4 }}>
+              {waUrl ? (
+                <Link href={waUrl} target="_blank" rel="noopener noreferrer" style={contactTextStyle}>
+                  WhatsApp: {contact.whatsappNumber}
+                </Link>
+              ) : null}
+              {phoneUrl ? (
+                <Link href={phoneUrl} style={contactTextStyle}>
+                  Phone: {contact.phone}
+                </Link>
+              ) : null}
+              {contact.supportEmail ? (
+                <Link href={`mailto:${contact.supportEmail}`} style={contactTextStyle}>
+                  {contact.supportEmail}
+                </Link>
+              ) : null}
+              {contact.hoursLabel ? (
+                <Text style={{ fontFamily: fonts.body, fontSize: 12, color: "rgba(255,255,255,0.65)" }}>Trade desk: {contact.hoursLabel}</Text>
+              ) : null}
+            </View>
+          ) : null}
         </View>
 
         <View style={stacked ? styles.fullWidth : styles.columnBlock}>
           <FooterColumn
             title="Catalogue"
-            links={CATEGORIES.map((c) => ({ label: c.label, onPress: () => router.push({ pathname: "/listings", params: { category: c.value } }) }))}
+            links={CATEGORIES.map((c) => ({ label: c.label, href: { pathname: "/listings", params: { category: c.value } } }))}
           />
         </View>
         <View style={stacked ? styles.fullWidth : styles.columnBlock}>
           <FooterColumn
             title="Company"
             links={[
-              { label: "How sourcing works", onPress: () => router.push("/about") },
-              { label: "FAQs", onPress: () => router.push("/faqs") },
-              { label: "Enquire / contact us", onPress: () => router.push("/contact") },
+              { label: "How it works", href: "/about" },
+              { label: "FAQs", href: "/faqs" },
+              { label: "Enquire / contact us", href: "/contact" },
             ]}
           />
         </View>
@@ -74,8 +100,8 @@ export function Footer() {
           <FooterColumn
             title="Legal"
             links={[
-              { label: "Terms of trade", onPress: () => router.push("/terms") },
-              { label: "Privacy policy", onPress: () => router.push("/privacy") },
+              { label: "Terms of trade", href: "/terms" },
+              { label: "Privacy policy", href: "/privacy" },
             ]}
           />
         </View>
@@ -92,14 +118,8 @@ export function Footer() {
           </Text>
           <Text style={{ fontFamily: fonts.body, fontSize: 12, color: "rgba(255,255,255,0.75)", lineHeight: 18, marginTop: 2 }}>
             {billingEntity?.legalName ?? "Formulate India"}
-            {billingEntity?.registeredAddress ? `\n${billingEntity.registeredAddress}` : ""}
-            {billingEntity?.state ? `, ${billingEntity.state}` : ""}
+            {address ? `\n${address}` : ""}
           </Text>
-          {billingEntity && !billingEntity.registeredAddress && (
-            <Text style={{ fontFamily: fonts.body, fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
-              Registered address on file — contact us for details.
-            </Text>
-          )}
         </View>
 
         <View
@@ -125,17 +145,17 @@ export function Footer() {
   );
 }
 
-function FooterColumn({ title, links }: { title: string; links: { label: string; onPress: () => void }[] }) {
+function FooterColumn({ title, links }: { title: string; links: { label: string; href: Href }[] }) {
   const { fonts, spacing } = useTheme();
   return (
     <View style={{ gap: spacing.sm }}>
-      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, letterSpacing: 0.5, textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
+      <Text accessibilityRole="header" style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, letterSpacing: 0.5, textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
         {title}
       </Text>
       {links.map((l) => (
-        <Pressable key={l.label} onPress={l.onPress} hitSlop={4}>
-          <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: "rgba(255,255,255,0.85)" }}>{l.label}</Text>
-        </Pressable>
+        <Link key={l.label} href={l.href} style={{ fontFamily: fonts.body, fontSize: 13.5, color: "rgba(255,255,255,0.85)", paddingVertical: 2 }}>
+          {l.label}
+        </Link>
       ))}
     </View>
   );

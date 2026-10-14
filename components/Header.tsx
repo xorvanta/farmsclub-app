@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
-import { router, usePathname } from "expo-router";
+import { Link, usePathname } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
 import { Logo } from "@/components/Logo";
 
@@ -8,6 +8,7 @@ const NAV = [
   { href: "/", label: "Home" },
   { href: "/listings", label: "Catalogue" },
   { href: "/about", label: "How it works" },
+  { href: "/faqs", label: "FAQs" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
@@ -19,6 +20,8 @@ const MOBILE_SECONDARY_NAV = [
   { href: "/faqs", label: "FAQs" },
 ] as const;
 
+/** Every destination is an expo-router <Link>, so the web build renders real <a href> anchors
+ *  (crawlable, middle-click / open-in-new-tab work) while native still navigates in-app. */
 export function Header() {
   const { colors, fonts, spacing } = useTheme();
   const { width } = useWindowDimensions();
@@ -29,12 +32,22 @@ export function Header() {
   return (
     <View style={{ backgroundColor: colors.surface, borderBottomColor: colors.border, borderBottomWidth: 1 }}>
       <View style={[styles.bar, { paddingHorizontal: spacing.lg }]}>
-        <Pressable onPress={() => router.push("/")} hitSlop={8}>
-          <Logo size={19} showTagline={!compact} />
-        </Pressable>
+        <Link href="/" asChild>
+          <Pressable hitSlop={8} accessibilityRole="link" accessibilityLabel="FarmsClub home">
+            <Logo size={19} showTagline={!compact} />
+          </Pressable>
+        </Link>
 
         {compact ? (
-          <Pressable onPress={() => setMenuOpen((v) => !v)} hitSlop={10} style={styles.menuBtn}>
+          <Pressable
+            onPress={() => setMenuOpen((v) => !v)}
+            hitSlop={10}
+            style={styles.menuBtn}
+            accessibilityRole="button"
+            accessibilityLabel={menuOpen ? "Close menu" : "Open menu"}
+            accessibilityState={{ expanded: menuOpen }}
+            aria-expanded={menuOpen}
+          >
             <View style={{ gap: 4 }}>
               <View style={[styles.menuLine, { backgroundColor: colors.ink }]} />
               <View style={[styles.menuLine, { backgroundColor: colors.ink }]} />
@@ -42,21 +55,23 @@ export function Header() {
             </View>
           </Pressable>
         ) : (
-          <View style={{ flexDirection: "row", gap: spacing.xl, alignItems: "center" }}>
+          <View style={{ flexDirection: "row", gap: spacing.xl, alignItems: "center" }} accessibilityRole="menubar">
             {NAV.map((item) => {
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
               return (
-                <Pressable key={item.href} onPress={() => router.push(item.href)} hitSlop={6}>
-                  <Text
-                    style={{
-                      fontFamily: active ? fonts.bodySemiBold : fonts.bodyMedium,
-                      fontSize: 14,
-                      color: active ? colors.brand : colors.inkSoft,
-                    }}
-                  >
-                    {item.label}
-                  </Text>
-                </Pressable>
+                <Link key={item.href} href={item.href} asChild>
+                  <Pressable hitSlop={6} accessibilityRole="link" accessibilityState={{ selected: active }} aria-current={active ? "page" : undefined}>
+                    <Text
+                      style={{
+                        fontFamily: active ? fonts.bodySemiBold : fonts.bodyMedium,
+                        fontSize: 14,
+                        color: active ? colors.brand : colors.inkSoft,
+                      }}
+                    >
+                      {item.label}
+                    </Text>
+                  </Pressable>
+                </Link>
               );
             })}
           </View>
@@ -66,16 +81,11 @@ export function Header() {
       {compact && menuOpen && (
         <View style={[styles.mobileMenu, { borderTopColor: colors.border, paddingHorizontal: spacing.lg }]}>
           {MOBILE_SECONDARY_NAV.map((item) => (
-            <Pressable
-              key={item.href}
-              onPress={() => {
-                setMenuOpen(false);
-                router.push(item.href);
-              }}
-              style={{ paddingVertical: 12 }}
-            >
-              <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.ink }}>{item.label}</Text>
-            </Pressable>
+            <Link key={item.href} href={item.href} asChild>
+              <Pressable onPress={() => setMenuOpen(false)} style={{ paddingVertical: 12 }} accessibilityRole="link">
+                <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.ink }}>{item.label}</Text>
+              </Pressable>
+            </Link>
           ))}
         </View>
       )}

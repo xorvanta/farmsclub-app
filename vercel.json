@@ -6,13 +6,27 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/api/v1/:path*",
-      "destination": "https://xoms-backend-752519899091.asia-south1.run.app/api/v1/:path*"
+      "source": "/api/v1/public/:path*",
+      "destination": "https://xoms-backend-752519899091.asia-south1.run.app/api/v1/public/:path*"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://xoms-backend-752519899091.asia-south1.run.app/api/v1/public/b2b/sitemap.xml"
     },
     { "source": "/listings/:id", "destination": "/listings/[id]" },
     { "source": "/rfq/:listingId", "destination": "/rfq/[listingId]" }
   ],
   "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Content-Security-Policy", "value": "frame-ancestors 'none'" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" }
+      ]
+    },
     {
       "source": "/_expo/static/(.*)",
       "headers": [

@@ -7,7 +7,7 @@ export function LegalPage({ title, updated, sections, note }: { title: string; u
   const { colors, fonts, spacing, radius } = useTheme();
   return (
     <View style={{ padding: spacing.lg, maxWidth: 720, width: "100%", alignSelf: "center" }}>
-      <Text style={{ fontFamily: fonts.display, fontSize: 26, color: colors.ink }}>{title}</Text>
+      <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: 26, color: colors.ink }}>{title}</Text>
       <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.inkFaint, marginTop: 6 }}>
         Last updated {updated}
       </Text>
@@ -21,7 +21,7 @@ export function LegalPage({ title, updated, sections, note }: { title: string; u
       <View style={{ marginTop: spacing.xl, gap: spacing.lg }}>
         {sections.map((s) => (
           <View key={s.heading}>
-            <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink }}>{s.heading}</Text>
+            <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink }}>{s.heading}</Text>
             <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, marginTop: 6, lineHeight: 21 }}>
               {s.body}
             </Text>

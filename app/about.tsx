@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
-import { router } from "expo-router";
+import { Link } from "expo-router";
 import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
@@ -14,7 +14,7 @@ const POINTS = [
   },
   {
     title: "Volume pricing, not list price",
-    body: "Prices shown step down by quantity band. Larger orders are quoted against the platform's live supplier rates, not a markup on retail pricing.",
+    body: "Prices shown step down by quantity band. Larger orders are quoted against the platform's live supplier rates.",
   },
   {
     title: "Sealed, competitive sourcing",
@@ -29,15 +29,15 @@ const POINTS = [
 export default function About() {
   const { colors, fonts, spacing, radius } = useTheme();
   return (
-    <AppShell contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl }}>
-      <SeoHead title="How Sourcing Works · FarmsClub" description="How Formulate India sources, prices, and delivers bulk orders through FarmsClub." />
-      <Text style={{ fontFamily: fonts.display, fontSize: 26, color: colors.ink, maxWidth: 520 }}>
-        How FarmsClub sourcing works
+    <AppShell contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl, maxWidth: 960, width: "100%", alignSelf: "center" }}>
+      <SeoHead title="How it works · FarmsClub" description="How Formulate India sources, prices, and fulfils bulk orders of plants, seeds, pots, tools, and soil & fertiliser through FarmsClub." />
+      <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: 26, color: colors.ink, maxWidth: 520 }}>
+        How it works
       </Text>
       <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, marginTop: 10, maxWidth: 540, lineHeight: 21 }}>
-        FarmsClub is run by Formulate India, a dedicated bulk-trade entity separate from Paudhewale's
-        retail storefront. It exists for one thing: buying plants, pots, tools, and soil &amp; fertiliser
-        in volume, reliably, with paperwork that holds up.
+        FarmsClub is run by Formulate India, a dedicated bulk-trade business. It exists for one thing:
+        buying plants, seeds, pots, tools, and soil &amp; fertiliser in volume, reliably, with paperwork
+        that holds up.
       </Text>
 
       <View style={{ marginTop: spacing.xl }}>
@@ -65,7 +65,9 @@ export default function About() {
       </View>
 
       <View style={{ marginTop: spacing.xxl }}>
-        <Button label="Browse the catalogue" onPress={() => router.push("/listings")} />
+        <Link href="/listings" asChild>
+          <Button label="Browse the catalogue" />
+        </Link>
       </View>
     </AppShell>
   );

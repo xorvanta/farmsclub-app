@@ -4,8 +4,8 @@
  * consumer-facing palette: this is a procurement tool (price tiers, MOQ, dispatch states),
  * not a lifestyle storefront — so the system favours density and legibility over imagery.
  *
- * Light and dark variants both defined; `useTheme()` (see theme-context.tsx) picks one from
- * the device's color scheme.
+ * Light and dark variants both defined; `useTheme()` (see theme-context.tsx) picks one. The
+ * web build always uses light — see theme-context.tsx.
  */
 
 export const fonts = {
@@ -46,6 +46,9 @@ export const light = {
   accent: "#C8761A",
   accentDark: "#A3600F",
   accentSoft: "#FBEEDC",
+  // Primary-button fill. White text on it is 4.95:1 (WCAG AA for normal text); `accent` itself is
+  // only 3.5:1 against white, so it is never used behind white text.
+  cta: "#A3600F",
   ink: "#16201A",
   inkSoft: "#596356",
   inkFaint: "#8B9389",
@@ -71,6 +74,8 @@ export const dark = {
   accent: "#E0A24E",
   accentDark: "#C78A36",
   accentSoft: "#332616",
+  cta: "#A3600F", // same as light: white text needs the darker fill in both schemes
+
   ink: "#EDEFE9",
   inkSoft: "#B2BBB0",
   inkFaint: "#7C867C",

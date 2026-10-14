@@ -25,6 +25,11 @@ export const CATEGORY_PHOTOS: Record<Category, string> = {
   OTHER: "https://images.unsplash.com/photo-1775681150219-b3d45dcd03f2", // rows of potted plants down a garden-centre aisle
 };
 
+/** Photo for any category value — unknown/missing categories use OTHER's photo, never `undefined`. */
+export function categoryPhoto(category: string | null | undefined): string {
+  return CATEGORY_PHOTOS[(category ?? "") as Category] ?? CATEGORY_PHOTOS.OTHER;
+}
+
 export const HERO_PHOTO = "https://images.unsplash.com/photo-1708796705570-33fd29ef67d0"; // bright green lettuce rows, wide polytunnel
 export const TRADE_DESK_PHOTO = "https://images.unsplash.com/photo-1775681150189-0c76d017d869"; // sunlit outdoor nursery shelving — promo/trade-desk banners
 export const NURSERY_WIDE_PHOTO = "https://images.unsplash.com/photo-1752401966871-fcda5b645160"; // garden-centre plant tables under a green shade canopy

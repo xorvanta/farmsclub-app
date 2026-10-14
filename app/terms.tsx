@@ -5,9 +5,9 @@ import { LegalPage } from "@/components/LegalPage";
 export default function Terms() {
   return (
     <AppShell>
-      <SeoHead title="Terms of Trade · FarmsClub" description="Terms governing bulk orders placed through FarmsClub." />
+      <SeoHead title="Terms of trade · FarmsClub" description="Terms governing bulk orders placed through FarmsClub." />
       <LegalPage
-        title="Terms of Trade"
+        title="Terms of trade"
         updated="[date — set before launch]"
         note="Drafted as a standard structure for a B2B sourcing platform, not reviewed by counsel. Confirm with Formulate India's legal advisor — particularly the liability, cancellation, and dispute-resolution sections — before this goes live."
         sections={[
