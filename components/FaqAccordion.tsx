@@ -143,11 +143,16 @@ export function FaqAccordion({ limit }: { limit?: number }) {
               <View
                 key={faq.id}
                 style={{
-                  backgroundColor: isOpen ? colors.surface : colors.paper,
+                  backgroundColor: isOpen ? colors.surface : colors.surface,
                   borderColor: isOpen ? colors.brand : colors.border,
                   borderRadius: radius.md,
-                  borderWidth: 1,
-                  padding: spacing.md,
+                  borderWidth: isOpen ? 1.5 : 1,
+                  padding: spacing.md + 2,
+                  shadowColor: "#111C15",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: isOpen ? 0.06 : 0.02,
+                  shadowRadius: isOpen ? 8 : 4,
+                  elevation: isOpen ? 2 : 1,
                 }}
               >
                 {/* The question row is the toggle (a button with expanded state); the answer sits
@@ -161,13 +166,35 @@ export function FaqAccordion({ limit }: { limit?: number }) {
                   aria-controls={`faq-answer-${faq.id}`}
                   style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm }}
                 >
-                  <Text style={{ flex: 1, fontFamily: fonts.heading, fontSize: 13.5, color: colors.ink, lineHeight: 19 }}>{question}</Text>
-                  <Text aria-hidden style={{ fontFamily: fonts.heading, fontSize: 16, color: isOpen ? colors.brand : colors.inkSoft }}>
-                    {isOpen ? "–" : "+"}
+                  <Text style={{ flex: 1, fontFamily: fonts.heading, fontSize: 14.5, color: isOpen ? colors.brand : colors.ink, lineHeight: 21 }}>
+                    {question}
                   </Text>
+                  <View
+                    aria-hidden
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: radius.pill,
+                      backgroundColor: isOpen ? colors.brandSoft : colors.paper,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text style={{ fontFamily: fonts.heading, fontSize: 14, color: isOpen ? colors.brand : colors.inkSoft }}>
+                      {isOpen ? "−" : "+"}
+                    </Text>
+                  </View>
                 </Pressable>
                 {isOpen && (
-                  <View nativeID={`faq-answer-${faq.id}`}>
+                  <View
+                    nativeID={`faq-answer-${faq.id}`}
+                    style={{
+                      marginTop: spacing.md,
+                      paddingTop: spacing.md,
+                      borderTopWidth: 1,
+                      borderTopColor: colors.border,
+                    }}
+                  >
                     <FaqAnswer html={faq.answer} />
                   </View>
                 )}

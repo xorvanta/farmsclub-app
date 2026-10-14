@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Platform, useWindowDimensions } from "react-native";
 import { Link, useLocalSearchParams } from "expo-router";
 import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
@@ -132,68 +132,171 @@ export default function ListingDetail() {
     .filter(Boolean)
     .join(" — ");
 
+  const wide = width >= 880;
+  const maxWidth = wide ? 1120 : DETAIL_MAX_WIDTH;
+  const contentColumn = { width: "100%" as const, maxWidth, alignSelf: "center" as const };
+
   return (
     <AppShell noScroll hideBottomNav>
       <SeoHead title={`${listing.title} · FarmsClub`} description={`${metaDescription}.`} image={images[0] ?? null} />
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
-        <View style={[column, framed && { marginTop: spacing.lg, borderRadius: radius.lg, overflow: "hidden" }]}>
-          <ImageGallery
-            images={images}
-            aspectRatio={1.6}
-            maxHeight={GALLERY_MAX_HEIGHT}
-            alt={listing.title}
-            fallback={<CategoryArt category={category} style={StyleSheet.absoluteFill} />}
-          />
-        </View>
+      <ScrollView contentContainerStyle={{ paddingBottom: 140 }} keyboardShouldPersistTaps="handled">
+        <View style={[contentColumn, { padding: spacing.lg }]}>
+          {wide ? (
+            <View style={{ flexDirection: "row", gap: spacing.xl, alignItems: "flex-start" }}>
+              {/* Left Column: Image Gallery */}
+              <View style={{ flex: 1, position: Platform.OS === "web" ? ("sticky" as any) : "relative", top: 16 }}>
+                <ImageGallery
+                  images={images}
+                  aspectRatio={1.3}
+                  maxHeight={520}
+                  alt={listing.title}
+                  fallback={<CategoryArt category={category} style={StyleSheet.absoluteFill} />}
+                />
+              </View>
 
-        <View style={[column, { padding: spacing.lg, gap: spacing.sm }]}>
-          <View style={{ flexDirection: "row", gap: spacing.sm }}>
-            <Badge label={categoryLabel(category)} tone="brand" />
-            <Badge label="Live" tone="success" />
-          </View>
-          <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: 24, color: colors.ink, lineHeight: 30 }}>
-            {listing.title}
-          </Text>
-          <View style={{ marginTop: spacing.lg }}>
-            <BulkPriceCard listing={listing} />
-          </View>
+              {/* Right Column: Pricing, Specs, Details */}
+              <View style={{ flex: 1.15, gap: spacing.md }}>
+                <View style={{ flexDirection: "row", gap: spacing.sm, alignItems: "center" }}>
+                  <Badge label={categoryLabel(category)} tone="brand" />
+                  <Badge label="Verified Wholesale" tone="success" />
+                </View>
 
-          {(listing.dispatch_states?.length ?? 0) > 0 || (listing.transport_modes?.length ?? 0) > 0 ? (
-            <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
-              <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink }}>Dispatch &amp; transport</Text>
-              {listing.dispatch_states?.length > 0 && <InfoLine label="Dispatches from" values={listing.dispatch_states} />}
-              {listing.transport_modes?.length > 0 && <InfoLine label="Transport" values={listing.transport_modes} />}
+                <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: 26, color: colors.ink, lineHeight: 32 }}>
+                  {listing.title}
+                </Text>
+
+                {listing.manufacturer_brand && (
+                  <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.inkSoft }}>
+                    Manufacturer / Brand: <Text style={{ fontFamily: fonts.bodySemiBold, color: colors.ink }}>{listing.manufacturer_brand}</Text>
+                  </Text>
+                )}
+
+                <View style={{ marginTop: spacing.sm }}>
+                  <BulkPriceCard listing={listing} />
+                </View>
+
+                {(listing.dispatch_states?.length ?? 0) > 0 || (listing.transport_modes?.length ?? 0) > 0 ? (
+                  <View style={{ gap: spacing.sm, marginTop: spacing.xs, backgroundColor: colors.surface, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border }}>
+                    <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 15, color: colors.ink }}>
+                      Logistics &amp; Dispatch
+                    </Text>
+                    {listing.dispatch_states?.length > 0 && <InfoLine label="Dispatches from" values={listing.dispatch_states} />}
+                    {listing.transport_modes?.length > 0 && <InfoLine label="Transport options" values={listing.transport_modes} />}
+                  </View>
+                ) : null}
+
+                <View style={{ marginTop: spacing.xs }}>
+                  <SpecificationSection specification={listing.specification} brand={listing.manufacturer_brand} />
+                </View>
+
+                <Button label="Ask Trellis AI about this listing" variant="outline" onPress={() => openChat()} />
+
+                <View style={{ backgroundColor: colors.brandSoft, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.sm, borderWidth: 1, borderColor: colors.border }}>
+                  <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.brand, marginBottom: 2 }}>
+                    🛡️ Formulate India Trade Assurance
+                  </Text>
+                  <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.inkSoft, lineHeight: 18 }}>
+                    Formulate India handles sourcing, invoicing and delivery directly — your enquiry goes to our
+                    trade desk, not to an unverified third party.
+                  </Text>
+                </View>
+              </View>
             </View>
-          ) : null}
+          ) : (
+            /* Mobile / Tablet Single Column Stacked */
+            <View style={{ gap: spacing.md }}>
+              <View style={{ borderRadius: radius.lg, overflow: "hidden" }}>
+                <ImageGallery
+                  images={images}
+                  aspectRatio={1.5}
+                  maxHeight={GALLERY_MAX_HEIGHT}
+                  alt={listing.title}
+                  fallback={<CategoryArt category={category} style={StyleSheet.absoluteFill} />}
+                />
+              </View>
 
-          <View style={{ marginTop: spacing.md, marginBottom: spacing.sm }}>
-            <SpecificationSection specification={listing.specification} brand={listing.manufacturer_brand} />
-          </View>
+              <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
+                <View style={{ flexDirection: "row", gap: spacing.sm }}>
+                  <Badge label={categoryLabel(category)} tone="brand" />
+                  <Badge label="Verified Wholesale" tone="success" />
+                </View>
+                <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: 24, color: colors.ink, lineHeight: 30 }}>
+                  {listing.title}
+                </Text>
+                {listing.manufacturer_brand && (
+                  <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft }}>
+                    Brand: <Text style={{ fontFamily: fonts.bodySemiBold, color: colors.ink }}>{listing.manufacturer_brand}</Text>
+                  </Text>
+                )}
+                <View style={{ marginTop: spacing.sm }}>
+                  <BulkPriceCard listing={listing} />
+                </View>
 
-          <Button label="Ask Trellis about this listing" variant="outline" onPress={() => openChat()} />
+                {(listing.dispatch_states?.length ?? 0) > 0 || (listing.transport_modes?.length ?? 0) > 0 ? (
+                  <View style={{ gap: spacing.sm, marginTop: spacing.sm, backgroundColor: colors.surface, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border }}>
+                    <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 15, color: colors.ink }}>
+                      Logistics &amp; Dispatch
+                    </Text>
+                    {listing.dispatch_states?.length > 0 && <InfoLine label="Dispatches from" values={listing.dispatch_states} />}
+                    {listing.transport_modes?.length > 0 && <InfoLine label="Transport" values={listing.transport_modes} />}
+                  </View>
+                ) : null}
 
-          <View style={{ backgroundColor: colors.infoSoft, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.xl }}>
-            <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.ink, lineHeight: 18 }}>
-              Formulate India handles sourcing, invoicing and delivery directly — your enquiry goes to our
-              trade desk, not to an individual supplier.
-            </Text>
-          </View>
+                <View style={{ marginTop: spacing.sm }}>
+                  <SpecificationSection specification={listing.specification} brand={listing.manufacturer_brand} />
+                </View>
+
+                <Button label="Ask Trellis about this listing" variant="outline" onPress={() => openChat()} />
+
+                <View style={{ backgroundColor: colors.brandSoft, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.md, borderWidth: 1, borderColor: colors.border }}>
+                  <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.brand, marginBottom: 2 }}>
+                    🛡️ Formulate India Trade Assurance
+                  </Text>
+                  <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.inkSoft, lineHeight: 18 }}>
+                    Formulate India handles sourcing, invoicing and delivery directly — your enquiry goes to our
+                    trade desk, not to an individual supplier.
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
         </View>
         <Footer />
       </ScrollView>
 
-      {/* Sticky CTA — the one action this whole page exists to drive. The bar spans the screen;
-          the button inside stays within the content column. */}
+      {/* Sticky Dual-Action CTA Dock */}
       <View
         style={[
           styles.ctaBar,
-          { backgroundColor: colors.surface, borderTopColor: colors.border, paddingHorizontal: spacing.lg, paddingBottom: 12 + insets.bottom },
+          {
+            backgroundColor: colors.surface,
+            borderTopColor: colors.border,
+            paddingHorizontal: spacing.lg,
+            paddingBottom: 12 + insets.bottom,
+            shadowColor: "#111C15",
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.08,
+            shadowRadius: 10,
+            elevation: 8,
+          },
         ]}
       >
-        <View style={{ width: "100%", maxWidth: DETAIL_MAX_WIDTH - spacing.lg * 2, alignSelf: "center" }}>
-          <Link href={{ pathname: "/rfq/[listingId]", params: { listingId: String(listing.id) } }} asChild>
-            <Button label="Request a quote" fullWidth />
-          </Link>
+        <View style={{ width: "100%", maxWidth: maxWidth, alignSelf: "center", flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 10.5, letterSpacing: 0.5, color: colors.inkFaint, textTransform: "uppercase" }}>
+              Direct Wholesale Rate
+            </Text>
+            <Text numberOfLines={1} style={{ fontFamily: fonts.bodyBold, fontSize: wide ? 17 : 15, color: colors.brand }}>
+              {range ?? "Volume Pricing"}
+              {unit ? <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.inkSoft }}> / {unit}</Text> : null}
+              <Text style={{ fontFamily: fonts.body, fontSize: 10.5, color: colors.inkFaint }}> + GST</Text>
+            </Text>
+          </View>
+          <View style={{ minWidth: wide ? 200 : 160, flexShrink: 0 }}>
+            <Link href={{ pathname: "/rfq/[listingId]", params: { listingId: String(listing.id) } }} asChild>
+              <Button label="Request a quote" />
+            </Link>
+          </View>
         </View>
       </View>
     </AppShell>

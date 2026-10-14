@@ -73,26 +73,44 @@ export function SpecificationSection({ specification, brand }: { specification: 
 
   return (
     <View style={{ gap: spacing.sm }}>
-      <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink }}>Specification</Text>
+      <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 16.5, color: colors.ink }}>
+        Product Specifications
+      </Text>
       {rows.length > 0 && (
-        <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, overflow: "hidden", backgroundColor: colors.surface }}>
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: colors.border,
+            borderRadius: radius.md,
+            overflow: "hidden",
+            backgroundColor: colors.surface,
+            shadowColor: "#111C15",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.03,
+            shadowRadius: 5,
+            elevation: 1,
+          }}
+        >
           {rows.map((r, i) => (
             <View
               key={`${r.label}-${i}`}
               style={[
                 styles.row,
-                { paddingHorizontal: spacing.md },
+                {
+                  paddingHorizontal: spacing.md + 2,
+                  backgroundColor: i % 2 === 1 ? colors.paper : colors.surface,
+                },
                 i > 0 && { borderTopWidth: 1, borderTopColor: colors.border },
               ]}
             >
-              <Text style={{ flex: 1, fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft }}>{r.label}</Text>
-              <Text style={{ flex: 1.4, fontFamily: fonts.bodyMedium, fontSize: 13.5, color: colors.ink, textAlign: "right" }}>{r.value}</Text>
+              <Text style={{ flex: 1, fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.inkSoft }}>{r.label}</Text>
+              <Text style={{ flex: 1.4, fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: colors.ink, textAlign: "right" }}>{r.value}</Text>
             </View>
           ))}
         </View>
       )}
       {text ? (
-        <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, lineHeight: 20 }}>{text}</Text>
+        <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, lineHeight: 21 }}>{text}</Text>
       ) : null}
     </View>
   );
@@ -120,14 +138,26 @@ export function ImageGallery({
 
   return (
     <View>
-      <View style={{ aspectRatio, maxHeight, width: "100%", position: "relative", overflow: "hidden" }}>
+      <View
+        style={{
+          aspectRatio,
+          maxHeight,
+          width: "100%",
+          position: "relative",
+          overflow: "hidden",
+          borderRadius: radius.lg,
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}
+      >
         {current ? <Image source={{ uri: current }} style={styles.image} resizeMode="cover" alt={alt ? `${alt} — photo ${active + 1} of ${images.length}` : ""} /> : fallback}
       </View>
       {images.length > 1 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.md }}
+          contentContainerStyle={{ gap: spacing.sm, paddingTop: spacing.md }}
         >
           {images.map((uri, i) => (
             <Pressable
@@ -137,12 +167,13 @@ export function ImageGallery({
               accessibilityLabel={`Show photo ${i + 1} of ${images.length}`}
               accessibilityState={{ selected: i === active }}
               style={{
-                width: 64,
-                height: 64,
-                borderRadius: radius.sm,
+                width: 68,
+                height: 68,
+                borderRadius: radius.md,
                 overflow: "hidden",
                 borderWidth: 2,
                 borderColor: i === active ? colors.brand : colors.border,
+                opacity: i === active ? 1 : 0.78,
               }}
             >
               <Image source={{ uri }} style={styles.image} resizeMode="cover" alt="" accessible={false} />
@@ -155,6 +186,6 @@ export function ImageGallery({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 10, gap: 12 },
+  row: { flexDirection: "row", alignItems: "center", paddingVertical: 11, gap: 12 },
   image: { width: "100%", height: "100%" },
 });
