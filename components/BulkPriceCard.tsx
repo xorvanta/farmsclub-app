@@ -23,14 +23,33 @@ export function BulkPriceCard({ listing }: { listing: B2bListing }) {
   const headStyle = { fontFamily: fonts.bodySemiBold, fontSize: 11.5, letterSpacing: 0.4, color: "rgba(255,255,255,0.75)" };
 
   return (
-    <View style={{ backgroundColor: colors.brand, borderRadius: radius.lg, padding: spacing.lg }}>
-      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, letterSpacing: 0.6, textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>
-        Bulk price
-      </Text>
+    <View
+      style={{
+        backgroundColor: colors.brand,
+        borderRadius: radius.lg,
+        padding: spacing.lg,
+        shadowColor: "#0C291A",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 14,
+        elevation: 3,
+      }}
+    >
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, letterSpacing: 0.8, textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>
+          Bulk Wholesale Pricing
+        </Text>
+        {gstNote && (
+          <View style={{ backgroundColor: "rgba(255,255,255,0.14)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.pill }}>
+            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11, color: "#FFFFFF" }}>{gstNote}</Text>
+          </View>
+        )}
+      </View>
+
       {priceRange && (
-        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
-          <Text style={{ fontFamily: fonts.display, fontSize: 30, color: "#FFFFFF" }}>{priceRange}</Text>
-          <Text style={{ fontFamily: fonts.body, fontSize: 14, color: "rgba(255,255,255,0.75)" }}>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+          <Text style={{ fontFamily: fonts.display, fontSize: 32, color: "#FFFFFF" }}>{priceRange}</Text>
+          <Text style={{ fontFamily: fonts.body, fontSize: 14, color: "rgba(255,255,255,0.8)" }}>
             {unit ? `/ ${unit} · ` : ""}before GST
           </Text>
         </View>
@@ -38,9 +57,9 @@ export function BulkPriceCard({ listing }: { listing: B2bListing }) {
 
       {tiers.length > 0 && (
         <>
-          <View style={{ marginTop: spacing.md, borderRadius: radius.md, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.08)" }}>
-            <View style={[styles.row, { paddingHorizontal: spacing.md, backgroundColor: "rgba(255,255,255,0.12)" }]}>
-              <Text style={[styles.cell, headStyle]}>QUANTITY</Text>
+          <View style={{ marginTop: spacing.md, borderRadius: radius.md, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" }}>
+            <View style={[styles.row, { paddingHorizontal: spacing.md, backgroundColor: "rgba(255,255,255,0.14)" }]}>
+              <Text style={[styles.cell, headStyle]}>QUANTITY BAND</Text>
               <Text style={[styles.cell, styles.right, headStyle]}>PRICE / {unit ? unit.toUpperCase() : "UNIT"}</Text>
             </View>
             {tiers.map((t, i) => (
@@ -49,18 +68,26 @@ export function BulkPriceCard({ listing }: { listing: B2bListing }) {
                 style={[
                   styles.row,
                   { paddingHorizontal: spacing.md },
-                  i > 0 && { borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.12)" },
+                  i > 0 && { borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.1)" },
+                  i === tiers.length - 1 && tiers.length > 1 ? { backgroundColor: "rgba(255,255,255,0.05)" } : {},
                 ]}
               >
-                <Text style={[styles.cell, { fontFamily: fonts.body, fontSize: 14, color: "#FFFFFF" }]}>{qtyLabel(t)}</Text>
-                <Text style={[styles.cell, styles.right, { fontFamily: fonts.bodyBold, fontSize: 14, color: "#FFFFFF" }]}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1 }}>
+                  <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 13.5, color: "#FFFFFF" }}>{qtyLabel(t)}</Text>
+                  {i === tiers.length - 1 && tiers.length > 1 && (
+                    <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 10, color: colors.accent, letterSpacing: 0.3 }}>
+                      BEST VALUE
+                    </Text>
+                  )}
+                </View>
+                <Text style={[styles.cell, styles.right, { fontFamily: fonts.bodyBold, fontSize: 14.5, color: "#FFFFFF" }]}>
                   {formatRupees(Number(t.pricePerUnit))}
                 </Text>
               </View>
             ))}
           </View>
-          <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: "rgba(255,255,255,0.6)", marginTop: 6 }}>
-            Prices per unit, before GST{gstNote ? ` (${gstNote})` : ""}.
+          <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: "rgba(255,255,255,0.65)", marginTop: 6 }}>
+            Invoiced per unit directly by Formulate India.
           </Text>
         </>
       )}

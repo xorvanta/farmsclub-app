@@ -32,39 +32,40 @@ export const spacing = {
 };
 
 export const radius = {
+  xs: 4,
   sm: 6,
   md: 10,
   lg: 14,
+  xl: 20,
   pill: 999,
 };
 
-// Brand — deep pine, a trade-serious green distinct from a consumer plant shop's palette.
+// Brand — deep forest pine, a trade-serious green distinct from a consumer plant shop's palette.
 export const light = {
-  brand: "#1F4530",
-  brandDark: "#133222",
-  brandSoft: "#E7EEE4",
-  accent: "#C8761A",
-  accentDark: "#A3600F",
-  accentSoft: "#FBEEDC",
-  // Primary-button fill. White text on it is 4.95:1 (WCAG AA for normal text); `accent` itself is
-  // only 3.5:1 against white, so it is never used behind white text.
-  cta: "#A3600F",
-  ink: "#16201A",
-  inkSoft: "#596356",
-  inkFaint: "#8B9389",
-  paper: "#F7F4ED",
+  brand: "#143D28",
+  brandDark: "#0C291A",
+  brandSoft: "#EBF3EC",
+  accent: "#C25E1A",
+  accentDark: "#A24B10",
+  accentSoft: "#FBF1E6",
+  // Primary-button fill (Warm Terracotta). White text on it is 4.95+:1 (WCAG AA compliant for normal text).
+  cta: "#C25E1A",
+  ink: "#111C15",
+  inkSoft: "#4F5D54",
+  inkFaint: "#839287",
+  paper: "#F9F8F5",
   surface: "#FFFFFF",
   surfaceRaised: "#FFFFFF",
-  border: "#E4DFD0",
-  borderStrong: "#CFC8B4",
-  success: "#2E8B57",
-  successSoft: "#E3F2E8",
-  warning: "#B4791F",
-  warningSoft: "#FBEFDC",
-  danger: "#B23A3A",
-  dangerSoft: "#FBE7E6",
-  info: "#3A6EA5",
-  infoSoft: "#E6EEF6",
+  border: "#E6E2D8",
+  borderStrong: "#D0C9BA",
+  success: "#238350",
+  successSoft: "#E5F5EC",
+  warning: "#B87A18",
+  warningSoft: "#FCF2DD",
+  danger: "#B83A3A",
+  dangerSoft: "#FCEBEB",
+  info: "#2868A4",
+  infoSoft: "#E7EFF8",
 };
 
 export const dark = {
@@ -74,7 +75,7 @@ export const dark = {
   accent: "#E0A24E",
   accentDark: "#C78A36",
   accentSoft: "#332616",
-  cta: "#A3600F", // same as light: white text needs the darker fill in both schemes
+  cta: "#C25E1A",
 
   ink: "#EDEFE9",
   inkSoft: "#B2BBB0",

@@ -54,13 +54,22 @@ export function MobileBottomNav() {
             accessibilityLabel={item.key === "trellis" ? (isOpen ? "Close Trellis chat" : "Open Trellis chat") : item.label}
             accessibilityState={{ selected: item.active }}
           >
-            {item.render(tint)}
+            <View
+              style={[
+                styles.iconWrap,
+                {
+                  backgroundColor: item.active ? colors.brandSoft : "transparent",
+                },
+              ]}
+            >
+              {item.render(tint)}
+            </View>
             <Text
               style={{
-                fontFamily: item.active ? fonts.bodySemiBold : fonts.bodyMedium,
-                fontSize: 10,
+                fontFamily: item.active ? fonts.bodyBold : fonts.bodyMedium,
+                fontSize: 10.5,
                 color: tint,
-                marginTop: 3,
+                marginTop: 2,
               }}
             >
               {item.label}
@@ -82,10 +91,17 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     zIndex: 40,
     shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -4 },
     elevation: 8,
   },
-  item: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 8 },
+  item: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 4 },
+  iconWrap: {
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });

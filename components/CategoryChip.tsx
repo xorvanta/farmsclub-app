@@ -20,14 +20,24 @@ export function CategoryChip({
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected: active }}
       aria-pressed={active}
-      style={[
+      style={({ pressed }) => [
         styles.chip,
         {
           backgroundColor: active ? colors.brand : colors.surface,
           borderColor: active ? colors.brand : colors.border,
           borderRadius: radius.pill,
           paddingHorizontal: spacing.lg,
-          paddingVertical: spacing.sm,
+          paddingVertical: spacing.sm + 1,
+          opacity: pressed ? 0.9 : 1,
+          ...(active
+            ? {
+                shadowColor: colors.brand,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.18,
+                shadowRadius: 4,
+                elevation: 2,
+              }
+            : {}),
         },
       ]}
     >
@@ -36,6 +46,7 @@ export function CategoryChip({
           fontFamily: active ? fonts.bodySemiBold : fonts.bodyMedium,
           color: active ? "#FFFFFF" : colors.ink,
           fontSize: 13.5,
+          letterSpacing: 0.1,
         }}
       >
         {label}

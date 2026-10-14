@@ -68,8 +68,18 @@ export const Button = forwardRef<View, Props>(function Button(
           borderRadius: radius.md,
           paddingVertical: spacing.md,
           paddingHorizontal: spacing.xl,
-          opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
+          minHeight: 44,
+          opacity: disabled ? 0.5 : pressed ? 0.88 : 1,
           alignSelf: fullWidth ? "stretch" : "flex-start",
+          ...(variant === "primary" && !disabled && !inverted
+            ? {
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.14,
+                shadowRadius: 5,
+                elevation: 2,
+              }
+            : {}),
         },
       ]}
     >
@@ -89,7 +99,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   label: {
-    fontSize: 15,
+    fontSize: 14.5,
+    letterSpacing: 0.2,
     textAlign: "center",
   },
 });
