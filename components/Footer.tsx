@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
 import { Link, type Href } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
-import { CATEGORIES } from "@/constants/categories";
+import { useShownCategories } from "@/lib/useShownCategories";
 import { Logo } from "@/components/Logo";
 import { TrustBadges } from "@/components/TrustBadges";
 import { b2bApi } from "@/lib/api";
@@ -23,6 +23,7 @@ export function formatRegisteredAddress(address: string | null | undefined, stat
 
 export function Footer() {
   const { colors, fonts, spacing, radius } = useTheme();
+  const shownCategories = useShownCategories();
   const { width } = useWindowDimensions();
   const stacked = width < 680;
   const [billingEntity, setBillingEntity] = useState<B2bBillingEntity | null>(null);
@@ -83,7 +84,7 @@ export function Footer() {
         <View style={stacked ? styles.fullWidth : styles.columnBlock}>
           <FooterColumn
             title="Catalogue"
-            links={CATEGORIES.map((c) => ({ label: c.label, href: { pathname: "/listings", params: { category: c.value } } }))}
+            links={shownCategories.map((c) => ({ label: c.label, href: { pathname: "/listings", params: { category: c.value } } }))}
           />
         </View>
         <View style={stacked ? styles.fullWidth : styles.columnBlock}>

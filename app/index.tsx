@@ -14,7 +14,7 @@ import { StepIcon, type StepIconKey } from "@/components/graphics/StepIcon";
 import { SectionBanner } from "@/components/SectionBanner";
 import { FaqAccordion } from "@/components/FaqAccordion";
 import { TrustBadges } from "@/components/TrustBadges";
-import { CATEGORIES } from "@/constants/categories";
+import { useShownCategories } from "@/lib/useShownCategories";
 import { HERO_PHOTO, TRADE_DESK_PHOTO, NURSERY_WIDE_PHOTO, photoUrl } from "@/constants/categoryImages";
 import { b2bApi, errorMessage } from "@/lib/api";
 import { useChat } from "@/lib/chat-context";
@@ -28,6 +28,7 @@ const STEPS: { icon: StepIconKey; step: string; title: string; body: string }[] 
 
 export default function Home() {
   const { colors, fonts, spacing, radius } = useTheme();
+  const shownCategories = useShownCategories();
   const { width } = useWindowDimensions();
   const columns = width >= 980 ? 4 : width >= 680 ? 3 : 2;
   const wide = width >= 860;
@@ -121,7 +122,7 @@ export default function Home() {
           Browse Commercial Departments
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.md }}>
-          {CATEGORIES.map((c) => (
+          {shownCategories.map((c) => (
             <PressableLink
               key={c.value}
               href={{ pathname: "/listings", params: { category: c.value } }}

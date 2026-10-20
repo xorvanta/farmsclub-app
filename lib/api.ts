@@ -143,6 +143,9 @@ export const b2bApi = {
       }),
     }).catch(() => undefined),
 
+  /** Categories switched on for the storefront (v1.4 §7.4). */
+  getCategories: () => request<{ code: string; label: string }[]>("/public/b2b/categories"),
+
   getFaqs: () => request<B2bFaq[]>("/public/b2b/faqs"),
 
   getBillingEntity: () => request<B2bBillingEntity>("/public/b2b/billing-entity"),
