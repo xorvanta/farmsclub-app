@@ -13,6 +13,7 @@ import { LoadingState, ErrorState, EmptyState } from "@/components/StateViews";
 import { SectionBanner } from "@/components/SectionBanner";
 import { NURSERY_WIDE_PHOTO } from "@/constants/categoryImages";
 import { CATEGORIES, asCategory } from "@/constants/categories";
+import { useShownCategories } from "@/lib/useShownCategories";
 import { b2bApi, errorMessage } from "@/lib/api";
 import type { B2bListing, Category, ListingSort } from "@/lib/types";
 
@@ -41,6 +42,7 @@ function firstParam(v: string | string[] | undefined): string | undefined {
  */
 export default function Listings() {
   const { colors, fonts, spacing } = useTheme();
+  const shownCategories = useShownCategories();
   const { width } = useWindowDimensions();
   const gutter = useContentGutter();
   const contentWidth = Math.min(width, CONTENT_MAX_WIDTH + spacing.lg * 2);
@@ -107,7 +109,7 @@ export default function Listings() {
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={[{ value: null, label: "All categories" }, ...CATEGORIES]}
+          data={[{ value: null, label: "All categories" }, ...shownCategories]}
           keyExtractor={(c) => String(c.value)}
           contentContainerStyle={{ gap: spacing.sm }}
           accessibilityLabel="Filter by category"
