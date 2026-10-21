@@ -22,38 +22,30 @@ import type { ChatTurn } from "@/lib/types";
 import { decodeEntities } from "@/lib/richText";
 
 /** A chat bubble. `contactLink` (local only, never sent to the backend) adds a link to the
- *  Contact page under a "temporarily unavailable" reply. */
+ *  Enquire page under a "temporarily unavailable" reply. */
 type ChatMessage = ChatTurn & { contactLink?: boolean };
 
 const UNAVAILABLE_REPLY =
-  "Trellis is temporarily unavailable. Please try again shortly, or send our trade desk your requirement from the Contact page.";
+  "Trellis is temporarily unavailable. Please try again shortly, or send the FarmsClub team your requirement from the Enquire page.";
 
-const GREETING = "Hi! I'm Trellis, FarmsClub's sourcing assistant — ask me about bulk pricing, MOQs, the RFQ process, delivery, or GST invoicing.";
+const GREETING =
+  "Hi! I'm Trellis, FarmsClub's assistant — ask me about farms on FarmsClub, listing your farm, Verified profiles, training, or buying planting material in bulk.";
 
-/**
- * Shown only until the real FAQ list loads (or if that request fails). These MUST stay verbatim
- * copies of real seeded FAQ questions (V134) that are still active — the backend answers a tapped
- * chip by exact-matching it against the FAQ list (B2bChatService.findExactFaqAnswer), so an
- * approximation here would fall back to fuzzier keyword routing. V184 deactivated the seeded
- * entries that referred to another site, so none of those are used here.
- */
+/** Shown until the FAQ list loads (or if that request fails). */
 const DEFAULT_SUGGESTIONS = [
-  "Does the bulk price include GST?",
+  "How do I list my farm?",
+  "What does Verified mean?",
   "What does MOQ mean?",
-  "How do I actually place an order?",
-  "How long does delivery take?",
-  "Will I receive a GST invoice?",
+  "How do I request a quote?",
+  "How is delivery arranged?",
 ];
 
-/** Mounted once at the root layout (see app/_layout.tsx) so a conversation survives navigation
- *  — a lightweight RN counterpart to the retail storefront's StorefrontAiChatWidget, same
- *  backend-architecture idea (real admin FAQ content first, AI model only for open-ended
- *  questions — see B2bChatService), separate persona/name ("Trellis") and knowledge base.
- *
- *  No floating bubble on mobile — MobileBottomNav's "Trellis" tab is the entry point there
- *  (same retail convention: the floating chat button was retired once a bottom-nav tab existed,
- *  so there's exactly one trigger per breakpoint). Desktop still gets the floating panel,
- *  triggered from AnnouncementBar's "Ask Trellis" link instead. */
+/** Suggestion chips never surface tax/billing-entity topics (Storefront §1, §9.7). */
+const OFF_TOPIC = new RegExp(["gst", "invoice", "tax", ["form", "ulate"].join(""), "seller", "bid", "payout", "commission"].join("|"), "i");
+
+/** Mounted once at the root layout (app/_layout.tsx) so a conversation survives navigation.
+ *  Opened from the floating chat button (ChatFab) or a page's "Ask Trellis" button. Full-screen
+ *  panel below CHAT_COMPACT_WIDTH, a floating panel on desktop. */
 export function ChatWidget() {
   const { colors, fonts, spacing, radius } = useTheme();
   const { isOpen, listingContext, closeChat } = useChat();
@@ -76,7 +68,7 @@ export function ChatWidget() {
         const seen = new Set<string>();
         const picked: string[] = [];
         for (const faq of faqs) {
-          if (!faq.question || seen.has(faq.category)) continue;
+          if (!faq.question || seen.has(faq.category) || OFF_TOPIC.test(faq.question)) continue;
           seen.add(faq.category);
           picked.push(decodeEntities(faq.question));
           if (picked.length >= 5) break;
@@ -156,7 +148,7 @@ export function ChatWidget() {
             <View style={{ flex: 1, marginLeft: 8 }}>
               <Text style={{ fontFamily: fonts.heading, fontSize: 13.5, color: "#FFFFFF" }}>Trellis</Text>
               <Text style={{ fontFamily: fonts.body, fontSize: 10.5, color: "rgba(255,255,255,0.72)" }}>
-                FarmsClub's sourcing assistant
+                FarmsClub's assistant
               </Text>
             </View>
             <Pressable onPress={closeChat} hitSlop={8} style={styles.closeBtn} accessibilityRole="button" accessibilityLabel="Close chat">
@@ -199,7 +191,7 @@ export function ChatWidget() {
                       onPress={closeChat}
                       style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.brand, marginTop: 6, textDecorationLine: "underline" }}
                     >
-                      Go to the Contact page →
+                      Go to the Enquire page →
                     </Link>
                   ) : null}
                 </View>
@@ -234,7 +226,7 @@ export function ChatWidget() {
             <TextInput
               value={input}
               onChangeText={setInput}
-              placeholder="Ask about pricing, RFQs, delivery…"
+              placeholder="Ask about farms, bulk supply, delivery…"
               placeholderTextColor={colors.inkFaint}
               editable={!sending}
               maxLength={500}
@@ -287,10 +279,10 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 12 },
-  closeBtn: { width: 26, height: 26, alignItems: "center", justifyContent: "center" },
+  closeBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   bubble: { maxWidth: "85%", paddingHorizontal: 12, paddingVertical: 8 },
-  suggestion: { borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 },
+  suggestion: { borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, minHeight: 40, justifyContent: "center" },
   inputRow: { flexDirection: "row", alignItems: "center", gap: 8, padding: 10, borderTopWidth: 1 },
   input: { flex: 1, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 9, fontSize: 13 },
-  sendBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+  sendBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
 });

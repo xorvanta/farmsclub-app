@@ -1,391 +1,384 @@
-import { useEffect, useState, useCallback } from "react";
-import { View, Text, Image, FlatList, Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { View, Text, ScrollView, StyleSheet, useWindowDimensions, Pressable } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Link } from "expo-router";
-import { PressableLink } from "@/components/PressableLink";
+import { Link, router } from "expo-router";
+import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
-import { AppShell } from "@/components/AppShell";
+import { AppShell, useContentWidth } from "@/components/AppShell";
+import { SectionTitle } from "@/components/SectionTitle";
+import { SearchBar } from "@/components/SearchBar";
+import { FarmCard, fromHomeFarmCard } from "@/components/FarmCard";
 import { ListingCard } from "@/components/ListingCard";
-import { LoadingState, ErrorState } from "@/components/StateViews";
+import { PressableLink } from "@/components/PressableLink";
+import { Photo } from "@/components/Photo";
 import { Button } from "@/components/Button";
-import { CategoryArt } from "@/components/graphics/CategoryArt";
-import { StepIcon, type StepIconKey } from "@/components/graphics/StepIcon";
 import { SectionBanner } from "@/components/SectionBanner";
-import { FaqAccordion } from "@/components/FaqAccordion";
-import { TrustBadges } from "@/components/TrustBadges";
-import { useShownCategories } from "@/lib/useShownCategories";
-import { HERO_PHOTO, TRADE_DESK_PHOTO, NURSERY_WIDE_PHOTO, photoUrl } from "@/constants/categoryImages";
-import { b2bApi, errorMessage } from "@/lib/api";
-import { useChat } from "@/lib/chat-context";
-import type { B2bListing } from "@/lib/types";
+import { FaqList, cleanFaqs } from "@/components/FaqAccordion";
+import { LogoMark } from "@/components/graphics/LogoMark";
+import { useFcCategories } from "@/lib/useFcCategories";
+import { fcApi } from "@/lib/api";
+import type { FcContent, FcFilters } from "@/lib/types";
 
-const STEPS: { icon: StepIconKey; step: string; title: string; body: string }[] = [
-  { icon: "search", step: "01", title: "Find your product", body: "Browse live listings with clear quantity-tier pricing, no haggling." },
-  { icon: "form", step: "02", title: "Submit your requirement", body: "Tell us quantity, delivery city and destination station." },
-  { icon: "truck", step: "03", title: "We confirm the order", body: "Our team sources, invoices and dispatches — one point of contact." },
+/** Spec §4 draft copy — used until /public/fc/content answers (admin edits the live text). */
+const DEFAULT_HERO = {
+  headline: "India's trusted farm network",
+  subline: "Meet the farms behind India's orchards and plantations, and source planting material in bulk from the same network.",
+  searchPlaceholder: "Search a crop or state, e.g. mango, teak, Bihar",
+};
+const DEFAULT_OFFERS = [
+  { title: "Real farm stories", line: "Filmed on the ground by our team" },
+  { title: "Bulk planting material", line: "Saplings priced by quantity" },
+  { title: "Delivery by road or rail", line: "Arranged from the nearest source" },
+  { title: "One point of contact", line: "From quote to dispatch" },
 ];
+const DEFAULT_BANNER = {
+  title: "Own a farm?",
+  subline: "Share your story with buyers and future farmers across India.",
+  buttonLabel: "List your farm (free)",
+};
+
+const TRACKS: { title: string; cta: { label: string; href: "/listings" | "/list-your-farm" }; steps: string[] }[] = [
+  { title: "Buying in bulk", cta: { label: "Get bulk planting material", href: "/listings" }, steps: ["Choose your plants", "Request a quote", "We confirm price and dispatch"] },
+  { title: "Own a farm", cta: { label: "List your farm", href: "/list-your-farm" }, steps: ["List your farm", "Our team reviews it", "Buyers and new farmers discover you"] },
+];
+
+const text = (v: string | undefined | null, fallback: string) => (v && v.trim() ? v.trim() : fallback);
 
 export default function Home() {
   const { colors, fonts, spacing, radius } = useTheme();
-  const shownCategories = useShownCategories();
   const { width } = useWindowDimensions();
-  const columns = width >= 980 ? 4 : width >= 680 ? 3 : 2;
+  const contentWidth = useContentWidth();
   const wide = width >= 860;
   const compact = width < 560;
-  const { openChat } = useChat();
+  const categories = useFcCategories();
 
-  const [listings, setListings] = useState<B2bListing[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [content, setContent] = useState<FcContent | null>(null);
+  const [filters, setFilters] = useState<FcFilters | null>(null);
+  const [query, setQuery] = useState("");
 
   const load = useCallback(() => {
-    setError(null);
-    b2bApi
-      .getListings()
-      .then(setListings)
-      .catch((e) => setError(errorMessage(e)));
+    fcApi.getContent().then(setContent).catch(() => setContent(null));
+    fcApi.getFilters().then(setFilters).catch(() => setFilters(null));
   }, []);
+  useEffect(() => load(), [load]);
 
-  useEffect(() => void load(), [load]);
+  const hero = { ...DEFAULT_HERO, ...pickText(content?.hero) };
+  const offers = content?.offers?.filter((o) => o?.title?.trim()).slice(0, 4) ?? DEFAULT_OFFERS;
+  const banner = { ...DEFAULT_BANNER, ...pickText(content?.banner) };
+  const farms = (content?.featuredFarms ?? []).slice(0, 6).map(fromHomeFarmCard);
+  const listings = (content?.featuredListings ?? []).slice(0, 6);
+  const faqs = cleanFaqs(content?.homeFaqs).slice(0, 5);
+  const heroPhoto = farms.find((f) => f.image)?.image ?? null;
+
+  const stateChips = (filters?.states ?? []).filter((s) => s.farms > 0).slice(0, 10);
+  const cropChips = (filters?.crops ?? []).filter((c) => c.farms > 0).slice(0, 12);
+
+  const submitSearch = () => {
+    const q = query.trim();
+    if (q.length >= 1) router.push({ pathname: "/search", params: { q } });
+  };
+
+  const listingColumns = contentWidth < 480 ? 1 : contentWidth < 900 ? 2 : 3;
+  const listingWidth = Math.floor((contentWidth - spacing.md * (listingColumns - 1)) / listingColumns);
+  const farmCardWidth = compact ? Math.min(300, width * 0.78) : 300;
+  const tileColumns = contentWidth < 480 ? 2 : contentWidth < 900 ? 3 : 4;
+  const tileWidth = Math.floor((contentWidth - spacing.md * (tileColumns - 1)) / tileColumns);
+
+  const section = { width: "100%" as const, maxWidth: 1232, alignSelf: "center" as const, paddingHorizontal: spacing.lg, marginTop: spacing.xxxl };
 
   return (
     <AppShell>
-      <SeoHead title="FarmsClub — Bulk plants, seeds, pots, tools & fertiliser" description="Formulate India's B2B wholesale trade platform for bulk plants, seeds, pots, tools, and soil & fertiliser — quantity-tier pricing, sourced from nurseries and suppliers across India." />
+      <SeoHead
+        title="FarmsClub · India's trusted farm network"
+        description={hero.subline}
+        image={content?.shareImageUrl ?? null}
+      />
 
-      {/* ── Hero — real photo banner, full-bleed with a brand-tinted gradient for text legibility ──
-           Deliberately its own mobile proportions, not the desktop layout just scaled down: a
-           shorter panel, smaller kicker/heading/body, and tighter spacing so it reads as one
-           quick screenful on a phone instead of a stretched desktop hero. A minHeight (not a fixed
-           height) with vertical padding, so a 360px screen or a large accessibility font size grows
-           the panel instead of clipping the heading/buttons. ── */}
-      <View style={[styles.heroWrap, { minHeight: wide ? 460 : compact ? 400 : 480, paddingVertical: compact ? spacing.xxl : spacing.xxxl }]}>
-        <Image
-          alt=""
-          accessible={false}
-          source={{ uri: photoUrl(HERO_PHOTO, { w: Math.max(width, 900) * 1.5, h: wide ? 920 : 960, q: 72 }) }}
-          style={StyleSheet.absoluteFill}
-          resizeMode="cover"
-        />
+      {/* 1 · Hero */}
+      <View style={[styles.hero, { minHeight: wide ? 480 : compact ? 420 : 460, paddingVertical: compact ? spacing.xxl : spacing.xxxl }]}>
+        {heroPhoto ? <Photo uri={heroPhoto} alt="" eager style={StyleSheet.absoluteFill} sizes="100vw" /> : null}
         <LinearGradient
-          colors={wide ? ["rgba(19,50,34,0.88)", "rgba(19,50,34,0.5)", "rgba(19,50,34,0.2)"] : ["rgba(19,50,34,0.55)", "rgba(19,50,34,0.92)"]}
-          start={wide ? { x: 0, y: 0.5 } : { x: 0.5, y: 0 }}
-          end={wide ? { x: 1, y: 0.5 } : { x: 0.5, y: 1 }}
+          colors={heroPhoto ? ["rgba(12,41,26,0.86)", "rgba(12,41,26,0.62)"] : [colors.brand, colors.brandDark]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-
-        <View style={[styles.heroContent, { paddingHorizontal: spacing.lg }, wide && { maxWidth: 560 }]}>
-          <View style={[styles.kicker, compact && styles.kickerCompact, { backgroundColor: "rgba(255,255,255,0.14)", borderColor: "rgba(255,255,255,0.3)" }]}>
-            <View style={[styles.kickerDot, { backgroundColor: colors.accent }]} />
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: compact ? 10 : 11.5, letterSpacing: 0.4, color: "#FFFFFF", textTransform: "uppercase" }}>
-              Wholesale trade platform
+        <View style={{ width: "100%", maxWidth: 1232, alignSelf: "center", paddingHorizontal: spacing.lg }}>
+          <View style={{ maxWidth: 640 }}>
+            <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: wide ? 48 : compact ? 32 : 38, lineHeight: wide ? 54 : compact ? 38 : 44, color: "#FFFFFF" }}>
+              {hero.headline}
             </Text>
-          </View>
-          <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: wide ? 44 : compact ? 26 : 32, lineHeight: wide ? 50 : compact ? 32 : 38, color: "#FFFFFF", marginTop: compact ? 10 : 14 }}>
-            Bulk plants, seeds, pots, tools &amp; fertiliser — priced for volume.
-          </Text>
-          <Text style={{ fontFamily: fonts.body, fontSize: compact ? 13.5 : 15.5, color: "rgba(255,255,255,0.88)", marginTop: compact ? 8 : 12, maxWidth: 440, lineHeight: compact ? 19 : 23 }}>
-            FarmsClub is Formulate India's wholesale arm. Clear quantity-tier pricing on every listing,
-            sourced from nurseries and suppliers across India — our trade desk handles the rest.
-          </Text>
-          <View style={{ marginTop: compact ? spacing.lg : spacing.xl, flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
-            <Link href="/listings" asChild>
-              <Button label="Browse the catalogue" />
-            </Link>
-            <Link href="/about" asChild>
-              <Button label="How it works" variant="outline" inverted />
-            </Link>
-          </View>
-
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, marginTop: spacing.lg, flexWrap: "wrap" }}>
-            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: compact ? 11 : 12, color: "rgba(255,255,255,0.85)" }}>
-              ✓ Pan-India Logistics
+            <Text style={{ fontFamily: fonts.body, fontSize: compact ? 15 : 17, lineHeight: compact ? 22 : 26, color: "rgba(255,255,255,0.9)", marginTop: spacing.md }}>
+              {hero.subline}
             </Text>
-            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: compact ? 11 : 12, color: "rgba(255,255,255,0.85)" }}>
-              ✓ 100% GST Invoiced
-            </Text>
-            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: compact ? 11 : 12, color: "rgba(255,255,255,0.85)" }}>
-              ✓ Verified Nurseries
-            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.xl }}>
+              <Link href="/farms" asChild>
+                <Button label="Explore farms" />
+              </Link>
+              <Link href="/listings" asChild>
+                <Button label="Get bulk planting material" variant="outline" inverted />
+              </Link>
+            </View>
+            <View style={{ marginTop: spacing.xl, flexDirection: "row", gap: spacing.sm, alignItems: "center" }} accessibilityRole="search">
+              <View style={{ flex: 1 }}>
+                <SearchBar value={query} onChangeText={setQuery} placeholder={hero.searchPlaceholder} onSubmit={submitSearch} />
+              </View>
+              <Pressable
+                onPress={submitSearch}
+                accessibilityRole="button"
+                accessibilityLabel="Search farms and listings"
+                style={({ pressed }) => ({ height: 50, paddingHorizontal: 18, borderRadius: radius.md, backgroundColor: colors.cta, justifyContent: "center", opacity: pressed ? 0.88 : 1 })}
+              >
+                <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 14.5, color: "#FFFFFF" }}>Search</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </View>
 
-      {/* ── Trust badges — B2B credibility signals, not retail's payment/COD/guarantee badges ── */}
-      <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xl }}>
-        <TrustBadges />
-      </View>
-
-      {/* ── Categories — full illustrated tiles, not just icon badges ── */}
-      <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
-        <SectionLabel>Shop by category</SectionLabel>
-        <Text style={{ fontFamily: fonts.heading, fontSize: wide ? 22 : 18, color: colors.ink, marginTop: 4 }}>
-          Browse Commercial Departments
+      {/* 2 · What we offer */}
+      <View style={[section, { marginTop: spacing.xxl }]}>
+        <Text accessibilityRole="header" aria-level={2} style={visuallyHidden}>
+          What we offer
         </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.md }}>
-          {shownCategories.map((c) => (
-            <PressableLink
-              key={c.value}
-              href={{ pathname: "/listings", params: { category: c.value } }}
-              accessibilityLabel={`${c.label} — browse the catalogue`}
-              style={({ pressed }) => [
-                styles.categoryTile,
-                {
-                  borderRadius: radius.lg,
-                  borderColor: colors.border,
-                  opacity: pressed ? 0.92 : 1,
-                  transform: [{ scale: pressed ? 0.98 : 1 }],
-                },
-                columns >= 4 ? { flexBasis: "14%", flexGrow: 1 } : width >= 680 ? { flexBasis: "30%", flexGrow: 1 } : { flexBasis: "45%", flexGrow: 1 },
-              ]}
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+          {offers.map((o, i) => (
+            <View
+              key={o.title}
+              style={{
+                flexGrow: 1,
+                flexBasis: compact ? "45%" : 220,
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                borderWidth: 1,
+                borderRadius: radius.lg,
+                padding: spacing.lg,
+                gap: 8,
+              }}
             >
-              <CategoryArt category={c.value} style={StyleSheet.absoluteFill} />
-              <View style={[styles.categoryTileLabel, { backgroundColor: "rgba(12,41,26,0.68)" }]}>
-                <Text style={{ fontFamily: fonts.heading, fontSize: 13.5, color: "#FFFFFF" }}>{c.label}</Text>
-                <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, color: colors.accent, marginTop: 1 }}>Explore →</Text>
+              <View style={{ width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.brandSoft, alignItems: "center", justifyContent: "center" }}>
+                <OfferIcon index={i} color={colors.brand} />
               </View>
-            </PressableLink>
+              <Text style={{ fontFamily: fonts.heading, fontSize: 15, color: colors.ink }}>{o.title}</Text>
+              {o.line ? <Text style={{ fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: colors.inkSoft }}>{o.line}</Text> : null}
+            </View>
           ))}
         </View>
       </View>
 
-      {/* ── How it works — a connected flow on wide screens, a vertical timeline on mobile ── */}
-      <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
-        <SectionLabel>How it works</SectionLabel>
-        <Text style={{ fontFamily: fonts.heading, fontSize: wide ? 22 : 18, color: colors.ink, marginTop: 4 }}>
-          Procurement Made Frictionless
-        </Text>
+      {/* 3 · Farm stories */}
+      {farms.length > 0 ? (
+        <View style={section}>
+          <SectionTitle title="Real farms, filmed on the ground." linkLabel="See all farms" href="/farms" />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginTop: spacing.md, marginHorizontal: -spacing.lg }}
+            contentContainerStyle={{ gap: spacing.md, paddingHorizontal: spacing.lg, paddingBottom: 6 }}
+            accessibilityLabel="Farm stories"
+          >
+            {farms.map((f) => (
+              <View key={f.slug} style={{ width: farmCardWidth }}>
+                <FarmCard farm={f} />
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
 
-        {wide ? (
-          <View style={{ flexDirection: "row", alignItems: "stretch", marginTop: spacing.lg }}>
-            {STEPS.map((s, idx) => (
-              <View key={s.step} style={{ flex: 1, flexDirection: "row", alignItems: "stretch" }}>
-                <View
-                  style={[
-                    styles.stepCard,
-                    { flex: 1, backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg },
+      {/* 4 · Browse farms */}
+      {stateChips.length > 0 || cropChips.length > 0 ? (
+        <View style={section}>
+          <SectionTitle title="Browse farms" subtitle="By state or by crop" />
+          {stateChips.length > 0 ? (
+            <ChipRow label="States" items={stateChips.map((s) => ({ key: s.slug, label: s.name, href: { pathname: "/farms", params: { state: s.slug } } }))} />
+          ) : null}
+          {cropChips.length > 0 ? (
+            <ChipRow label="Crops" items={cropChips.map((c) => ({ key: c.slug, label: c.name, href: { pathname: "/farms", params: { crop: c.slug } } }))} />
+          ) : null}
+        </View>
+      ) : null}
+
+      {/* 5 · Bulk planting material */}
+      {categories.length > 0 || listings.length > 0 ? (
+        <View style={section}>
+          <SectionTitle title="Plantation stock, priced by quantity." linkLabel="See all" href="/listings" />
+          {categories.length > 0 ? (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.md }}>
+              {categories.map((c) => (
+                <PressableLink
+                  key={c.slug}
+                  href={{ pathname: "/listings", params: { category: c.slug } }}
+                  accessibilityLabel={`${c.name_en} — bulk supply`}
+                  style={({ pressed }) => [
+                    {
+                      width: tileWidth,
+                      aspectRatio: 1.35,
+                      borderRadius: radius.lg,
+                      overflow: "hidden",
+                      backgroundColor: colors.brand,
+                      opacity: pressed ? 0.92 : 1,
+                    },
                   ]}
                 >
-                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                    <View style={[styles.stepBadge, { backgroundColor: colors.brandSoft, borderRadius: radius.md }]}>
-                      <StepIcon icon={s.icon} size={19} color={colors.brand} />
+                  {c.image_url ? <Photo uri={c.image_url} alt="" style={StyleSheet.absoluteFill} /> : (
+                    <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}>
+                      <LogoMark size={40} onDark />
                     </View>
-                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.6, color: colors.accent }}>
-                      STEP {s.step}
+                  )}
+                  <LinearGradient colors={["transparent", "rgba(12,41,26,0.85)"]} style={[StyleSheet.absoluteFill, { top: "35%" }]} />
+                  <View style={{ position: "absolute", left: 12, right: 12, bottom: 10 }}>
+                    <Text numberOfLines={2} style={{ fontFamily: fonts.heading, fontSize: 15, color: "#FFFFFF" }}>
+                      {c.name_en}
                     </Text>
                   </View>
-                  <Text style={{ fontFamily: fonts.heading, fontSize: 15.5, color: colors.ink, marginTop: 14 }}>{s.title}</Text>
-                  <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft, marginTop: 5, lineHeight: 18.5 }}>
-                    {s.body}
-                  </Text>
+                </PressableLink>
+              ))}
+            </View>
+          ) : null}
+          {listings.length > 0 ? (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.lg }}>
+              {listings.map((l) => (
+                <View key={l.id} style={{ width: listingWidth }}>
+                  <ListingCard listing={l} />
                 </View>
-                {/* Reserved on every card (not just non-last ones) so each card's flex:1 share
-                    loses the same fixed width to this slot — otherwise the last card would end
-                    up visibly wider than the first two. */}
-                <View style={styles.connector} pointerEvents="none">
-                  {idx < STEPS.length - 1 && (
-                    <>
-                      <View style={[styles.connectorLine, { backgroundColor: colors.border }]} />
-                      <Text style={{ color: colors.accent, fontSize: 16, fontFamily: fonts.heading }}>›</Text>
-                      <View style={[styles.connectorLine, { backgroundColor: colors.border }]} />
-                    </>
-                  )}
-                </View>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <View style={{ marginTop: spacing.lg }}>
-            {STEPS.map((s, idx) => (
-              <View key={s.step} style={{ flexDirection: "row" }}>
-                <View style={{ alignItems: "center", width: 44 }}>
-                  <View style={[styles.stepBadge, { backgroundColor: colors.brandSoft, borderRadius: radius.md }]}>
-                    <StepIcon icon={s.icon} size={18} color={colors.brand} />
-                  </View>
-                  {idx < STEPS.length - 1 && <View style={[styles.timelineLine, { backgroundColor: colors.border }]} />}
-                </View>
-                <View style={{ flex: 1, paddingBottom: idx < STEPS.length - 1 ? spacing.lg : 0, paddingLeft: spacing.md }}>
-                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.6, color: colors.accent }}>
-                    STEP {s.step}
-                  </Text>
-                  <Text style={{ fontFamily: fonts.heading, fontSize: 15, color: colors.ink, marginTop: 3 }}>{s.title}</Text>
-                  <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft, marginTop: 3, lineHeight: 18 }}>
-                    {s.body}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-
-      {/* ── Poster / promo banner — brand statement, breaks up the page rhythm ── */}
-      <View style={{ marginTop: spacing.xxl }}>
-        <SectionBanner
-          eyebrow="Why FarmsClub"
-          title="Built for volume. Priced like it."
-          body="Clear quantity-tier pricing on every listing, no negotiating from scratch every time — and a real trade desk confirming each order."
-          photo={TRADE_DESK_PHOTO}
-        />
-      </View>
-
-      {/* ── Listings ── */}
-      <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <View>
-            <SectionLabel>Live on FarmsClub</SectionLabel>
-            <Text style={{ fontFamily: fonts.heading, fontSize: wide ? 22 : 18, color: colors.ink, marginTop: 4 }}>
-              Featured Wholesale Listings
-            </Text>
-          </View>
-          <Link href="/listings" asChild>
-            <Pressable
-              accessibilityRole="link"
-              accessibilityLabel="View all listings"
-              style={({ pressed }) => ({
-                backgroundColor: colors.brandSoft,
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: radius.pill,
-                opacity: pressed ? 0.8 : 1,
-              })}
-            >
-              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.brand }}>
-                View all →
-              </Text>
-            </Pressable>
-          </Link>
+              ))}
+            </View>
+          ) : null}
         </View>
+      ) : null}
 
-        {listings === null && !error ? (
-          <LoadingState label="Loading live listings…" />
-        ) : error ? (
-          <ErrorState message={error} onRetry={load} />
-        ) : listings!.length === 0 ? (
-          <EmptyCatalogueNote />
-        ) : (
-          <FlatList
-            data={listings!.slice(0, 8)}
-            key={columns}
-            numColumns={columns}
-            scrollEnabled={false}
-            keyExtractor={(item) => String(item.id)}
-            columnWrapperStyle={columns > 1 ? { gap: spacing.md } : undefined}
-            contentContainerStyle={{ gap: spacing.md, marginTop: spacing.md }}
-            renderItem={({ item }) => (
-              <View style={{ flex: 1, maxWidth: `${100 / columns}%` }}>
-                <ListingCard listing={item} />
-              </View>
-            )}
-          />
-        )}
+      {/* 6 · How it works — two tracks */}
+      <View style={section}>
+        <SectionTitle title="How it works" linkLabel="Learn more" href="/about" />
+        <View style={{ flexDirection: wide ? "row" : "column", gap: spacing.md, marginTop: spacing.md }}>
+          {TRACKS.map((t) => (
+            <View key={t.title} style={{ flex: wide ? 1 : undefined, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md }}>
+              <Text accessibilityRole="header" aria-level={3} style={{ fontFamily: fonts.heading, fontSize: 17, color: colors.ink }}>
+                {t.title}
+              </Text>
+              {t.steps.map((s, i) => (
+                <View key={s} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+                  <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.brandSoft, alignItems: "center", justifyContent: "center" }}>
+                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.brand }}>{i + 1}</Text>
+                  </View>
+                  <Text style={{ flex: 1, fontFamily: fonts.bodyMedium, fontSize: 14.5, color: colors.ink }}>{s}</Text>
+                </View>
+              ))}
+              <Link href={t.cta.href} asChild>
+                <Button label={t.cta.label} variant="secondary" />
+              </Link>
+            </View>
+          ))}
+        </View>
       </View>
 
-      {/* ── New-to-bulk promo — second banner, drives the two paths someone unsure might take ── */}
-      <View style={{ marginTop: spacing.xxl }}>
-        <SectionBanner
-          eyebrow="New here?"
-          title="Not sure where to start with bulk sourcing?"
-          body="Chat with Trellis for quick answers, or tell our trade desk what you need and we'll guide you through it."
-          photo={NURSERY_WIDE_PHOTO}
-        >
-          <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
-            <Button label="Ask Trellis" onPress={() => openChat(null)} inverted />
-            <Link href="/contact" asChild>
-              <Button label="Talk to the trade desk" variant="outline" inverted />
+      {/* 7 · List your farm banner */}
+      <View style={[section, { paddingHorizontal: 0 }]}>
+        <SectionBanner title={banner.title} body={banner.subline}>
+          {content && content.registrationOpen === false ? (
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 14, color: "#FFFFFF" }}>Registrations are paused right now.</Text>
+          ) : (
+            <Link href="/list-your-farm" asChild>
+              <Button label={banner.buttonLabel} />
             </Link>
-          </View>
+          )}
         </SectionBanner>
       </View>
 
-      {/* ── FAQ teaser ── */}
-      <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
-          <SectionLabel>Frequently asked</SectionLabel>
-          <Link href="/faqs" accessibilityLabel="View all FAQs" style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.brand }}>
-            View all →
-          </Link>
+      {/* 8 · Short FAQ */}
+      {faqs.length > 0 ? (
+        <View style={[section, { maxWidth: 820, marginBottom: spacing.xxl }]}>
+          <SectionTitle title="Questions, answered" linkLabel="All FAQs" href="/faqs" />
+          <View style={{ marginTop: spacing.md }}>
+            <FaqList faqs={faqs} />
+          </View>
         </View>
-        <View style={{ marginTop: spacing.md }}>
-          <FaqAccordion limit={5} />
-        </View>
-      </View>
+      ) : (
+        <View style={{ height: spacing.xxl }} />
+      )}
     </AppShell>
   );
 }
 
-function SectionLabel({ children }: { children: string }) {
-  const { colors, fonts } = useTheme();
-  return (
-    <Text accessibilityRole="header" style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: colors.inkFaint }}>
-      {children}
-    </Text>
-  );
+/** Non-empty string fields of an admin content block, so blanks fall back to the spec copy. */
+function pickText<T extends object>(block: T | null | undefined): Partial<T> {
+  const out: Partial<T> = {};
+  if (!block) return out;
+  for (const [k, v] of Object.entries(block)) if (typeof v === "string" && v.trim()) (out as Record<string, string>)[k] = v.trim();
+  return out;
 }
 
-function EmptyCatalogueNote() {
+function ChipRow({ label, items }: { label: string; items: { key: string; label: string; href: { pathname: "/farms"; params: Record<string, string> } }[] }) {
   const { colors, fonts, spacing, radius } = useTheme();
   return (
-    <View
-      style={[
-        styles.emptyNote,
-        { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.xl, marginTop: spacing.md },
-      ]}
-    >
-      <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink }}>
-        Listings are going live shortly
-      </Text>
-      <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: colors.inkSoft, marginTop: 6, maxWidth: 420, lineHeight: 19 }}>
-        New bulk listings are being added — send us an enquiry for what you need.
-      </Text>
-      <View style={{ marginTop: spacing.lg, alignSelf: "flex-start" }}>
-        <Link href="/contact" asChild>
-          <Button label="Tell us what you need" variant="outline" />
-        </Link>
+    <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
+      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.5, textTransform: "uppercase", color: colors.inkSoft }}>{label}</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+        {items.map((it) => (
+          <PressableLink
+            key={it.key}
+            href={it.href}
+            style={({ pressed }) => ({
+              minHeight: 44,
+              justifyContent: "center",
+              paddingHorizontal: 16,
+              borderRadius: radius.pill,
+              borderWidth: 1,
+              borderColor: colors.border,
+              backgroundColor: pressed ? colors.brandSoft : colors.surface,
+            })}
+          >
+            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.ink }}>{it.label}</Text>
+          </PressableLink>
+        ))}
       </View>
     </View>
   );
 }
 
+/** Simple line icons for the four "What we offer" items (in content order). */
+function OfferIcon({ index, color }: { index: number; color: string }) {
+  const p = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  switch (index % 4) {
+    case 0: // camera — filmed farm stories
+      return (
+        <Svg {...p}>
+          <Rect x={3} y={6.5} width={13} height={11} rx={2} />
+          <Path d="m16 10.5 5-3v9l-5-3" />
+        </Svg>
+      );
+    case 1: // sapling
+      return (
+        <Svg {...p}>
+          <Path d="M12 20v-8" />
+          <Path d="M12 13c0-3.5 2.5-6 6.5-6.5-.5 4-3 6.5-6.5 6.5Z" />
+          <Path d="M12 15c0-3-2-5-5.5-5.5.5 3.3 2.5 5.5 5.5 5.5Z" />
+          <Path d="M7 20h10" />
+        </Svg>
+      );
+    case 2: // truck
+      return (
+        <Svg {...p}>
+          <Rect x={2.5} y={8} width={11} height={8} rx={1} />
+          <Path d="M13.5 11h3.5l3.5 3.5V16h-7" />
+          <Circle cx={7} cy={18.5} r={1.7} />
+          <Circle cx={17} cy={18.5} r={1.7} />
+        </Svg>
+      );
+    default: // person / one contact
+      return (
+        <Svg {...p}>
+          <Circle cx={12} cy={8} r={3.5} />
+          <Path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5" />
+        </Svg>
+      );
+  }
+}
+
+const visuallyHidden = { position: "absolute" as const, width: 1, height: 1, overflow: "hidden" as const, opacity: 0 };
+
 const styles = StyleSheet.create({
-  heroWrap: { position: "relative", overflow: "hidden", justifyContent: "center" },
-  heroContent: { width: "100%" },
-  kicker: { flexDirection: "row", alignItems: "center", gap: 7, alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
-  kickerCompact: { paddingHorizontal: 9, paddingVertical: 4, gap: 5 },
-  kickerDot: { width: 6, height: 6, borderRadius: 3 },
-  categoryTile: {
-    aspectRatio: 1.15,
-    overflow: "hidden",
-    position: "relative",
-    borderWidth: 1,
-    shadowColor: "#111C15",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  categoryTileLabel: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  stepCard: {
-    borderWidth: 1,
-    padding: 20,
-    shadowColor: "#111C15",
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  stepBadge: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
-  connector: { width: 32, alignItems: "center", justifyContent: "center" },
-  connectorLine: { width: 1, flex: 1 },
-  timelineLine: { width: 1, flex: 1, marginTop: 4, marginBottom: 4 },
-  emptyNote: { borderWidth: 1 },
+  hero: { position: "relative", overflow: "hidden", justifyContent: "center" },
 });

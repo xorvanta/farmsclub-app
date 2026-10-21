@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { View, Text, Image, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useTheme } from "@/constants/theme-context";
+import { listingUnit, propagationLabel } from "@/lib/listing";
+import type { B2bListing } from "@/lib/types";
 
 // Trailing unit tokens in a spec key, and how they read in a label.
 const UNIT_SUFFIXES: Record<string, string> = {
@@ -65,16 +67,31 @@ export function specificationSummary(spec: string | null): string | null {
   return rows.map((r) => `${r.label}: ${r.value}`).join(", ");
 }
 
-export function SpecificationSection({ specification, brand }: { specification: string | null; brand: string | null }) {
+/** Storefront §9.2 specification table — only filled rows: Variety · Propagation · Age · Height ·
+ *  Bag/pot size · Unit · then any other spec fields/text the listing carries. */
+export function SpecificationSection({ listing }: { listing: B2bListing }) {
   const { colors, fonts, radius, spacing } = useTheme();
-  const { rows: specRows, text } = parseSpecification(specification);
-  const rows = brand ? [{ label: "Brand", value: brand }, ...specRows] : specRows;
+  const { rows: specRows, text } = parseSpecification(listing.specification);
+  const fixed: { label: string; value: string | null | undefined }[] = [
+    { label: "Variety", value: listing.variety?.trim() },
+    { label: "Propagation", value: propagationLabel(listing.propagation) },
+    { label: "Age", value: listing.age?.trim() },
+    { label: "Height", value: listing.height?.trim() },
+    { label: "Bag/pot size", value: listing.bag_size?.trim() },
+    { label: "Unit", value: listingUnit(listing) },
+    { label: "Brand", value: listing.manufacturer_brand?.trim() },
+  ];
+  const fixedLabels = new Set(fixed.map((f) => f.label.toLowerCase()));
+  const rows = [
+    ...fixed.filter((r): r is { label: string; value: string } => !!r.value),
+    ...specRows.filter((r) => !fixedLabels.has(r.label.toLowerCase())),
+  ];
   if (!rows.length && !text) return null;
 
   return (
     <View style={{ gap: spacing.sm }}>
       <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 16.5, color: colors.ink }}>
-        Product Specifications
+        Specifications
       </Text>
       {rows.length > 0 && (
         <View

@@ -1,79 +1,48 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import { router, usePathname } from "expo-router";
+import { router, usePathname, type Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/constants/theme-context";
-import { useChat } from "@/lib/chat-context";
 import { NavIcon } from "@/components/graphics/NavIcon";
 import { StepIcon } from "@/components/graphics/StepIcon";
-import { SparkleIcon } from "@/components/graphics/SparkleIcon";
 
 export const BOTTOM_NAV_HEIGHT = 58;
 
-/** Mobile-only sticky action bar — same role as retail's MobileBottomNav: one real entry point
- *  per primary destination, thumb-reachable, visible on every scroll position. FarmsClub has no
- *  cart/wishlist/account, so the 4 tabs are Home, Catalogue, Enquire (the RFQ/contact path —
- *  this platform's equivalent of retail's Cart as "the" conversion action) and Trellis (same
- *  toggle the desktop announcement bar's "Ask Trellis" link uses — exactly one chat entry point
- *  per breakpoint, never two). Pages with their own fixed bottom bar (listing detail's
- *  "Request a Quote" CTA) hide this via AppShell's hideBottomNav, same as retail hides its own
- *  nav on product/cart/checkout pages rather than stacking two bottom bars. */
+/** Mobile-only bottom bar (Storefront §2.2): Home · Farms · Bulk supply · Enquire. Trellis is the
+ *  floating chat button (ChatFab), not a tab. */
 export function MobileBottomNav() {
   const { colors, fonts } = useTheme();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
-  const { isOpen, openChat, closeChat } = useChat();
 
-  const items = [
-    { key: "home", label: "Home", render: (c: string) => <NavIcon icon="home" size={20} color={c} />, active: pathname === "/", onPress: () => router.push("/") },
-    { key: "catalogue", label: "Catalogue", render: (c: string) => <NavIcon icon="grid" size={20} color={c} />, active: pathname.startsWith("/listings"), onPress: () => router.push("/listings") },
-    { key: "enquire", label: "Enquire", render: (c: string) => <StepIcon icon="form" size={20} color={c} />, active: pathname === "/contact", onPress: () => router.push("/contact") },
-    { key: "trellis", label: "Trellis", render: (c: string) => <SparkleIcon size={18} color={c} />, active: isOpen, onPress: () => (isOpen ? closeChat() : openChat()) },
+  const items: { key: string; label: string; href: Href; active: boolean; render: (c: string) => React.ReactNode }[] = [
+    { key: "home", label: "Home", href: "/", active: pathname === "/", render: (c) => <NavIcon icon="home" size={20} color={c} /> },
+    { key: "farms", label: "Farms", href: "/farms", active: pathname.startsWith("/farms"), render: (c) => <NavIcon icon="farm" size={21} color={c} /> },
+    { key: "bulk", label: "Bulk supply", href: "/listings", active: pathname.startsWith("/listings") || pathname.startsWith("/rfq"), render: (c) => <NavIcon icon="grid" size={20} color={c} /> },
+    { key: "enquire", label: "Enquire", href: "/contact", active: pathname === "/contact", render: (c) => <StepIcon icon="form" size={20} color={c} /> },
   ];
 
   return (
     <View
+      accessibilityRole="tablist"
       style={[
         styles.bar,
-        {
-          height: BOTTOM_NAV_HEIGHT + insets.bottom,
-          paddingBottom: insets.bottom,
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-        },
+        { height: BOTTOM_NAV_HEIGHT + insets.bottom, paddingBottom: insets.bottom, backgroundColor: colors.surface, borderTopColor: colors.border },
       ]}
     >
       {items.map((item) => {
-        const tint = item.active ? colors.brand : colors.inkFaint;
+        const tint = item.active ? colors.brand : colors.inkSoft;
         return (
           <Pressable
             key={item.key}
-            onPress={item.onPress}
+            onPress={() => router.push(item.href)}
             style={styles.item}
-            hitSlop={4}
-            accessibilityRole="button"
-            accessibilityLabel={item.key === "trellis" ? (isOpen ? "Close Trellis chat" : "Open Trellis chat") : item.label}
+            accessibilityRole="link"
+            accessibilityLabel={item.label}
             accessibilityState={{ selected: item.active }}
+            aria-current={item.active ? "page" : undefined}
           >
-            <View
-              style={[
-                styles.iconWrap,
-                {
-                  backgroundColor: item.active ? colors.brandSoft : "transparent",
-                },
-              ]}
-            >
-              {item.render(tint)}
-            </View>
-            <Text
-              style={{
-                fontFamily: item.active ? fonts.bodyBold : fonts.bodyMedium,
-                fontSize: 10.5,
-                color: tint,
-                marginTop: 2,
-              }}
-            >
-              {item.label}
-            </Text>
+            <View style={[styles.iconWrap, { backgroundColor: item.active ? colors.brandSoft : "transparent" }]}>{item.render(tint)}</View>
+            <Text style={{ fontFamily: item.active ? fonts.bodyBold : fonts.bodyMedium, fontSize: 10.5, color: tint, marginTop: 2 }}>{item.label}</Text>
           </Pressable>
         );
       })}
@@ -96,12 +65,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     elevation: 8,
   },
-  item: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 4 },
-  iconWrap: {
-    paddingHorizontal: 12,
-    paddingVertical: 3,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  item: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 4, minHeight: 48 },
+  iconWrap: { paddingHorizontal: 12, paddingVertical: 3, borderRadius: 16, alignItems: "center", justifyContent: "center" },
 });

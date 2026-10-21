@@ -2,46 +2,55 @@ import { SeoHead } from "@/components/SeoHead";
 import { AppShell } from "@/components/AppShell";
 import { LegalPage } from "@/components/LegalPage";
 
+/*
+ * Storefront §9.11 / §13 / §14: the Terms page is the only storefront page that may name legal
+ * entities. EXACT WORDING TO BE CONFIRMED BY CA/LEGAL before farmsclub.in launch:
+ *  - the operator line ("operated by Xorvanta Technologies Pvt. Ltd."), and
+ *  - the billing entity for bulk orders — its legal name is deliberately NOT on the page yet; insert
+ *    it in section 1 once the CA confirms the name and the bill document type (bill of supply vs
+ *    tax invoice).
+ * Also still to confirm with legal before launch: payment terms, risk in transit, returns/disputes
+ * window, governing law/jurisdiction. This draft has not been reviewed by counsel.
+ */
 export default function Terms() {
   return (
     <AppShell>
-      <SeoHead title="Terms of trade · FarmsClub" description="Terms governing bulk orders placed through FarmsClub." />
+      <SeoHead title="Terms · FarmsClub" description="Terms for using FarmsClub, India's trusted farm network, and for bulk orders placed through it." />
       <LegalPage
-        title="Terms of trade"
-        updated="[date — set before launch]"
-        note="Drafted as a standard structure for a B2B sourcing platform, not reviewed by counsel. Confirm with Formulate India's legal advisor — particularly the liability, cancellation, and dispute-resolution sections — before this goes live."
+        title="Terms"
+        updated="October 2026"
         sections={[
           {
-            heading: "1. Who you're contracting with",
-            body: "Every order placed through FarmsClub is sold by Formulate India, which buys from its network of subscribed sellers and sells to you as a single counterparty. Formulate India issues the invoice, confirms delivery, and is who you contact for any order-related matter — not the originating seller.",
+            heading: "1. Who runs FarmsClub",
+            body: "FarmsClub is operated by Xorvanta Technologies Pvt. Ltd. Bulk orders arranged through FarmsClub are billed by a separate billing entity, which is named on your order confirmation and on your bill.",
           },
           {
-            heading: "2. How an order is formed",
-            body: "Browsing FarmsClub and submitting an enquiry is a request for quote, not a binding order. An order is only confirmed once our trade desk has agreed quantity, price, and delivery details with you directly and recorded your advance payment.",
+            heading: "2. The farm network",
+            body: "Farm profiles on FarmsClub are for information only. Each farm owner has agreed that FarmsClub may publish their farm's details, photos and videos. A \"Verified\" farm is one the FarmsClub team has visited; \"Self-listed\" farms have not been visited yet. FarmsClub does not take bookings or payments for farm visits, training, courses or services on this website — any arrangement you make with a farm is between you and the farm.",
           },
           {
-            heading: "3. Pricing",
-            body: "Prices shown are per-unit, before GST, and vary by order quantity. Published tiers reflect live supplier rates and may change between your enquiry and order confirmation for requirements not yet quoted.",
+            heading: "3. Requests for a quote",
+            body: "Browsing FarmsClub and submitting a quote request or enquiry is not a binding order. An order is confirmed only once the FarmsClub team has agreed quantity, price and delivery details with you directly.",
           },
           {
-            heading: "4. Payment",
-            body: "Orders are payable in advance to Formulate India, by the method confirmed during order creation. [Specify accepted payment methods and any partial-payment terms before launch.]",
+            heading: "4. Prices",
+            body: "Prices are shown per unit and change by order quantity. Prices may change between your enquiry and order confirmation; the price that applies is the one confirmed to you by the FarmsClub team. You receive a proper bill for every order.",
           },
           {
-            heading: "5. Delivery and risk",
-            body: "Dispatch details (transport mode, expected arrival) are shared once your order is confirmed. Formulate India calls to confirm delivery before an order is closed. [Confirm risk-of-loss terms in transit with your logistics/legal advisor.]",
+            heading: "5. Payment",
+            body: "Payment terms and accepted payment methods are confirmed with you before your order is placed.",
           },
           {
-            heading: "6. Returns and disputes",
-            body: "[To be defined before launch — specify the process for a quantity or quality discrepancy on delivery, and the timeframe for raising it.]",
+            heading: "6. Delivery",
+            body: "Delivery is arranged by road or rail. The transport mode and expected arrival are shared with you once your order is confirmed. Delivery timelines are estimates and depend on the transport arranged.",
           },
           {
-            heading: "7. Governing law",
-            body: "[Specify jurisdiction and dispute-resolution forum before launch.]",
+            heading: "7. Problems with an order",
+            body: "If the quantity or condition of what you receive does not match your order, tell the FarmsClub team as soon as possible through the Enquire page, with photos where you can, and we will work with you to resolve it.",
           },
           {
             heading: "8. Contact",
-            body: "Questions about an order or these terms — use the enquiry form on our Contact page. [Add a direct trade-desk phone/email here once available.]",
+            body: "Questions about an order or these terms — use the Enquire page and the FarmsClub team will get back to you.",
           },
         ]}
       />

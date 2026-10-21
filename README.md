@@ -1,9 +1,11 @@
 # FarmsClub
 
-FarmsClub is Formulate India's B2B wholesale trade platform — bulk plants, pots, tools, and
-soil/fertiliser, sold with tiered pricing and sourced through a sealed-bid supplier network.
-It's the public-facing counterpart to the admin/seller B2B console in the Paudhewale dashboard,
-calling the same backend's `/public/b2b/**` endpoints (no auth, no seller identity ever exposed).
+FarmsClub — *India's trusted farm network* (a Xorvanta Technologies product). Two parts:
+the **farm network** (`/farms`: real farms, their stories, videos, what they grow, services and
+training — information only) and **bulk supply** (`/listings`: planting material priced by
+quantity, request a quote). Built to `FarmsClub_Storefront_Spec` v1.2. It calls the backend's
+public `/public/b2b/**` and `/public/fc/**` endpoints (no auth; no seller identity and no farm
+phone/WhatsApp number is ever exposed).
 
 Built with **Expo + Expo Router** — one React Native codebase targets web, iOS, and Android.
 Only the web target is wired up for deployment today; native builds (EAS Build) are a later step
@@ -79,15 +81,28 @@ npm run web      # http://localhost:8081
    copies `+not-found.html` to `404.html` (Vercel serves it, with a 404 status, for unknown paths).
 3. Routing on Vercel (`vercel.json`): `cleanUrls` serves `/about` from `about.html`; dynamic
    routes are rewritten to their exported shells — `/listings/:id` → `listings/[id].html`,
-   `/rfq/:listingId` → `rfq/[listingId].html` — so a refresh or deep link works. The
+   `/rfq/:listingId` → `rfq/[listingId].html`, `/farms/:slug` → `farms/[slug].html`,
+   `/farm-edit/:token` → `farm-edit/[token].html` — so a refresh or deep link works. The
    `/api/v1/*` backend rewrite stays first. Expo Router's dev `/_sitemap` route is disabled in
    `app.json` (`"sitemap": false`).
 4. Optional env vars (Vercel → Project → Settings → Environment Variables, see
-   `.env.production.example`): `EXPO_PUBLIC_API_URL` (web defaults to `/api/v1` already) and
-   `EXPO_PUBLIC_SITE_URL` (canonical/og:url origin; defaults to the browser's origin).
+   `.env.production.example`): `EXPO_PUBLIC_API_URL` (web defaults to `/api/v1` already),
+   `EXPO_PUBLIC_API_DIRECT_URL` (the backend's own URL, used only for the farm WhatsApp
+   click-counting redirect so each click arrives from the visitor's IP; defaults to Cloud Run),
+   `EXPO_PUBLIC_SITE_URL` (canonical/og:url origin; defaults to `https://farmsclub.in`) and
+   `EXPO_PUBLIC_TURNSTILE_SITE_KEY` (Cloudflare Turnstile on the farm registration and
+   "Ask about this farm" forms; unset = honeypot + minimum fill time only).
 5. Attach the FarmsClub domain in Vercel → Project → Settings → Domains once it's ready.
 
-## What's built, what isn't (as of 2026-10-06)
+### Beta `noindex` — remove at launch on farmsclub.in
+
+The beta must not be indexed (Storefront §12.3). Three places set it; remove all three at launch:
+- `vercel.json` → the `X-Robots-Tag: noindex, nofollow` header (JSON can't hold a comment, so
+  it's documented here),
+- `app/+html.tsx` → the static `<meta name="robots" content="noindex, nofollow">`,
+- `components/SeoHead.tsx` → set `BETA_NOINDEX = false`.
+
+## What's built, what isn't (history — as of 2026-10-06; superseded by the Storefront spec v1.2 rebuild, Oct 2026)
 
 Done: home, catalogue browse (category/search filtering), listing detail with the full
 tiered-price table, RFQ form with the complete field set from `B2B_Admin_Spec_v1.2` §3 (shared

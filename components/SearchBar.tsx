@@ -3,7 +3,19 @@ import { View, TextInput, Pressable, StyleSheet } from "react-native";
 import Svg, { Path, Circle } from "react-native-svg";
 import { useTheme } from "@/constants/theme-context";
 
-export function SearchBar({ value, onChangeText, placeholder }: { value: string; onChangeText: (t: string) => void; placeholder?: string }) {
+export function SearchBar({
+  value,
+  onChangeText,
+  placeholder,
+  onSubmit,
+  accessibilityLabel = "Search",
+}: {
+  value: string;
+  onChangeText: (t: string) => void;
+  placeholder?: string;
+  onSubmit?: () => void;
+  accessibilityLabel?: string;
+}) {
   const { colors, fonts, radius, spacing } = useTheme();
   const [focused, setFocused] = useState(false);
 
@@ -38,8 +50,9 @@ export function SearchBar({ value, onChangeText, placeholder }: { value: string;
         onChangeText={onChangeText}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        placeholder={placeholder ?? "Search plants, seeds, pots, tools, fertiliser…"}
-        accessibilityLabel="Search the catalogue"
+        placeholder={placeholder ?? "Search plants, crops, varieties…"}
+        onSubmitEditing={onSubmit}
+        accessibilityLabel={accessibilityLabel}
         inputMode="search"
         returnKeyType="search"
         autoCorrect={false}
@@ -69,6 +82,7 @@ export function SearchBar({ value, onChangeText, placeholder }: { value: string;
 const styles = StyleSheet.create({
   wrap: {
     height: 50,
+    minHeight: 48,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -84,7 +98,10 @@ const styles = StyleSheet.create({
     outlineWidth: 0,
   },
   clearBtn: {
-    padding: 6,
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
   clearCircle: {
     width: 20,
