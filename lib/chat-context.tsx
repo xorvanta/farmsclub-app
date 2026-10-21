@@ -1,10 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { ChatListingContext } from "./types";
 
-// Shared with ChatWidget.tsx, AnnouncementBar.tsx and AppShell.tsx so the bottom-nav "Trellis"
-// tab (mobile) and the announcement bar's "Ask Trellis" link (desktop) switch over at the exact
-// same width — no gap where neither shows, no overlap where both do. Matches Header.tsx's own
-// compact/desktop breakpoint.
+// Below this width the Trellis panel opens full-screen (matches Header.tsx's compact breakpoint).
 export const CHAT_COMPACT_WIDTH = 760;
 
 type ChatContextValue = {

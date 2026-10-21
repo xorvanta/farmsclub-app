@@ -3,19 +3,17 @@ import { View, Text, FlatList, Pressable, useWindowDimensions } from "react-nati
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
-import { AppShell, useContentGutter, CONTENT_MAX_WIDTH } from "@/components/AppShell";
+import { AppShell, useContentGutter } from "@/components/AppShell";
 import { Footer } from "@/components/Footer";
 import { SearchBar } from "@/components/SearchBar";
 import { CategoryChip } from "@/components/CategoryChip";
 import { ListingCard } from "@/components/ListingCard";
+import { SectionTitle } from "@/components/SectionTitle";
 import { Button } from "@/components/Button";
 import { LoadingState, ErrorState, EmptyState } from "@/components/StateViews";
-import { SectionBanner } from "@/components/SectionBanner";
-import { NURSERY_WIDE_PHOTO } from "@/constants/categoryImages";
-import { CATEGORIES, asCategory } from "@/constants/categories";
-import { useShownCategories } from "@/lib/useShownCategories";
-import { b2bApi, errorMessage } from "@/lib/api";
-import type { B2bListing, Category, ListingSort } from "@/lib/types";
+import { useFcCategories } from "@/lib/useFcCategories";
+import { b2bApi, fcApi, errorMessage } from "@/lib/api";
+import type { B2bListing, FcFilters, ListingSort } from "@/lib/types";
 
 const SORTS: { value: ListingSort; label: string }[] = [
   { value: "name", label: "Name" },
@@ -29,37 +27,39 @@ function asSort(v: unknown): ListingSort {
   return SORTS.some((s) => s.value === v) ? (v as ListingSort) : "name";
 }
 
-function firstParam(v: string | string[] | undefined): string | undefined {
-  return Array.isArray(v) ? v[0] : v;
+function firstParam(v: string | string[] | undefined): string {
+  return ((Array.isArray(v) ? v[0] : v) ?? "").trim().slice(0, 140);
 }
 
 /**
- * Category, sort and search live in the URL (?category=SEED&sort=price_asc&q=rose), and the
- * screen reads them from there — so a footer category link works while already on /listings,
- * Back returns to the same filtered view, and a shared link opens the same filter. Only known
- * categories/sorts are honoured; a hand-typed ?category=xyz is ignored rather than sent to the
- * backend.
+ * Bulk supply (Storefront §9.1). Category, crop, sort and search live in the URL
+ * (?category=fruit-plants&crop=Mango&sort=price_asc&q=alphonso), so Back, shared links and the
+ * farm page's "see all" links open the same view. Categories and crops come from the API only —
+ * live categories with visible listings, and crops that have visible listings.
  */
 export default function Listings() {
   const { colors, fonts, spacing } = useTheme();
-  const shownCategories = useShownCategories();
+  const categories = useFcCategories();
   const { width } = useWindowDimensions();
   const gutter = useContentGutter();
-  const contentWidth = Math.min(width, CONTENT_MAX_WIDTH + spacing.lg * 2);
-  const columns = contentWidth >= 980 ? 4 : contentWidth >= 680 ? 3 : 2;
-  const params = useLocalSearchParams<{ category?: string; sort?: string; q?: string }>();
+  const columns = width >= 1200 ? 4 : width >= 900 ? 3 : width >= 480 ? 2 : 1;
+  const params = useLocalSearchParams<{ category?: string; crop?: string; sort?: string; q?: string }>();
 
-  const category: Category | null = asCategory(firstParam(params.category));
+  const category = firstParam(params.category); // a FarmsClub slug, or an old code (PLANT…) — the API accepts both
+  const crop = firstParam(params.crop); // crop id or name
   const sort: ListingSort = asSort(firstParam(params.sort));
-  const urlQuery = (firstParam(params.q) ?? "").trim();
+  const urlQuery = firstParam(params.q);
 
   const [listings, setListings] = useState<B2bListing[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<FcFilters | null>(null);
   const [query, setQuery] = useState(urlQuery);
 
-  // Typing updates ?q= after a pause; an external change to ?q= (Back, a shared link, "Clear
-  // filters") updates the box. `pushedQuery` stops our own debounced update from echoing back
-  // and overwriting characters typed in the meantime.
+  useEffect(() => {
+    fcApi.getFilters().then(setFilters).catch(() => setFilters(null));
+  }, []);
+
+  // Typing updates ?q= after a pause; an external change to ?q= updates the box.
   const pushedQuery = useRef(urlQuery);
   useEffect(() => {
     if (urlQuery === pushedQuery.current) return;
@@ -80,97 +80,120 @@ export default function Listings() {
   const load = useCallback(() => {
     let cancelled = false;
     setError(null);
-    // Previous results stay on screen while a new search loads — swapping to the loading view
-    // would remount the search box and drop keyboard focus mid-typing.
     b2bApi
-      .getListings({ category, q: urlQuery, sort })
-      .then((rows) => !cancelled && setListings(rows))
+      .getListings({ category: category || null, crop: crop || null, q: urlQuery, sort })
+      .then((rows) => !cancelled && setListings(Array.isArray(rows) ? rows : []))
       .catch((e) => !cancelled && setError(errorMessage(e)));
     return () => {
       cancelled = true;
     };
-  }, [category, urlQuery, sort]);
+  }, [category, crop, urlQuery, sort]);
 
   useEffect(() => load(), [load]);
-  const hasFilter = category !== null || urlQuery !== "";
+
+  const activeCategory = categories.find((c) => c.slug === category.toLowerCase() || (c.legacy_code && c.legacy_code === category.toUpperCase())) ?? null;
+  const crops = filters?.listing_crops ?? [];
+  const activeCrop = crop ? crops.find((c) => String(c.id) === crop || c.name?.toLowerCase() === crop.toLowerCase()) ?? null : null;
+  const hasFilter = !!category || !!crop || urlQuery !== "";
 
   const clearFilters = () => {
     setQuery("");
-    router.setParams({ category: undefined, q: undefined });
+    router.setParams({ category: undefined, crop: undefined, q: undefined });
   };
 
-  const filterBar = (
-    <View style={{ gap: spacing.lg }}>
-      <View style={{ paddingTop: spacing.lg }}>
-        <SectionBanner eyebrow="Catalogue" title="Every live bulk listing, priced by quantity tier." photo={NURSERY_WIDE_PHOTO} />
-      </View>
-      <View style={{ paddingHorizontal: gutter, paddingBottom: spacing.sm, gap: spacing.md }}>
-        <SearchBar value={query} onChangeText={setQuery} />
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={[{ value: null, label: "All categories" }, ...shownCategories]}
-          keyExtractor={(c) => String(c.value)}
-          contentContainerStyle={{ gap: spacing.sm }}
-          accessibilityLabel="Filter by category"
-          renderItem={({ item }) => (
-            <CategoryChip
-              label={item.label}
-              active={category === item.value}
-              onPress={() => router.setParams({ category: (item.value as Category | null) ?? undefined })}
-            />
-          )}
-        />
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: spacing.sm }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, flexShrink: 1 }}>
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.inkSoft }}>Sort:</Text>
-            <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              data={SORTS}
-              keyExtractor={(s) => s.value}
-              contentContainerStyle={{ gap: spacing.sm }}
-              accessibilityLabel="Sort listings"
-              renderItem={({ item }) => (
-                <CategoryChip
-                  label={item.label}
-                  active={sort === item.value}
-                  accessibilityLabel={`Sort by ${item.label}`}
-                  onPress={() => router.setParams({ sort: item.value === "name" ? undefined : item.value })}
-                />
-              )}
-            />
-          </View>
-          {hasFilter && (
-            <Pressable
-              onPress={clearFilters}
-              accessibilityRole="button"
-              accessibilityLabel="Clear all filters"
-              hitSlop={8}
-            >
-              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.cta }}>
-                Reset filters
-              </Text>
-            </Pressable>
-          )}
-        </View>
-      </View>
+  const chipRow = (label: string, children: React.ReactNode) => (
+    <View style={{ gap: 6 }}>
+      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.4, textTransform: "uppercase", color: colors.inkSoft }}>{label}</Text>
+      {children}
     </View>
   );
 
-  const categoryName = category ? CATEGORIES.find((c) => c.value === category)?.label : null;
+  const filterBar = (
+    <View style={{ paddingHorizontal: gutter, paddingTop: spacing.xl, paddingBottom: spacing.md, gap: spacing.lg }}>
+      <SectionTitle level={1} title="Bulk supply" subtitle="Plantation stock, priced by quantity." />
+      <SearchBar value={query} onChangeText={setQuery} placeholder="Search plants, crops, varieties…" accessibilityLabel="Search bulk supply" />
+
+      {categories.length > 0 &&
+        chipRow(
+          "Category",
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={[{ slug: "", name_en: "All" }, ...categories]}
+            keyExtractor={(c) => c.slug || "all"}
+            contentContainerStyle={{ gap: spacing.sm }}
+            accessibilityLabel="Filter by category"
+            renderItem={({ item }) => (
+              <CategoryChip
+                label={item.name_en}
+                active={item.slug ? activeCategory?.slug === item.slug : !category}
+                onPress={() => router.setParams({ category: item.slug || undefined })}
+              />
+            )}
+          />,
+        )}
+
+      {crops.length > 0 &&
+        chipRow(
+          "Crop",
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={[{ id: 0, name: "All crops" }, ...crops]}
+            keyExtractor={(c) => String(c.id)}
+            contentContainerStyle={{ gap: spacing.sm }}
+            accessibilityLabel="Filter by crop"
+            renderItem={({ item }) => (
+              <CategoryChip
+                label={item.name}
+                active={item.id ? activeCrop?.id === item.id : !crop}
+                onPress={() => router.setParams({ crop: item.id ? String(item.id) : undefined })}
+              />
+            )}
+          />,
+        )}
+
+      {chipRow(
+        "Sort",
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={SORTS}
+          keyExtractor={(s) => s.value}
+          contentContainerStyle={{ gap: spacing.sm }}
+          accessibilityLabel="Sort listings"
+          renderItem={({ item }) => (
+            <CategoryChip
+              label={item.label}
+              active={sort === item.value}
+              accessibilityLabel={`Sort by ${item.label}`}
+              onPress={() => router.setParams({ sort: item.value === "name" ? undefined : item.value })}
+            />
+          )}
+        />,
+      )}
+
+      {hasFilter && (
+        <Pressable onPress={clearFilters} accessibilityRole="button" accessibilityLabel="Clear all filters" style={{ alignSelf: "flex-start", minHeight: 44, justifyContent: "center" }}>
+          <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 14, color: colors.cta }}>Clear filters</Text>
+        </Pressable>
+      )}
+    </View>
+  );
+
+  const title = activeCategory ? `${activeCategory.name_en} · Bulk supply · FarmsClub` : "Bulk supply · FarmsClub";
 
   return (
     <AppShell noScroll>
       <SeoHead
-        title={categoryName ? `${categoryName} in bulk · FarmsClub` : "Catalogue · FarmsClub"}
-        description="Browse bulk plants, seeds, pots, tools, and soil & fertiliser listings with quantity-tier pricing on FarmsClub."
+        title={title}
+        description="Plantation stock in bulk on FarmsClub — fruit plants, spice planting material and more, priced by quantity. Request a quote and our team confirms price and dispatch."
       />
 
       {listings === null && !error ? (
         <>
           {filterBar}
-          <LoadingState label="Loading catalogue…" />
+          <LoadingState label="Loading…" />
         </>
       ) : error ? (
         <>
@@ -184,26 +207,21 @@ export default function Listings() {
           numColumns={columns}
           keyExtractor={(item) => String(item.id)}
           keyboardShouldPersistTaps="handled"
-          columnWrapperStyle={{ gap: spacing.md, paddingHorizontal: gutter }}
+          columnWrapperStyle={columns > 1 ? { gap: spacing.md, paddingHorizontal: gutter } : undefined}
           contentContainerStyle={{ gap: spacing.md }}
           ListHeaderComponent={filterBar}
           ListFooterComponent={<Footer />}
           ListFooterComponentStyle={{ marginTop: spacing.xl }}
           ListEmptyComponent={
-            hasFilter ? (
-              <EmptyState title="No matching listings" body="Try a different category or search term.">
-                <Button label="Clear filters" variant="outline" onPress={clearFilters} />
-              </EmptyState>
-            ) : (
-              <EmptyState title="Listings are going live shortly" body="New bulk listings are being added — send us an enquiry for what you need.">
-                <Link href="/contact" asChild>
-                  <Button label="Tell us what you need" />
-                </Link>
-              </EmptyState>
-            )
+            <EmptyState title="No listings here yet." body="Tell us what you need.">
+              <Link href="/contact" asChild>
+                <Button label="Tell us what you need" />
+              </Link>
+              {hasFilter ? <Button label="Clear filters" variant="outline" onPress={clearFilters} /> : null}
+            </EmptyState>
           }
           renderItem={({ item }) => (
-            <View style={{ flex: 1, maxWidth: `${100 / columns}%` }}>
+            <View style={columns > 1 ? { flex: 1, maxWidth: `${100 / columns}%` } : { paddingHorizontal: gutter }}>
               <ListingCard listing={item} />
             </View>
           )}

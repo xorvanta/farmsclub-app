@@ -14,7 +14,9 @@
       "destination": "https://xoms-backend-752519899091.asia-south1.run.app/api/v1/public/b2b/sitemap.xml"
     },
     { "source": "/listings/:id", "destination": "/listings/[id]" },
-    { "source": "/rfq/:listingId", "destination": "/rfq/[listingId]" }
+    { "source": "/rfq/:listingId", "destination": "/rfq/[listingId]" },
+    { "source": "/farms/:slug", "destination": "/farms/[slug]" },
+    { "source": "/farm-edit/:token", "destination": "/farm-edit/[token]" }
   ],
   "headers": [
     {
@@ -24,7 +26,15 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Content-Security-Policy", "value": "frame-ancestors 'none'" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" }
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/farm-edit/(.*)",
+      "headers": [
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     },
     {

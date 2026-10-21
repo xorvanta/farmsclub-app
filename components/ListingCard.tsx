@@ -1,102 +1,76 @@
-import { View, Text, Image, StyleSheet } from "react-native";
-import { PressableLink } from "./PressableLink";
+import { View, Text, StyleSheet } from "react-native";
+import { Link } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
-import { categoryLabel } from "@/constants/categories";
-import { formatPriceRange, formatQtyWithUnit } from "@/lib/format";
-import { Badge } from "./Badge";
-import { CategoryArt } from "@/components/graphics/CategoryArt";
+import { PressableLink } from "./PressableLink";
+import { Photo } from "./Photo";
+import { Tag } from "./Tag";
+import { Button } from "./Button";
+import { LogoMark } from "./graphics/LogoMark";
+import { listingCategoryName, listingMoqLabel, listingPriceLabel, listingSpecChips, showsGst } from "@/lib/listing";
 import type { B2bListing } from "@/lib/types";
 
+/**
+ * Storefront §4.2 listing card: image (fallback: category image), category label, title, spec
+ * chips (only filled), "₹78–₹90 / plant" (no GST label unless the listing's rate is above 0),
+ * "MOQ 100 plants", and a "Request quote" button. The image/title block and the button are two
+ * separate links (an <a> can't contain another <a>).
+ */
 export function ListingCard({ listing }: { listing: B2bListing }) {
   const { colors, fonts, radius, spacing } = useTheme();
-  const priceRange = formatPriceRange(listing.price_from, listing.price_to);
-  const unit = listing.unit ?? listing.bulk_unit ?? null;
-  const moq = listing.moq ?? listing.bulk_min_quantity ?? null;
-  const category = listing.category ?? listing.bulk_category;
-  const hasTiers = (listing.tiers?.length ?? 0) > 1;
+  const price = listingPriceLabel(listing);
+  const moq = listingMoqLabel(listing);
+  const category = listingCategoryName(listing);
+  const chips = listingSpecChips(listing);
+  const image = listing.photo_url || listing.category?.image_url || null;
 
   return (
-    <PressableLink
-      href={`/listings/${listing.id}`}
-      accessibilityLabel={[listing.title, priceRange ? `${priceRange}${unit ? ` per ${unit}` : ""} before GST` : null, moq != null ? `minimum order ${formatQtyWithUnit(moq, unit)}` : null]
-        .filter(Boolean)
-        .join(", ")}
-      style={({ pressed }) => [
-        styles.card,
-        {
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          borderRadius: radius.lg,
-          opacity: pressed ? 0.94 : 1,
-          transform: [{ scale: pressed ? 0.99 : 1 }],
-        },
-      ]}
-    >
-      <View style={styles.imageWrap}>
-        {listing.photo_url ? (
-          <Image source={{ uri: listing.photo_url }} style={styles.image} resizeMode="cover" alt={listing.title} />
-        ) : (
-          <CategoryArt category={category} style={StyleSheet.absoluteFill} />
-        )}
-        <View style={styles.topBadgesRow}>
-          <Badge label={categoryLabel(category)} tone="brand" />
-          {hasTiers && (
-            <View style={[styles.tierTag, { backgroundColor: colors.accentSoft, borderRadius: radius.pill }]}>
-              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 10, color: colors.accentDark, letterSpacing: 0.2 }}>
-                Tier Rates
-              </Text>
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}>
+      <PressableLink
+        href={{ pathname: "/listings/[id]", params: { id: String(listing.id) } }}
+        accessibilityLabel={[listing.title, category, price, moq].filter(Boolean).join(", ")}
+        style={({ pressed }) => [{ flex: 1, opacity: pressed ? 0.94 : 1 }]}
+      >
+        <View style={{ aspectRatio: 4 / 3, width: "100%", backgroundColor: colors.brandSoft }}>
+          {image ? (
+            <Photo uri={image} alt={listing.title} style={StyleSheet.absoluteFill} />
+          ) : (
+            <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}>
+              <LogoMark size={40} />
             </View>
           )}
         </View>
-      </View>
 
-      <View style={{ padding: spacing.md, gap: 5, flex: 1, justifyContent: "space-between" }}>
-        <View style={{ gap: 4 }}>
-          <Text
-            numberOfLines={2}
-            style={{ fontFamily: fonts.heading, fontSize: 14.5, color: colors.ink, lineHeight: 20 }}
-          >
-            {listing.title}
-          </Text>
-
-          {listing.manufacturer_brand ? (
-            <Text numberOfLines={1} style={{ fontFamily: fonts.body, fontSize: 11.5, color: colors.inkFaint }}>
-              By {listing.manufacturer_brand}
+        <View style={{ padding: spacing.md, paddingBottom: spacing.sm, gap: 6 }}>
+          {category ? (
+            <Text numberOfLines={1} style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase", color: colors.brand }}>
+              {category}
             </Text>
           ) : null}
-        </View>
-
-        <View style={{ gap: 6, marginTop: 4 }}>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-          {priceRange && (
-            <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 16.5, color: colors.brand }}>
-                {priceRange}
-                {unit ? (
-                  <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.inkSoft }}> / {unit}</Text>
-                ) : null}
-              </Text>
-              <Text style={{ fontFamily: fonts.body, fontSize: 10.5, color: colors.inkFaint }}>+ GST</Text>
+          <Text numberOfLines={2} style={{ fontFamily: fonts.heading, fontSize: 14.5, color: colors.ink, lineHeight: 20 }}>
+            {listing.title}
+          </Text>
+          {chips.length > 0 ? (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
+              {chips.map((c) => (
+                <Tag key={c} label={c} tone="neutral" />
+              ))}
             </View>
-          )}
-
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            {moq != null ? (
-              <View style={[styles.moqPill, { backgroundColor: colors.paper, borderRadius: radius.xs }]}>
-                <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11, color: colors.inkSoft }}>
-                  MOQ: <Text style={{ fontFamily: fonts.bodySemiBold, color: colors.ink }}>{formatQtyWithUnit(moq, unit)}</Text>
-                </Text>
-              </View>
-            ) : <View />}
-
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.cta }}>
-              Quote →
+          ) : null}
+          {price ? (
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 16, color: colors.brand, marginTop: 2 }}>
+              {price}
+              {showsGst(listing) ? <Text style={{ fontFamily: fonts.body, fontSize: 11, color: colors.inkFaint }}> + GST</Text> : null}
             </Text>
-          </View>
+          ) : null}
+          {moq ? <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12.5, color: colors.inkSoft }}>{moq}</Text> : null}
         </View>
+      </PressableLink>
+      <View style={{ paddingHorizontal: spacing.md, paddingBottom: spacing.md }}>
+        <Link href={{ pathname: "/rfq/[listingId]", params: { listingId: String(listing.id) } }} asChild>
+          <Button label="Request quote" variant="secondary" fullWidth accessibilityLabel={`Request a quote for ${listing.title}`} />
+        </Link>
       </View>
-    </PressableLink>
+    </View>
   );
 }
 
@@ -111,24 +85,4 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  imageWrap: { aspectRatio: 1.3, width: "100%", position: "relative" },
-  image: { width: "100%", height: "100%" },
-  topBadgesRow: {
-    position: "absolute",
-    top: 8,
-    left: 8,
-    right: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  tierTag: {
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
-  },
-  moqPill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  divider: { height: 1, marginVertical: 2 },
 });

@@ -73,9 +73,12 @@ export function RfqFormBody({
   listing,
   listingId,
   scrollRef,
+  initialNotes,
 }: {
   listing?: B2bListing | null;
   listingId?: number | null;
+  /** Prefills "What are you looking to source?" (e.g. a hidden listing's name, "Farm verification — <farm>"). */
+  initialNotes?: string;
   scrollRef?: RefObject<ScrollView | null>;
 }) {
   const { colors, fonts, spacing, radius } = useTheme();
@@ -99,7 +102,7 @@ export function RfqFormBody({
   const [deliveryPincode, setDeliveryPincode] = useState("");
   const [destinationStation, setDestinationStation] = useState("");
   const [quantityInterest, setQuantityInterest] = useState("");
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(initialNotes ?? "");
 
   const [errors, setErrors] = useState<Partial<Record<FieldKey, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -112,7 +115,7 @@ export function RfqFormBody({
   const fieldPos = useRef<Partial<Record<FieldKey, { section: string; y: number }>>>({});
   const inputRefs = useRef<Partial<Record<FieldKey, TextInput | null>>>({});
 
-  // One "form opened" per mount, for the opens → submits funnel on the trade desk's RFQ stats.
+  // One "form opened" per mount, for the opens → submits funnel on the FarmsClub team's RFQ stats.
   useEffect(() => {
     b2bApi.trackRfqOpen(listingId ?? listing?.id ?? null);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -240,7 +243,7 @@ export function RfqFormBody({
         </Text>
         <View style={{ marginTop: spacing.xl }}>
           <Link href="/listings" asChild>
-            <Button label="Back to catalogue" />
+            <Button label="Back to bulk supply" />
           </Link>
         </View>
       </View>
@@ -470,7 +473,7 @@ export function RfqFormBody({
 
       <Button label="Submit enquiry" fullWidth loading={submitting} onPress={submit} />
       <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: colors.inkSoft, textAlign: "center" }}>
-        Your phone and billing details are only ever seen by Formulate India's trade desk.
+        Your details are only seen by the FarmsClub team.
       </Text>
     </View>
   );
@@ -502,6 +505,6 @@ const styles = StyleSheet.create({
   center: { alignItems: "center", justifyContent: "center", paddingVertical: 60, paddingHorizontal: 32 },
   successBadge: { width: 56, height: 56, alignItems: "center", justifyContent: "center" },
   honeypot: { position: "absolute", width: 1, height: 1, opacity: 0, left: -9999 },
-  checkboxRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  checkboxRow: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44 },
   checkbox: { width: 20, height: 20, borderWidth: 1.5, borderRadius: 4, alignItems: "center", justifyContent: "center" },
 });

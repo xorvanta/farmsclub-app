@@ -1,20 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { View, Text, Animated, Easing } from "react-native";
+import { View, Text } from "react-native";
 import { useTheme } from "@/constants/theme-context";
 import { LogoMark } from "@/components/graphics/LogoMark";
 
-const WORDMARKS = [
-  { text: "FarmsClub", lang: "en" as const },
-  { text: "फार्म्सक्लब", lang: "hi" as const },
-];
-
-const ROTATE_MS = 5000;
-const FADE_MS = 320;
+export const TAGLINE = "India's trusted farm network";
 
 /**
- * Header/footer wordmark — crosses between the Roman and Devanagari rendering of the brand
- * name every 5s (ROTATE_MS, per the user's direction). It sits at the left edge of the bar, so
- * the slight width change between the two scripts doesn't shift anything else.
+ * Header/footer wordmark — always "FarmsClub" in Latin script on every page (Storefront §1.8,
+ * §9.9), with the optional tagline "India's trusted farm network" under it.
  */
 export function Logo({
   size = 20,
@@ -26,43 +18,21 @@ export function Logo({
   onDark?: boolean;
 }) {
   const { colors, fonts } = useTheme();
-  const [index, setIndex] = useState(0);
-  const opacity = useRef(new Animated.Value(1)).current;
   const textColor = onDark ? "#FFFFFF" : colors.brand;
-  const taglineColor = onDark ? "rgba(255,255,255,0.65)" : colors.inkFaint;
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      Animated.timing(opacity, { toValue: 0, duration: FADE_MS, easing: Easing.out(Easing.quad), useNativeDriver: true }).start(() => {
-        setIndex((i) => (i + 1) % WORDMARKS.length);
-        Animated.timing(opacity, { toValue: 1, duration: FADE_MS, easing: Easing.in(Easing.quad), useNativeDriver: true }).start();
-      });
-    }, ROTATE_MS);
-    return () => clearInterval(timer);
-  }, [opacity]);
-
-  const current = WORDMARKS[index];
+  const taglineColor = onDark ? "rgba(255,255,255,0.7)" : colors.inkSoft;
 
   return (
-    // One stable accessible name — screen readers shouldn't announce whichever script is showing.
-    <View style={{ flexDirection: "row", alignItems: "center", gap: size * 0.4 }} accessible accessibilityRole="image" accessibilityLabel={showTagline ? "FarmsClub by Formulate India" : "FarmsClub"}>
+    <View
+      style={{ flexDirection: "row", alignItems: "center", gap: size * 0.4 }}
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={showTagline ? `FarmsClub, ${TAGLINE}` : "FarmsClub"}
+    >
       <LogoMark size={size * 1.5} onDark={onDark} />
       <View>
-        <Animated.Text
-          style={{
-            opacity,
-            fontFamily: current.lang === "hi" ? fonts.devanagari : fonts.display,
-            fontSize: current.lang === "hi" ? size * 1.05 : size,
-            color: textColor,
-            letterSpacing: current.lang === "hi" ? 0 : -0.3,
-          }}
-        >
-          {current.text}
-        </Animated.Text>
+        <Text style={{ fontFamily: fonts.display, fontSize: size, color: textColor, letterSpacing: -0.3 }}>FarmsClub</Text>
         {showTagline && (
-          <Text style={{ fontFamily: fonts.bodyMedium, fontSize: size * 0.42, color: taglineColor, letterSpacing: 0.3, marginTop: 1 }}>
-            BY FORMULATE INDIA
-          </Text>
+          <Text style={{ fontFamily: fonts.bodyMedium, fontSize: Math.max(10, size * 0.5), color: taglineColor, marginTop: 1 }}>{TAGLINE}</Text>
         )}
       </View>
     </View>

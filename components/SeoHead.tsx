@@ -2,46 +2,57 @@ import { usePathname } from "expo-router";
 import Head from "expo-router/head";
 
 /**
- * Public site origin for canonical/og:url — only ever EXPO_PUBLIC_SITE_URL (set it in Vercel's
- * Production environment once the domain is attached). Deliberately no fallback to the browser's
- * own origin: on a Vercel preview or *.vercel.app host that would declare the preview URL as
- * canonical. With it unset, canonical/og:url are simply omitted.
+ * Canonical origin — every page declares its farmsclub.in URL (Storefront §12.4), also while the
+ * beta runs on farmsclub-app.vercel.app. EXPO_PUBLIC_SITE_URL overrides it.
  */
-function siteOrigin(): string | null {
+export const SITE_ORIGIN = (() => {
   const env = process.env.EXPO_PUBLIC_SITE_URL?.trim();
-  if (env && /^https?:\/\/[^\s/]+/.test(env)) return env.replace(/\/+$/, "");
-  return null;
-}
+  return env && /^https?:\/\/[^\s/]+/.test(env) ? env.replace(/\/+$/, "") : "https://farmsclub.in";
+})();
 
-/** Per-page <title>, description, canonical and Open Graph tags. Client-rendered only: with
- *  web.output "static" Expo Router doesn't put Head tags into the exported HTML (see README),
- *  so these reach JS-executing crawlers (Google) and the browser tab, not non-JS scrapers.
- *  og:site_name / og:type are static, site-wide, in app/+html.tsx. */
+/**
+ * Beta: every page is noindex (Storefront §12.3) — together with the X-Robots-Tag header in
+ * vercel.json and the static meta in app/+html.tsx. AT LAUNCH on farmsclub.in: set this to false,
+ * remove the meta in +html.tsx and the X-Robots-Tag header in vercel.json.
+ */
+export const BETA_NOINDEX = true;
+
+/** Default share image (FarmsClub brand image) when a page has none of its own. */
+export const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/og-farmsclub.png`;
+
+/** Per-page <title>, description, canonical, robots and Open Graph tags. Client-rendered (with
+ *  web.output "static" Expo Router doesn't put Head tags into the exported HTML), so these reach
+ *  JS-executing crawlers and the browser tab; the static defaults live in app/+html.tsx. */
 export function SeoHead({
   title,
   description,
   image,
   noindex,
+  path,
 }: {
   title: string;
-  description?: string;
+  description?: string | null;
   image?: string | null;
   noindex?: boolean;
+  /** Canonical path when it differs from the current one (e.g. a farm reached by an old slug). */
+  path?: string;
 }) {
   const pathname = usePathname();
-  const origin = siteOrigin();
-  const url = origin ? `${origin}${pathname === "/" ? "" : pathname}` : null;
+  const p = path ?? pathname;
+  const url = `${SITE_ORIGIN}${p === "/" ? "" : p}`;
+  const desc = description?.trim() || null;
+  const og = image || DEFAULT_OG_IMAGE;
   return (
     <Head>
       <title>{title}</title>
-      {description ? <meta name="description" content={description} /> : null}
-      {url ? <link rel="canonical" href={url} /> : null}
-      {noindex ? <meta name="robots" content="noindex" /> : null}
+      {desc ? <meta name="description" content={desc} /> : null}
+      <link rel="canonical" href={url} />
+      {noindex || BETA_NOINDEX ? <meta name="robots" content="noindex, nofollow" /> : null}
       <meta property="og:title" content={title} />
-      {description ? <meta property="og:description" content={description} /> : null}
-      {url ? <meta property="og:url" content={url} /> : null}
-      {image ? <meta property="og:image" content={image} /> : null}
-      <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+      {desc ? <meta property="og:description" content={desc} /> : null}
+      <meta property="og:url" content={url} />
+      <meta property="og:image" content={og} />
+      <meta name="twitter:card" content="summary_large_image" />
     </Head>
   );
 }

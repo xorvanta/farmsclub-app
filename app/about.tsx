@@ -4,29 +4,28 @@ import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
-import { SectionBanner } from "@/components/SectionBanner";
-import { TRADE_DESK_PHOTO } from "@/constants/categoryImages";
+import { SectionTitle } from "@/components/SectionTitle";
+import { VerifiedTag } from "@/components/Tag";
 
-const POINTS = [
+type Step = { title: string; body: string };
+
+/** Storefront §9.5 — two tracks, nothing about back-end mechanics. */
+const TRACKS: { title: string; steps: Step[] }[] = [
   {
-    step: "01",
-    title: "One counterparty, start to finish",
-    body: "Every order is sold and invoiced by Formulate India — not the grower or manufacturer directly. One GST invoice, one point of contact, one payout schedule, regardless of how many sellers your order actually draws from.",
+    title: "Buying in bulk",
+    steps: [
+      { title: "Choose your plants", body: "Browse by crop and see prices for each quantity band." },
+      { title: "Request a quote", body: "Tell us the quantity, delivery city and nearest railway station." },
+      { title: "We confirm price and dispatch", body: "One point of contact, with delivery by road or rail." },
+    ],
   },
   {
-    step: "02",
-    title: "Volume pricing, not list price",
-    body: "Prices shown step down by quantity band. Larger orders are quoted against the platform's live supplier rates with transparent freight.",
-  },
-  {
-    step: "03",
-    title: "Sealed, competitive sourcing",
-    body: "Bigger requirements go out to every subscribed seller in that category for a sealed bid — the lowest qualified bid wins, and only the winning price is ever shared back.",
-  },
-  {
-    step: "04",
-    title: "Delivery confirmed, not assumed",
-    body: "Our team calls to confirm delivery before an order is closed and a seller is paid — so a dispatch isn't the end of our involvement.",
+    title: "Own a farm",
+    steps: [
+      { title: "List your farm", body: "A 2-minute form with the basics about your farm." },
+      { title: "Our team reviews it", body: "We call you. For a Verified profile, our team visits and shoots your farm — contact our support team for details." },
+      { title: "Get discovered", body: "Buyers and future farmers find your farm on FarmsClub." },
+    ],
   },
 ];
 
@@ -36,64 +35,60 @@ export default function About() {
   const wide = width >= 768;
 
   return (
-    <AppShell contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl, maxWidth: 960, width: "100%", alignSelf: "center" }}>
-      <SeoHead title="How it works · FarmsClub" description="How Formulate India sources, prices, and fulfils bulk orders of plants, seeds, pots, tools, and soil & fertiliser through FarmsClub." />
-      <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: wide ? 32 : 26, color: colors.ink, maxWidth: 600 }}>
-        Wholesale Procurement Engine
-      </Text>
-      <Text style={{ fontFamily: fonts.body, fontSize: 14.5, color: colors.inkSoft, marginTop: 10, maxWidth: 640, lineHeight: 22 }}>
-        FarmsClub is run by Formulate India, a dedicated commercial horticulture trade business. It exists for one thing:
-        buying plants, seeds, pots, tools, and soil &amp; fertiliser in bulk volume, reliably, with legitimate GST paperwork
-        that stands up to audit.
-      </Text>
+    <AppShell contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl, maxWidth: 1040, width: "100%", alignSelf: "center" }}>
+      <SeoHead
+        title="How it works · FarmsClub"
+        description="How FarmsClub works: buy planting material in bulk with quantity pricing, or list your farm and get discovered by buyers and future farmers."
+      />
+      <SectionTitle level={1} title="How FarmsClub works" subtitle="Two ways to use India's trusted farm network." />
 
-      <View style={{ marginTop: spacing.xl }}>
-        <SectionBanner
-          eyebrow="One counterparty"
-          title="Formulate India sells and invoices every order directly."
-          body="Not the grower, not the manufacturer — so you get one GST invoice and one point of contact, however many sellers an order actually draws from."
-          photo={TRADE_DESK_PHOTO}
-          insetHorizontal={false}
-        />
-      </View>
-
-      <View style={{ marginTop: spacing.xxl, flexDirection: "row", flexWrap: "wrap", gap: spacing.lg }}>
-        {POINTS.map((p) => (
+      <View style={{ marginTop: spacing.xl, flexDirection: wide ? "row" : "column", gap: spacing.lg }}>
+        {TRACKS.map((track) => (
           <View
-            key={p.title}
-            style={[
-              styles.card,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                borderRadius: radius.lg,
-                padding: spacing.xl,
-                flexBasis: wide ? "47%" : "100%",
-                flexGrow: 1,
-              },
-            ]}
+            key={track.title}
+            style={[styles.card, { flex: wide ? 1 : undefined, backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.xl }]}
           >
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <View style={[styles.stepPill, { backgroundColor: colors.brandSoft, borderRadius: radius.pill }]}>
-                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: colors.brand, letterSpacing: 0.5 }}>
-                  STEP {p.step}
-                </Text>
-              </View>
-            </View>
-            <Text style={{ fontFamily: fonts.heading, fontSize: 16.5, color: colors.ink }}>{p.title}</Text>
-            <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: colors.inkSoft, marginTop: 8, lineHeight: 20 }}>
-              {p.body}
+            <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.display, fontSize: 21, color: colors.ink }}>
+              {track.title}
             </Text>
+            <View style={{ marginTop: spacing.lg, gap: spacing.lg }}>
+              {track.steps.map((s, i) => (
+                <View key={s.title} style={{ flexDirection: "row", gap: spacing.md }}>
+                  <View style={[styles.num, { backgroundColor: colors.brandSoft }]}>
+                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14, color: colors.brand }}>{i + 1}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: colors.ink }}>{s.title}</Text>
+                    <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, marginTop: 4, lineHeight: 20 }}>{s.body}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
           </View>
         ))}
       </View>
 
-      <View style={{ marginTop: spacing.xxl, flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
-        <Link href="/listings" asChild>
-          <Button label="Browse the catalogue" />
+      <View style={{ marginTop: spacing.xl, backgroundColor: colors.brandSoft, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.sm }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" }}>
+          <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: 18, color: colors.ink }}>
+            What "Verified" means
+          </Text>
+          <VerifiedTag verified />
+        </View>
+        <Text style={{ fontFamily: fonts.body, fontSize: 14.5, color: colors.ink, lineHeight: 21 }}>
+          The FarmsClub team has visited this farm. Self-listed farms have not been visited yet.
+        </Text>
+      </View>
+
+      <View style={{ marginTop: spacing.xl, flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
+        <Link href="/farms" asChild>
+          <Button label="Explore farms" />
         </Link>
-        <Link href="/contact" asChild>
-          <Button label="Talk to the trade desk" variant="outline" />
+        <Link href="/listings" asChild>
+          <Button label="Get bulk planting material" variant="outline" />
+        </Link>
+        <Link href="/list-your-farm" asChild>
+          <Button label="List your farm" variant="secondary" />
         </Link>
       </View>
     </AppShell>
@@ -109,8 +104,5 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  stepPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
+  num: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
 });

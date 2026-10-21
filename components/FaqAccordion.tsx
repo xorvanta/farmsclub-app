@@ -1,20 +1,45 @@
 import { useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable } from "react-native";
+import { Link } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
 import { b2bApi, errorMessage } from "@/lib/api";
 import { LoadingState, ErrorState, EmptyState } from "./StateViews";
 import { Button } from "./Button";
-import { Link } from "expo-router";
 import type { B2bFaq } from "@/lib/types";
-import { decodeEntities, parseRichText } from "@/lib/richText";
+import { decodeEntities, parseRichText, safeHref } from "@/lib/richText";
 
-/** Admin FAQ answers may contain basic HTML (<a href> links, per the admin form's own hint) and
- *  HTML entities. Rendered as text + safe links only — see lib/richText.ts. */
+/** Brand rule (Storefront §1.1) is absolute even for admin-managed text: an FAQ that names the
+ *  old billing entity is never shown. */
+// Built from parts so the retired name never appears as a literal in the shipped bundle.
+const RETIRED_BRAND = new RegExp(["form", "ulate", "[ ]*", "india"].join(""), "i");
+
+function isShowable(f: B2bFaq): boolean {
+  const text = `${f.question ?? ""} ${f.answer ?? ""}`;
+  return !!f.question && !RETIRED_BRAND.test(text);
+}
+
+export function cleanFaqs(faqs: B2bFaq[] | null | undefined): B2bFaq[] {
+  return Array.isArray(faqs) ? faqs.filter(isShowable) : [];
+}
+
+const FARM_OWNER_GROUP = "For farm owners";
+
+/** Storefront §9.6: shown only when the admin FAQs have no farm-owner group yet. */
+const FARM_OWNER_FALLBACK: B2bFaq[] = [
+  { id: "fo-list", category: FARM_OWNER_GROUP, sortOrder: 1, question: "How do I list my farm?", answer: "Fill the 2-minute form on List your farm. Our team calls you to complete your profile.", ctaLabel: "List your farm", ctaHref: "/list-your-farm" },
+  { id: "fo-free", category: FARM_OWNER_GROUP, sortOrder: 2, question: "Is listing free?", answer: "Yes, listing your farm on FarmsClub is free." },
+  { id: "fo-verified", category: FARM_OWNER_GROUP, sortOrder: 3, question: "What does Verified mean?", answer: "The FarmsClub team has visited this farm. Self-listed farms have not been visited yet." },
+  { id: "fo-update", category: FARM_OWNER_GROUP, sortOrder: 4, question: "How do I update my profile?", answer: "Use the private edit link our team sends you on WhatsApp. Changes go live after our team reviews them." },
+  { id: "fo-verify", category: FARM_OWNER_GROUP, sortOrder: 5, question: "How do I get my farm verified?", answer: "A FarmsClub team visit and shoot is needed. Contact our support team for details and charges.", ctaLabel: "Contact support team", ctaHref: "/contact?topic=Farm%20verification" },
+];
+
+/** Admin FAQ answers may contain basic HTML (<a href> links) and entities — rendered as text +
+ *  safe links only (lib/richText.ts). */
 function FaqAnswer({ html }: { html: string }) {
   const { colors, fonts } = useTheme();
   const segments = parseRichText(html);
   return (
-    <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.inkSoft, marginTop: 8, lineHeight: 18 }}>
+    <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, lineHeight: 21 }}>
       {segments.map((seg, i) =>
         seg.href ? (
           <Link
@@ -33,19 +58,78 @@ function FaqAnswer({ html }: { html: string }) {
   );
 }
 
-/** Real, admin-managed FAQ content (see B2bFaqService, /admin/faqs B2B tab) — same role as the
- *  retail storefront's FAQ accordion, separate content/audience.
- *
- *  Two modes, because the content set is now 100+ entries across 11 categories:
- *   - `limit` (Home teaser): one question per category up to the limit, so the teaser spans
- *     pricing/MOQ/RFQ/delivery/invoicing rather than showing the first N of whichever category
- *     happens to sort first.
- *   - full (/faqs): grouped under category headings. A flat 100-item list is unreadable,
- *     especially on a phone. */
-export function FaqAccordion({ limit }: { limit?: number }) {
+function FaqCta({ label, href }: { label: string; href: string }) {
+  const safe = safeHref(href);
+  if (!safe) return null;
+  if (safe.startsWith("/")) {
+    return (
+      <Link href={safe as never} asChild>
+        <Button label={label} variant="secondary" />
+      </Link>
+    );
+  }
+  return (
+    <Link href={safe as never} target="_blank" rel="noopener noreferrer" asChild>
+      <Button label={label} variant="secondary" />
+    </Link>
+  );
+}
+
+/** Accordion for a given FAQ array (Home short FAQ, the /faqs groups). Renders a button for an
+ *  FAQ that has ctaLabel + ctaHref. */
+export function FaqList({ faqs }: { faqs: B2bFaq[] }) {
   const { colors, fonts, spacing, radius } = useTheme();
-  const [faqs, setFaqs] = useState<B2bFaq[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const items = cleanFaqs(faqs);
+  if (items.length === 0) return null;
+
+  return (
+    <View style={{ gap: spacing.sm }}>
+      {items.map((faq) => {
+        const isOpen = openId === faq.id;
+        const question = decodeEntities(faq.question);
+        return (
+          <View
+            key={faq.id}
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: isOpen ? colors.brand : colors.border,
+              borderRadius: radius.md,
+              borderWidth: isOpen ? 1.5 : 1,
+            }}
+          >
+            <Pressable
+              onPress={() => setOpenId(isOpen ? null : faq.id)}
+              accessibilityRole="button"
+              accessibilityLabel={question}
+              accessibilityState={{ expanded: isOpen }}
+              aria-expanded={isOpen}
+              aria-controls={`faq-answer-${faq.id}`}
+              style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm, minHeight: 52, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm }}
+            >
+              <Text style={{ flex: 1, fontFamily: fonts.heading, fontSize: 15, color: isOpen ? colors.brand : colors.ink, lineHeight: 21 }}>{question}</Text>
+              <View aria-hidden style={{ width: 26, height: 26, borderRadius: radius.pill, backgroundColor: isOpen ? colors.brandSoft : colors.paper, alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ fontFamily: fonts.heading, fontSize: 15, color: isOpen ? colors.brand : colors.inkSoft }}>{isOpen ? "−" : "+"}</Text>
+              </View>
+            </Pressable>
+            {isOpen && (
+              <View nativeID={`faq-answer-${faq.id}`} style={{ marginHorizontal: spacing.md + 2, paddingBottom: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border, gap: spacing.md }}>
+                <FaqAnswer html={faq.answer} />
+                {faq.ctaLabel && faq.ctaHref ? <FaqCta label={faq.ctaLabel} href={faq.ctaHref} /> : null}
+              </View>
+            )}
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+/** Full FAQ page content (Storefront §9.6): admin FAQs grouped by `category` in API order, plus
+ *  the "For farm owners" group when the admin content doesn't have one yet. */
+export function FaqAccordion() {
+  const { colors, fonts, spacing } = useTheme();
+  const [faqs, setFaqs] = useState<B2bFaq[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
@@ -55,9 +139,7 @@ export function FaqAccordion({ limit }: { limit?: number }) {
     setFaqs(null);
     b2bApi
       .getFaqs()
-      .then((data) => {
-        if (!cancelled) setFaqs(Array.isArray(data) ? data : []);
-      })
+      .then((data) => !cancelled && setFaqs(cleanFaqs(data)))
       .catch((e) => {
         if (!cancelled) {
           setFaqs([]);
@@ -71,138 +153,59 @@ export function FaqAccordion({ limit }: { limit?: number }) {
 
   const groups = useMemo(() => {
     if (!faqs) return [];
-    if (limit) {
-      const seen = new Set<string>();
-      const picked: B2bFaq[] = [];
-      for (const faq of faqs) {
-        if (seen.has(faq.category)) continue;
-        seen.add(faq.category);
-        picked.push(faq);
-        if (picked.length >= limit) break;
-      }
-      // Fewer categories than the limit — top up in order so the teaser still fills out.
-      if (picked.length < limit) {
-        for (const faq of faqs) {
-          if (picked.length >= limit) break;
-          if (!picked.includes(faq)) picked.push(faq);
-        }
-      }
-      return [{ category: null as string | null, items: picked }];
-    }
     const byCategory = new Map<string, B2bFaq[]>();
     for (const faq of faqs) {
-      const key = faq.category || "General";
+      const key = decodeEntities(faq.category || "General");
       if (!byCategory.has(key)) byCategory.set(key, []);
       byCategory.get(key)!.push(faq);
     }
+    const hasOwnerGroup = [...byCategory.keys()].some((k) => /farm\s*owner/i.test(k));
+    if (!hasOwnerGroup) byCategory.set(FARM_OWNER_GROUP, FARM_OWNER_FALLBACK);
     return [...byCategory.entries()].map(([category, items]) => ({ category, items }));
-  }, [faqs, limit]);
+  }, [faqs]);
 
-  // Home teaser (`limit`) quietly disappears when there's nothing to show; the full /faqs page
-  // always explains what's happening instead of rendering a blank page.
-  if (limit) {
-    if (!faqs || faqs.length === 0) return null;
-  } else {
-    if (error) return <ErrorState message={error} onRetry={() => setAttempt((n) => n + 1)} />;
-    if (!faqs) return <LoadingState label="Loading FAQs…" />;
-    if (faqs.length === 0) {
-      return (
-        <View style={{ alignItems: "center", gap: spacing.md }}>
-          <EmptyState title="FAQs are on their way" body="Have a question in the meantime? Ask Trellis in the chat, or send us an enquiry." />
-          <Link href="/contact" asChild>
-            <Button label="Contact our trade desk" variant="outline" />
-          </Link>
-        </View>
-      );
-    }
+  if (!faqs && !error) return <LoadingState label="Loading FAQs…" />;
+  if (error && groups.length <= 1) {
+    return (
+      <View style={{ gap: spacing.xl }}>
+        <ErrorState message={error} onRetry={() => setAttempt((n) => n + 1)} />
+        <FaqGroup title={FARM_OWNER_GROUP} faqs={FARM_OWNER_FALLBACK} />
+      </View>
+    );
+  }
+  if (groups.length === 0) {
+    return (
+      <EmptyState title="FAQs are on their way" body="Have a question in the meantime? Ask Trellis, or send us an enquiry.">
+        <Link href="/contact" asChild>
+          <Button label="Enquire" variant="outline" />
+        </Link>
+      </EmptyState>
+    );
   }
 
   return (
     <View style={{ gap: spacing.xl }}>
-      {groups.map((group, groupIdx) => (
-        <View key={group.category ?? `group-${groupIdx}`} style={{ gap: spacing.sm }}>
-          {group.category && (
-            <Text
-              accessibilityRole="header"
-              style={{
-                fontFamily: fonts.bodySemiBold,
-                fontSize: 11.5,
-                letterSpacing: 0.6,
-                textTransform: "uppercase",
-                color: colors.inkFaint,
-                marginBottom: 2,
-              }}
-            >
-              {decodeEntities(group.category)}
-            </Text>
-          )}
-          {group.items.map((faq) => {
-            const isOpen = openId === faq.id;
-            const question = decodeEntities(faq.question);
-            return (
-              <View
-                key={faq.id}
-                style={{
-                  backgroundColor: isOpen ? colors.surface : colors.surface,
-                  borderColor: isOpen ? colors.brand : colors.border,
-                  borderRadius: radius.md,
-                  borderWidth: isOpen ? 1.5 : 1,
-                  padding: spacing.md + 2,
-                  shadowColor: "#111C15",
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: isOpen ? 0.06 : 0.02,
-                  shadowRadius: isOpen ? 8 : 4,
-                  elevation: isOpen ? 2 : 1,
-                }}
-              >
-                {/* The question row is the toggle (a button with expanded state); the answer sits
-                    outside it so its links stay separately focusable and tappable. */}
-                <Pressable
-                  onPress={() => setOpenId(isOpen ? null : faq.id)}
-                  accessibilityRole="button"
-                  accessibilityLabel={question}
-                  accessibilityState={{ expanded: isOpen }}
-                  aria-expanded={isOpen}
-                  aria-controls={`faq-answer-${faq.id}`}
-                  style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm }}
-                >
-                  <Text style={{ flex: 1, fontFamily: fonts.heading, fontSize: 14.5, color: isOpen ? colors.brand : colors.ink, lineHeight: 21 }}>
-                    {question}
-                  </Text>
-                  <View
-                    aria-hidden
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: radius.pill,
-                      backgroundColor: isOpen ? colors.brandSoft : colors.paper,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Text style={{ fontFamily: fonts.heading, fontSize: 14, color: isOpen ? colors.brand : colors.inkSoft }}>
-                      {isOpen ? "−" : "+"}
-                    </Text>
-                  </View>
-                </Pressable>
-                {isOpen && (
-                  <View
-                    nativeID={`faq-answer-${faq.id}`}
-                    style={{
-                      marginTop: spacing.md,
-                      paddingTop: spacing.md,
-                      borderTopWidth: 1,
-                      borderTopColor: colors.border,
-                    }}
-                  >
-                    <FaqAnswer html={faq.answer} />
-                  </View>
-                )}
-              </View>
-            );
-          })}
-        </View>
+      {groups.map((g) => (
+        <FaqGroup key={g.category} title={g.category} faqs={g.items} />
       ))}
+      <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft }}>
+        Still have a question?{" "}
+        <Link href="/contact" style={{ color: colors.brand, fontFamily: fonts.bodySemiBold }}>
+          Talk to the FarmsClub team
+        </Link>
+      </Text>
+    </View>
+  );
+}
+
+function FaqGroup({ title, faqs }: { title: string; faqs: B2bFaq[] }) {
+  const { colors, fonts, spacing } = useTheme();
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: 17, color: colors.ink }}>
+        {title}
+      </Text>
+      <FaqList faqs={faqs} />
     </View>
   );
 }
