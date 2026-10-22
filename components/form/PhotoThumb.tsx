@@ -1,27 +1,27 @@
 import { Image, Pressable, Text, View } from "react-native";
 import { useTheme } from "@/constants/theme-context";
-import { compressImage, MAX_UPLOAD_BYTES, pickImages, previewUrl } from "@/lib/images";
+import { MAX_UPLOAD_BYTES, pickAndCompress, previewUrl, type UploadablePhoto } from "@/lib/images";
 
-export type PickedPhoto = { blob: Blob; preview: string | null };
+export type PickedPhoto = { photo: UploadablePhoto; preview: string | null };
 
 /**
- * Opens the picker and compresses each chosen image on the device (≤1600 px JPEG). Files still
- * over the backend's 10 MB limit after compression are dropped and counted in `tooBig`.
+ * Opens the picker (browser file picker on web, photo library on iOS/Android) and compresses each
+ * chosen image on the device (≤1600 px JPEG; HEIC is converted). Files still over the backend's
+ * 10 MB limit are dropped and counted in `tooBig`; images that couldn't be read in `unreadable`.
  */
-export async function pickCompressedPhotos(max: number): Promise<{ photos: PickedPhoto[]; tooBig: number }> {
-  if (max <= 0) return { photos: [], tooBig: 0 };
-  const files = await pickImages({ multiple: max > 1, max });
+export async function pickCompressedPhotos(max: number): Promise<{ photos: PickedPhoto[]; tooBig: number; unreadable: number }> {
+  if (max <= 0) return { photos: [], tooBig: 0, unreadable: 0 };
+  const { photos: compressed, unreadable } = await pickAndCompress({ multiple: max > 1, max });
   const photos: PickedPhoto[] = [];
   let tooBig = 0;
-  for (const f of files) {
-    const blob = await compressImage(f);
-    if (blob.size > MAX_UPLOAD_BYTES) {
+  for (const photo of compressed) {
+    if (photo.size > MAX_UPLOAD_BYTES) {
       tooBig++;
       continue;
     }
-    photos.push({ blob, preview: previewUrl(blob) });
+    photos.push({ photo, preview: previewUrl(photo) });
   }
-  return { photos, tooBig };
+  return { photos, tooBig, unreadable };
 }
 
 /** Square photo preview with an optional remove button and an optional badge/footer. */

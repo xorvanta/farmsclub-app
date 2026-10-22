@@ -16,7 +16,7 @@ import { LangSwitch, useFormLang, useLangFonts } from "@/components/form/LangSwi
 import { PhotoThumb, pickCompressedPhotos } from "@/components/form/PhotoThumb";
 import { useTheme } from "@/constants/theme-context";
 import { ApiError, errorMessage, fcApi } from "@/lib/api";
-import { canPickImages, revokePreview } from "@/lib/images";
+import { canPickImages, revokePreview, type UploadablePhoto } from "@/lib/images";
 import { normalizeIndianMobile } from "@/lib/format";
 import { FORM_TEXT, itemLabel, type FormLang, type FormText } from "@/lib/farmFormText";
 import type { FarmEditView, FcLists, OwnerFarm } from "@/lib/types";
@@ -404,7 +404,7 @@ function Editor({
   const storyHasContact = [f.short_intro, f.story, f.owner_quote, f.advice].some((s) => CONTACT_RE.test(s));
 
   /** Uploads compressed images in batches of ≤10; returns the stored URLs and per-file errors. */
-  async function upload(blobs: Blob[]): Promise<{ urls: string[]; failed: string[] }> {
+  async function upload(blobs: UploadablePhoto[]): Promise<{ urls: string[]; failed: string[] }> {
     const urls: string[] = [];
     const failed: string[] = [];
     for (let i = 0; i < blobs.length; i += 10) {
@@ -424,14 +424,14 @@ function Editor({
 
   async function pickAndUpload(max: number, which: string): Promise<string[]> {
     setUploadErrors([]);
-    const { photos, tooBig } = await pickCompressedPhotos(max);
-    const notes: string[] = tooBig ? [t.photoTooBig] : [];
+    const { photos, tooBig, unreadable } = await pickCompressedPhotos(max);
+    const notes: string[] = [...(tooBig ? [t.photoTooBig] : []), ...(unreadable ? [t.photoUnreadable] : [])];
     if (!photos.length) {
       setUploadErrors(notes);
       return [];
     }
     setUploading(which);
-    const { urls, failed } = await upload(photos.map((p) => p.blob));
+    const { urls, failed } = await upload(photos.map((p) => p.photo));
     photos.forEach((p) => revokePreview(p.preview));
     setUploading(null);
     setUploadErrors([...notes, ...failed]);

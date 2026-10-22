@@ -35,6 +35,14 @@
         }
       ],
       "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FarmsClub needs your photos so you can add pictures of your farm.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
       "expo-status-bar",
       "expo-splash-screen"
     ]
