@@ -1,4 +1,5 @@
 import { Platform } from "react-native";
+import { appendPhoto, type UploadablePhoto } from "@/lib/images";
 import type {
   ApiResponse,
   B2bContact,
@@ -253,11 +254,11 @@ export const fcApi = {
   getListingFarms: (id: number) => request<FarmCardApi[]>(`/public/fc/listings/${id}/farms`),
 
   /** JSON, or multipart (part `data` = the JSON text, parts `photos` = up to 3 images) when photos are attached. */
-  registerFarm: (payload: FarmRegistrationRequest, photos: Blob[] = []) => {
+  registerFarm: (payload: FarmRegistrationRequest, photos: UploadablePhoto[] = []) => {
     if (!photos.length) return requestFull<FarmRegistrationResult>("/public/fc/farm-registrations", post(payload));
     const form = new FormData();
     form.append("data", JSON.stringify(payload));
-    photos.slice(0, 3).forEach((p, i) => form.append("photos", p, `photo-${i + 1}.jpg`));
+    photos.slice(0, 3).forEach((p, i) => appendPhoto(form, "photos", p, `photo-${i + 1}.jpg`));
     return requestFull<FarmRegistrationResult>("/public/fc/farm-registrations", { method: "POST", body: form });
   },
 
@@ -269,9 +270,9 @@ export const fcApi = {
   submitFarmEdit: (token: string, farm: OwnerFarm) =>
     requestFull<FarmEditSubmitResult>(`/public/fc/farm-edit/${encodeURIComponent(token)}`, post(farm)),
   /** ≤10 files per call, JPG/PNG/WebP ≤10 MB each (enforced by the backend). Each result has `url` or `error`. */
-  uploadFarmEditPhotos: (token: string, files: Blob[]) => {
+  uploadFarmEditPhotos: (token: string, files: UploadablePhoto[]) => {
     const form = new FormData();
-    files.slice(0, 10).forEach((f, i) => form.append("files", f, `photo-${i + 1}.jpg`));
+    files.slice(0, 10).forEach((f, i) => appendPhoto(form, "files", f, `photo-${i + 1}.jpg`));
     return request<UploadedPhoto[]>(`/public/fc/farm-edit/${encodeURIComponent(token)}/photos`, { method: "POST", body: form });
   },
 };

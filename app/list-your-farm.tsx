@@ -129,8 +129,9 @@ export default function ListYourFarm() {
       setPhotoNote(t.photoMax(MAX_PHOTOS));
       return;
     }
-    const { photos: picked, tooBig } = await pickCompressedPhotos(room);
+    const { photos: picked, tooBig, unreadable } = await pickCompressedPhotos(room);
     if (tooBig) setPhotoNote(t.photoTooBig);
+    else if (unreadable) setPhotoNote(t.photoUnreadable);
     if (picked.length) setPhotos((p) => [...p, ...picked].slice(0, MAX_PHOTOS));
   }
 
@@ -172,7 +173,7 @@ export default function ListYourFarm() {
           bulk_interest: bulk,
           consent: true,
         },
-        photos.map((p) => p.blob),
+        photos.map((p) => p.photo),
       );
       setResult(res.data);
       scrollRef.current?.scrollTo({ y: 0, animated: true });
