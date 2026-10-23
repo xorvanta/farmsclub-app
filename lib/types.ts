@@ -129,6 +129,8 @@ export type HomeFarmCard = {
   verified: boolean;
   training: boolean;
   heroVideo: boolean;
+  /** The farm's own YouTube video id (shown in the home "See the farms" section). */
+  heroVideoId?: string | null;
   featured: boolean;
 };
 
@@ -197,6 +199,10 @@ export type FcContent = {
   /** Admin Settings "Hindi on registration & edit pages". */
   hindiOnRegistration?: boolean;
   featuredFarms: HomeFarmCard[];
+  /** Admin-uploaded home carousel photos (empty = the storefront's built-in slides). */
+  heroSlides?: { imageUrl: string; title: string; subline?: string; ctaLabel?: string; ctaHref?: string }[] | null;
+  /** Admin-picked YouTube videos; farmSlug/farmName only while that farm is Live. */
+  homeVideos?: { videoId: string; title: string; farmSlug?: string | null; farmName?: string | null }[] | null;
   featuredListingIds: number[];
   featuredListings: B2bListing[];
   featuredListingsSource: string;

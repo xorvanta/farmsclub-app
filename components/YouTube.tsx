@@ -17,7 +17,8 @@ export function youtubeThumb(id: string): string {
  * the thumbnail is shown first and the iframe is only created on tap, so a profile page doesn't
  * pull YouTube's player JS for every video up front. Native opens the video in the YouTube app.
  */
-export function YouTubeEmbed({ videoId, title, autoplay = false }: { videoId: string; title: string; autoplay?: boolean }) {
+/** `caption={false}` hides the title strip over the thumbnail (when the page shows the title itself). */
+export function YouTubeEmbed({ videoId, title, autoplay = false, caption = true }: { videoId: string; title: string; autoplay?: boolean; caption?: boolean }) {
   const { fonts, radius } = useTheme();
   const id = safeVideoId(videoId);
   const [playing, setPlaying] = useState(autoplay);
@@ -45,7 +46,7 @@ export function YouTubeEmbed({ videoId, title, autoplay = false }: { videoId: st
           <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.18)" }}>
             <PlayGlyph />
           </View>
-          {title ? (
+          {title && caption ? (
             <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: 12, backgroundColor: "rgba(0,0,0,0.45)" }}>
               <Text numberOfLines={1} style={{ fontFamily: fonts.bodySemiBold, color: "#FFFFFF", fontSize: 13 }}>
                 {title}

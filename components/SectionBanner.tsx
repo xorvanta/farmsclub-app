@@ -8,7 +8,7 @@ type Props = {
   title: string;
   body?: string;
   tone?: "brand" | "accent";
-  /** Optional real photo (a farm's own shoot photo) behind a brand-tinted gradient. No stock images. */
+  /** Optional photo behind a brand-tinted gradient (a farm photo, or a home-page mood photo — see constants/homePhotos). */
   photo?: string | null;
   /** Set false when the banner sits inside a container that already has side padding. */
   insetHorizontal?: boolean;
