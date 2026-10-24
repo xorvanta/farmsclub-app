@@ -35,7 +35,8 @@ export default function Contact() {
   const channel = (href: string, label: string, external?: boolean) => (
     <Link href={href} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})} asChild>
       <Pressable
-        style={({ pressed }) => ({
+        // Plain object — <Link asChild> drops a ({ pressed }) => … style function on web.
+        style={{
           backgroundColor: colors.surface,
           borderColor: colors.border,
           borderWidth: 1,
@@ -43,8 +44,7 @@ export default function Contact() {
           paddingHorizontal: spacing.md,
           minHeight: 44,
           justifyContent: "center",
-          opacity: pressed ? 0.85 : 1,
-        })}
+        }}
       >
         <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: colors.brand }}>{label}</Text>
       </Pressable>
@@ -56,7 +56,6 @@ export default function Contact() {
     <AppShell
       keyboardAware
       hideBottomNav
-      hideChatFab
       scrollRef={scrollRef}
       contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl, maxWidth: 680, width: "100%", alignSelf: "center" }}
     >

@@ -85,7 +85,6 @@ export default function ListingDetail() {
       <AppShell
         keyboardAware
         hideBottomNav
-        hideChatFab
         scrollRef={formScrollRef}
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl, maxWidth: 680, width: "100%", alignSelf: "center" }}
       >

@@ -14,7 +14,6 @@ import { AnnouncementBar } from "./AnnouncementBar";
 import { Header, HEADER_COMPACT_WIDTH } from "./Header";
 import { Footer } from "./Footer";
 import { MobileBottomNav, BOTTOM_NAV_HEIGHT } from "./MobileBottomNav";
-import { ChatFab } from "./ChatFab";
 
 /** Widest the main content column gets on large screens. Full-bleed pieces (hero, footer) ignore it. */
 export const CONTENT_MAX_WIDTH = 1200;
@@ -36,11 +35,11 @@ export function useContentWidth(maxWidth: number = CONTENT_MAX_WIDTH): number {
 
 /**
  * Standard page chrome: header, scrollable content, footer, the mobile bottom bar (below 760 px),
- * and the floating Trellis button. Every route uses this so the chrome never drifts between pages.
+ * whose last tab opens Trellis. Every route uses this so the chrome never drifts between pages.
  *
  * `stickyBar` (e.g. a listing's "Request a quote" bar, a farm's WhatsApp/"Ask about this farm"
  * bar) is pinned to the bottom, ABOVE the mobile bottom bar (Storefront §2.2); content gets
- * enough bottom padding to scroll clear of both, and the chat button sits above them.
+ * enough bottom padding to scroll clear of both.
  *
  * `noScroll` is for screens that own their scrolling (a FlatList grid). `hideBottomNav` for forms
  * (the bar would sit over the keyboard and the submit button). `contentContainerStyle` constrains
@@ -50,7 +49,6 @@ export function AppShell({
   children,
   noScroll,
   hideBottomNav,
-  hideChatFab,
   keyboardAware,
   scrollRef,
   contentContainerStyle,
@@ -59,7 +57,6 @@ export function AppShell({
   children: React.ReactNode;
   noScroll?: boolean;
   hideBottomNav?: boolean;
-  hideChatFab?: boolean;
   keyboardAware?: boolean;
   /** The page ScrollView, for screens that need to scroll programmatically (e.g. to a form error). */
   scrollRef?: Ref<ScrollView>;
@@ -109,7 +106,6 @@ export function AppShell({
           {stickyBar}
         </View>
       ) : null}
-      {hideChatFab ? null : <ChatFab bottom={bottomClearance} />}
       {showBottomNav && <MobileBottomNav />}
     </View>
   );
