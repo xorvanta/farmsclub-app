@@ -98,7 +98,6 @@ export default function RfqForScreen() {
     <AppShell
       keyboardAware
       hideBottomNav
-      hideChatFab
       scrollRef={scrollRef}
       contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl, maxWidth: 680, width: "100%", alignSelf: "center" }}
     >

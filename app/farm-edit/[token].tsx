@@ -306,7 +306,6 @@ export default function FarmEditPage() {
     <AppShell
       keyboardAware
       hideBottomNav
-      hideChatFab
       scrollRef={scrollRef}
       contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl, maxWidth: 720, width: "100%", alignSelf: "center" }}
     >

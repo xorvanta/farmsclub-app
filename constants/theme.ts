@@ -96,3 +96,11 @@ export const dark = {
 };
 
 export type ThemeColors = typeof light;
+
+/** Trellis (the assistant) entry points — amber → terracotta, so it reads apart from the green page links.
+ *  White text/sparkle on it stays legible end to end. */
+export const trellis = {
+  gradient: ["#E39A4B", "#C25E1A", "#9C3F0E"] as const,
+  ink: "#A24B10",
+  glow: "#9C3F0E",
+};

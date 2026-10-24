@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { Link, usePathname, type Href } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/constants/theme-context";
+import { trellis } from "@/constants/theme";
+import { useChat } from "@/lib/chat-context";
+import { SparkleIcon } from "@/components/graphics/SparkleIcon";
 import { Logo } from "@/components/Logo";
 
 /** Storefront §2.1 desktop links. */
@@ -33,6 +37,7 @@ export function Header() {
   const pathname = usePathname();
   const compact = width < HEADER_COMPACT_WIDTH;
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isOpen: chatOpen, openChat } = useChat();
   // Tagline hidden below 400 px where the bar gets tight (§2.1).
   const showTagline = width >= 400;
 
@@ -100,17 +105,43 @@ export function Header() {
               })}
             </View>
 
-            <Link href="/list-your-farm" asChild>
-              <Pressable
-                accessibilityRole="link"
-                style={({ pressed }) => ({
-                  backgroundColor: colors.cta,
+            {/* Desktop's way into Trellis (phones use the bottom bar's last tab) — no floating button. */}
+            <Pressable
+              onPress={() => openChat()}
+              accessibilityRole="button"
+              accessibilityLabel="Ask Trellis, the FarmsClub assistant"
+              accessibilityState={{ expanded: chatOpen }}
+              style={({ pressed }) => ({ borderRadius: radius.pill, transform: [{ scale: pressed ? 0.96 : 1 }] })}
+            >
+              <LinearGradient
+                colors={trellis.gradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 7,
                   borderRadius: radius.pill,
                   paddingHorizontal: spacing.lg,
                   minHeight: 44,
-                  justifyContent: "center",
-                  opacity: pressed ? 0.88 : 1,
-                })}
+                  shadowColor: trellis.glow,
+                  shadowOpacity: 0.28,
+                  shadowRadius: 8,
+                  shadowOffset: { width: 0, height: 3 },
+                  elevation: 3,
+                }}
+              >
+                <SparkleIcon size={17} />
+                <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 14, color: "#FFFFFF" }}>Ask Trellis</Text>
+              </LinearGradient>
+            </Pressable>
+
+            <Link href="/list-your-farm" asChild>
+              {/* A plain style object — <Link asChild> drops a ({ pressed }) => … style function on web,
+                  which had left this button as white text on nothing. */}
+              <Pressable
+                accessibilityRole="link"
+                style={{ backgroundColor: colors.brand, borderRadius: radius.pill, paddingHorizontal: spacing.lg, minHeight: 44, justifyContent: "center" }}
               >
                 <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 14, color: "#FFFFFF" }}>List your farm</Text>
               </Pressable>

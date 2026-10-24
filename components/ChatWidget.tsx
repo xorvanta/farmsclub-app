@@ -44,7 +44,7 @@ const DEFAULT_SUGGESTIONS = [
 const OFF_TOPIC = new RegExp(["gst", "invoice", "tax", ["form", "ulate"].join(""), "seller", "bid", "payout", "commission"].join("|"), "i");
 
 /** Mounted once at the root layout (app/_layout.tsx) so a conversation survives navigation.
- *  Opened from the floating chat button (ChatFab) or a page's "Ask Trellis" button. Full-screen
+ *  Opened from the bottom bar's Trellis tab (phones), the header's "Ask Trellis" (wider screens) or a page's "Ask Trellis" button. Full-screen
  *  panel below CHAT_COMPACT_WIDTH, a floating panel on desktop. */
 export function ChatWidget() {
   const { colors, fonts, spacing, radius } = useTheme();
