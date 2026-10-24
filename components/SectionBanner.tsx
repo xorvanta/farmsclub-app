@@ -55,7 +55,8 @@ export function SectionBanner({ eyebrow, title, body, tone = "brand", photo, ins
             {body}
           </Text>
         )}
-        {children && <View style={{ marginTop: compact ? spacing.md : spacing.lg, alignSelf: "flex-start" }}>{children}</View>}
+        {/* Phones: full width, so buttons passed with fullWidth span the banner. */}
+        {children && <View style={{ marginTop: compact ? spacing.md : spacing.lg, alignSelf: compact ? "stretch" : "flex-start" }}>{children}</View>}
       </View>
     </View>
   );
