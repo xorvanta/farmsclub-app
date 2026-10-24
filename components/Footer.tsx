@@ -61,8 +61,9 @@ export function Footer() {
           </View>
         </View>
 
-        <View style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.15)", marginTop: spacing.xl, paddingTop: spacing.lg }}>
-          <Text style={{ fontFamily: fonts.body, fontSize: 12, color: "rgba(255,255,255,0.7)" }}>{LEGAL_LINE}</Text>
+        {/* Phones: room on the right for the floating Trellis button, so the line wraps instead of hiding under it. */}
+        <View style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.15)", marginTop: spacing.xl, paddingTop: spacing.lg, paddingRight: stacked ? 64 : 0 }}>
+          <Text style={{ fontFamily: fonts.body, fontSize: 12, lineHeight: 18, color: "rgba(255,255,255,0.7)" }}>{LEGAL_LINE}</Text>
         </View>
       </View>
     </View>

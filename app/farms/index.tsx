@@ -139,7 +139,8 @@ export default function Farms() {
           ) : (
             <View />
           )}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" }}>
+          {/* flexShrink so the chips wrap inside the screen instead of running off its right edge. */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap", flexShrink: 1, maxWidth: "100%" }}>
             <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.inkSoft }}>Sort:</Text>
             {SORTS.map((s) => (
               <CategoryChip

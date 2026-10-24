@@ -13,9 +13,10 @@ export function ChatFab({ bottom }: { bottom: number }) {
   const { width } = useWindowDimensions();
   if (isOpen) return null;
   const withLabel = width >= 760;
+  const size = width < 560 ? 48 : 52;
 
   return (
-    <View pointerEvents="box-none" style={{ position: "absolute", right: 16, bottom: bottom + 14, zIndex: 45 }}>
+    <View pointerEvents="box-none" style={{ position: "absolute", right: width < 560 ? 12 : 16, bottom: bottom + 12, zIndex: 45 }}>
       <Pressable
         onPress={() => openChat()}
         accessibilityRole="button"
@@ -24,13 +25,16 @@ export function ChatFab({ bottom }: { bottom: number }) {
           flexDirection: "row",
           alignItems: "center",
           gap: 8,
-          height: 52,
-          minWidth: 52,
+          height: size,
+          minWidth: size,
           paddingHorizontal: withLabel ? 18 : 0,
           justifyContent: "center",
-          borderRadius: 26,
+          borderRadius: size / 2,
           backgroundColor: colors.brand,
+          borderWidth: 2,
+          borderColor: "rgba(255,255,255,0.9)",
           opacity: pressed ? 0.9 : 1,
+          transform: [{ scale: pressed ? 0.94 : 1 }],
           shadowColor: "#000",
           shadowOpacity: 0.22,
           shadowRadius: 12,

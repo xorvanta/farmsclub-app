@@ -80,22 +80,23 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
                   <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: "#FFFFFF" }}>{s.eyebrow}</Text>
                 </View>
               ) : null}
-              <Text style={{ fontFamily: fonts.display, fontSize: wide ? 52 : compact ? 31 : 40, lineHeight: wide ? 58 : compact ? 37 : 46, color: "#FFFFFF" }}>{s.title}</Text>
+              <Text numberOfLines={3} style={{ fontFamily: fonts.display, fontSize: wide ? 52 : compact ? 29 : 40, lineHeight: wide ? 58 : compact ? 35 : 46, color: "#FFFFFF" }}>{s.title}</Text>
               {s.subline ? (
                 <Text numberOfLines={3} style={{ fontFamily: fonts.body, fontSize: compact ? 15 : 18, lineHeight: compact ? 22 : 27, color: "rgba(255,255,255,0.9)", marginTop: spacing.md }}>
                   {s.subline}
                 </Text>
               ) : null}
               {s.cta || s.secondary ? (
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.xl }}>
+                // Phones: the two buttons stack at one width instead of two ragged rows.
+                <View style={{ flexDirection: compact ? "column" : "row", flexWrap: "wrap", gap: spacing.sm, marginTop: compact ? spacing.lg : spacing.xl }}>
                   {s.cta ? (
                     <Link href={s.cta.href} asChild>
-                      <Button label={s.cta.label} />
+                      <Button label={s.cta.label} fullWidth={compact} />
                     </Link>
                   ) : null}
                   {s.secondary ? (
                     <Link href={s.secondary.href} asChild>
-                      <Button label={s.secondary.label} variant="outline" inverted />
+                      <Button label={s.secondary.label} variant="outline" inverted fullWidth={compact} />
                     </Link>
                   ) : null}
                 </View>
