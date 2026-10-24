@@ -22,6 +22,7 @@ import { VideoShowcase, mergeVideos } from "@/components/home/VideoShowcase";
 import { HOME_PHOTOS } from "@/constants/homePhotos";
 import { useFcCategories } from "@/lib/useFcCategories";
 import { fcApi } from "@/lib/api";
+import { useChat } from "@/lib/chat-context";
 import type { FcContent, FcFilters } from "@/lib/types";
 
 /** Spec §4 draft copy — used until /public/fc/content answers (admin edits the live text). */
@@ -36,6 +37,10 @@ const DEFAULT_OFFERS = [
   { title: "Delivery by road or rail", line: "Arranged from the nearest source" },
   { title: "One point of contact", line: "From quote to dispatch" },
 ];
+const HELP_BANNER = {
+  title: "Not sure what to plant, or how much?",
+  body: "Ask Trellis, our assistant, any time — or send us your requirement and our team comes back with options and a price.",
+};
 const DEFAULT_BANNER = {
   title: "Own a farm?",
   subline: "Share your story with buyers and future farmers across India.",
@@ -56,6 +61,7 @@ export default function Home() {
   const wide = width >= 860;
   const compact = width < 560;
   const categories = useFcCategories();
+  const { openChat } = useChat();
 
   const [content, setContent] = useState<FcContent | null>(null);
   const [filters, setFilters] = useState<FcFilters | null>(null);
@@ -317,16 +323,16 @@ export default function Home() {
         </View>
       </View>
 
-      {/* 8 · List your farm banner */}
+      {/* 8 · Help banner — was a second "Own a farm? / List your farm" right under the Own a farm card
+          (owner, 25 Oct 2026); the admin's banner copy still feeds the hero's own-a-farm slide. */}
       <View style={[section, { paddingHorizontal: 0 }]}>
-        <SectionBanner title={banner.title} body={banner.subline} photo={HOME_PHOTOS.planting}>
-          {registrationOpen ? (
-            <Link href="/list-your-farm" asChild>
-              <Button label={banner.buttonLabel} />
+        <SectionBanner tone="accent" eyebrow="Need help choosing?" title={HELP_BANNER.title} body={HELP_BANNER.body}>
+          <View style={{ flexDirection: compact ? "column" : "row", flexWrap: compact ? "nowrap" : "wrap", gap: spacing.sm }}>
+            <Button label="Ask Trellis" variant="secondary" onPress={() => openChat()} fullWidth={compact} />
+            <Link href="/contact" asChild>
+              <Button label="Send your requirement" variant="outline" inverted fullWidth={compact} />
             </Link>
-          ) : (
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 14, color: "#FFFFFF" }}>Registrations are paused right now.</Text>
-          )}
+          </View>
         </SectionBanner>
       </View>
 
