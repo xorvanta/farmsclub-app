@@ -153,24 +153,20 @@ export default function Listings() {
           />,
         )}
 
+      {/* Only five sorts — they wrap onto a second line rather than scroll half-hidden off the edge. */}
       {chipRow(
         "Sort",
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={SORTS}
-          keyExtractor={(s) => s.value}
-          contentContainerStyle={{ gap: spacing.sm }}
-          accessibilityLabel="Sort listings"
-          renderItem={({ item }) => (
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }} accessibilityLabel="Sort listings">
+          {SORTS.map((item) => (
             <CategoryChip
+              key={item.value}
               label={item.label}
               active={sort === item.value}
               accessibilityLabel={`Sort by ${item.label}`}
               onPress={() => router.setParams({ sort: item.value === "name" ? undefined : item.value })}
             />
-          )}
-        />,
+          ))}
+        </View>,
       )}
 
       {hasFilter && (

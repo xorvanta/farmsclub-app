@@ -97,7 +97,8 @@ export default function Home() {
   const farmCardWidth = compact ? Math.min(300, Math.floor(width * 0.78)) : 300;
   const tileColumns = contentWidth < 480 ? 2 : contentWidth < 900 ? 3 : Math.min(6, Math.max(4, categories.length));
   const tileWidth = Math.floor((contentWidth - spacing.md * (tileColumns - 1)) / tileColumns);
-  const heroHeight = wide ? 600 : compact ? 520 : 560;
+  // Short enough on phones that the search card below it is in view above the bottom bar.
+  const heroHeight = wide ? 600 : compact ? 470 : 560;
 
   const section = { width: "100%" as const, maxWidth: 1232, alignSelf: "center" as const, paddingHorizontal: spacing.lg, marginTop: wide ? 72 : 48 };
 
@@ -133,13 +134,26 @@ export default function Home() {
         >
           <View style={{ flexDirection: "row", gap: spacing.sm, alignItems: "center" }} accessibilityRole="search">
             <View style={{ flex: 1 }}>
-              <SearchBar value={query} onChangeText={setQuery} placeholder={hero.searchPlaceholder} onSubmit={submitSearch} />
+              {/* The full "e.g. mango, teak, Bihar" placeholder is cut off on a phone — show just its lead. */}
+              <SearchBar value={query} onChangeText={setQuery} placeholder={compact ? shortPlaceholder(hero.searchPlaceholder) : hero.searchPlaceholder} onSubmit={submitSearch} />
             </View>
             <Pressable
               onPress={submitSearch}
               accessibilityRole="button"
               accessibilityLabel="Search farms and listings"
-              style={({ pressed }) => ({ height: 50, paddingHorizontal: compact ? 16 : 26, borderRadius: radius.md, backgroundColor: colors.cta, justifyContent: "center", opacity: pressed ? 0.88 : 1 })}
+              style={({ pressed }) => ({
+                height: 50,
+                paddingHorizontal: compact ? 18 : 26,
+                borderRadius: radius.md,
+                backgroundColor: pressed ? "#A54C12" : colors.cta,
+                justifyContent: "center",
+                transform: [{ scale: pressed ? 0.97 : 1 }],
+                shadowColor: "#A54C12",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.28,
+                shadowRadius: 10,
+                elevation: 3,
+              })}
             >
               <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 14.5, color: "#FFFFFF" }}>Search</Text>
             </Pressable>
@@ -165,11 +179,11 @@ export default function Home() {
           <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: spacing.lg, columnGap: spacing.lg }}>
             {offers.map((o, i) => (
               <View key={o.title} style={{ flexGrow: 1, flexBasis: compact ? "42%" : 200, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-                <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: i % 2 ? colors.accentSoft : colors.brandSoft, alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: compact ? 40 : 46, height: compact ? 40 : 46, borderRadius: 23, backgroundColor: i % 2 ? colors.accentSoft : colors.brandSoft, alignItems: "center", justifyContent: "center" }}>
                   <OfferIcon index={i} color={i % 2 ? colors.accentDark : colors.brand} />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: fonts.heading, fontSize: 14.5, color: colors.ink }}>{o.title}</Text>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={{ fontFamily: fonts.heading, fontSize: compact ? 13.5 : 14.5, lineHeight: compact ? 18 : 20, color: colors.ink }}>{o.title}</Text>
                   {o.line && !compact ? (
                     <Text numberOfLines={1} style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.inkSoft }}>
                       {o.line}
@@ -233,10 +247,10 @@ export default function Home() {
             body="Tell us the plants and the quantity you need. Our team confirms the price and arranges dispatch."
           >
             <Link href="/contact" asChild>
-              <Button label="Send a bulk enquiry" />
+              <Button label="Send a bulk enquiry" fullWidth={compact} />
             </Link>
             <Link href="/listings" asChild>
-              <Button label="See bulk supply" variant="outline" inverted />
+              <Button label="See bulk supply" variant="outline" inverted fullWidth={compact} />
             </Link>
           </PhotoPanel>
         </View>
@@ -291,9 +305,9 @@ export default function Home() {
                   ))}
                 </View>
                 {t.cta.href === "/list-your-farm" && !registrationOpen ? null : (
-                  <View style={{ alignSelf: "flex-start", marginTop: spacing.xs }}>
+                  <View style={{ alignSelf: compact ? "stretch" : "flex-start", marginTop: spacing.xs }}>
                     <Link href={t.cta.href} asChild>
-                      <Button label={t.cta.label} variant="outline" inverted />
+                      <Button label={t.cta.label} variant="outline" inverted fullWidth={compact} />
                     </Link>
                   </View>
                 )}
@@ -416,10 +430,16 @@ function PhotoPanel({ photo, eyebrow, title, body, children }: { photo: string; 
           {title}
         </Text>
         <Text style={{ fontFamily: fonts.body, fontSize: compact ? 14.5 : 16, lineHeight: compact ? 21 : 24, color: "rgba(255,255,255,0.9)" }}>{body}</Text>
-        {children ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.sm }}>{children}</View> : null}
+        {children ? <View style={{ flexDirection: compact ? "column" : "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.sm }}>{children}</View> : null}
       </View>
     </View>
   );
+}
+
+/** "Search a crop or state, e.g. mango, teak, Bihar" → "Search a crop or state". */
+function shortPlaceholder(text: string): string {
+  const lead = text.split(/,\s*e\.g\.?/i)[0].trim();
+  return lead.length >= 6 ? lead : text;
 }
 
 /** Non-empty string fields of an admin content block, so blanks fall back to the spec copy. */

@@ -1,3 +1,4 @@
+import { useId } from "react";
 import Svg, { Path, Defs, LinearGradient, Stop } from "react-native-svg";
 import { useTheme } from "@/constants/theme-context";
 
@@ -8,11 +9,14 @@ import { useTheme } from "@/constants/theme-context";
  */
 export function LogoMark({ size = 28, onDark = false }: { size?: number; onDark?: boolean }) {
   const { colors } = useTheme();
+  // One gradient id per mark: on web every <svg> shares the page's id space, and a duplicate id
+  // that first appears inside a hidden copy (e.g. the closed mobile menu) paints the hexagon blank.
+  const gradId = `markBrand${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
 
   return (
     <Svg width={size} height={size} viewBox="0 0 48 48">
       <Defs>
-        <LinearGradient id="markBrand" x1="0%" y1="0%" x2="100%" y2="100%">
+        <LinearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
           <Stop offset="0%" stopColor={onDark ? "#FFFFFF" : colors.brand} stopOpacity={onDark ? 0.96 : 1} />
           <Stop offset="100%" stopColor={onDark ? "#D9E8DD" : colors.brandDark} stopOpacity={onDark ? 0.9 : 1} />
         </LinearGradient>
@@ -21,7 +25,7 @@ export function LogoMark({ size = 28, onDark = false }: { size?: number; onDark?
       {/* Pallet hexagon */}
       <Path
         d="M24 3 42 13.5v21L24 45 6 34.5v-21L24 3Z"
-        fill="url(#markBrand)"
+        fill={`url(#${gradId})`}
       />
 
       {/* Leaf — amber half */}

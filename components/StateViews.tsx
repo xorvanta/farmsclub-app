@@ -22,7 +22,8 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
       <Text style={{ fontFamily: fonts.body, color: colors.inkSoft, textAlign: "center", marginBottom: spacing.lg }}>
         {message}
       </Text>
-      {onRetry ? <Button label="Try again" variant="outline" onPress={onRetry} /> : null}
+      {/* Wrapped: the Button aligns itself to the start, which would pull it off-centre here. */}
+      {onRetry ? <View style={{ alignSelf: "center" }}><Button label="Try again" variant="outline" onPress={onRetry} /></View> : null}
     </View>
   );
 }
