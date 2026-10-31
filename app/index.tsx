@@ -20,7 +20,6 @@ import { HeroCarousel, type HeroSlide } from "@/components/home/HeroCarousel";
 import { Rail } from "@/components/home/Rail";
 import { VideoShowcase, mergeVideos } from "@/components/home/VideoShowcase";
 import { Orchard3DPlanner } from "@/components/tools/Orchard3DPlanner";
-import { TiltCard } from "@/components/3d/TiltCard";
 import { HOME_PHOTOS } from "@/constants/homePhotos";
 import { useFcCategories } from "@/lib/useFcCategories";
 import { fcApi } from "@/lib/api";
@@ -132,9 +131,9 @@ export default function Home() {
   const farmCardWidth = compact ? Math.min(300, Math.floor(width * 0.78)) : 300;
   const tileColumns = contentWidth < 480 ? 2 : contentWidth < 900 ? 3 : Math.min(6, Math.max(4, categories.length));
   const tileWidth = Math.floor((contentWidth - spacing.md * (tileColumns - 1)) / tileColumns);
-  const heroHeight = wide ? 590 : compact ? 460 : 540;
+  const heroHeight = wide ? 590 : compact ? 370 : 510;
 
-  const section = { width: "100%" as const, maxWidth: 1232, alignSelf: "center" as const, paddingHorizontal: spacing.lg, marginTop: wide ? 68 : 44 };
+  const section = { width: "100%" as const, maxWidth: 1232, alignSelf: "center" as const, paddingHorizontal: spacing.lg, marginTop: wide ? 68 : 40 };
 
   return (
     <AppShell>
@@ -152,13 +151,13 @@ export default function Home() {
       </HeroCarousel>
 
       {/* 2 · Floating B2B Trade Command Dock */}
-      <View style={{ width: "100%", maxWidth: 1232, alignSelf: "center", paddingHorizontal: spacing.lg, marginTop: compact ? -38 : -48, zIndex: 3 }}>
+      <View style={{ width: "100%", maxWidth: 1232, alignSelf: "center", paddingHorizontal: spacing.lg, marginTop: compact ? -28 : -48, zIndex: 3 }}>
         <View
           style={{
             backgroundColor: colors.surface,
             borderRadius: radius.xl,
-            padding: compact ? spacing.lg : spacing.xl,
-            gap: spacing.md,
+            padding: compact ? 14 : spacing.xl,
+            gap: compact ? 12 : spacing.md,
             borderWidth: 1,
             borderColor: colors.border,
             shadowColor: "#081E12",
@@ -170,7 +169,7 @@ export default function Home() {
         >
           {/* Search Command Input */}
           <View style={{ flexDirection: "row", gap: spacing.sm, alignItems: "center" }} accessibilityRole="search">
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, minWidth: 0 }}>
               <SearchBar
                 value={query}
                 onChangeText={setQuery}
@@ -183,8 +182,8 @@ export default function Home() {
               accessibilityRole="button"
               accessibilityLabel="Search farms and listings"
               style={({ pressed }) => ({
-                height: 50,
-                paddingHorizontal: compact ? 18 : 28,
+                height: 48,
+                paddingHorizontal: compact ? 16 : 28,
                 borderRadius: radius.md,
                 backgroundColor: pressed ? "#A54C12" : colors.cta,
                 justifyContent: "center",
@@ -196,54 +195,58 @@ export default function Home() {
                 elevation: 3,
               })}
             >
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14.5, color: "#FFFFFF" }}>Search</Text>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: compact ? 13.5 : 14.5, color: "#FFFFFF" }}>Search</Text>
             </Pressable>
           </View>
 
-          {/* Instant Crop Pills + Quick Tour Trigger */}
-          <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: spacing.sm }}>
-            {popular.length > 0 ? (
-              <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6, flex: 1 }}>
-                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, textTransform: "uppercase", letterSpacing: 0.5, color: colors.inkSoft }}>
-                  Top Crops:
-                </Text>
-                {popular.map((c) => (
-                  <PressableLink
-                    key={c.slug}
-                    href={{ pathname: "/farms", params: { crop: c.slug } }}
-                    style={({ pressed }) => ({
-                      paddingHorizontal: 12,
-                      paddingVertical: 5,
-                      borderRadius: radius.pill,
-                      backgroundColor: pressed ? colors.brandSoft : colors.paper,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                    })}
-                  >
-                    <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.ink }}>{c.name}</Text>
-                  </PressableLink>
-                ))}
-              </View>
-            ) : <View />}
+          {/* Instant Crop Pills + Desktop Quick Tour Trigger */}
+          {popular.length > 0 || !compact ? (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: spacing.sm }}>
+              {popular.length > 0 ? (
+                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6, flex: 1 }}>
+                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, color: colors.inkSoft }}>
+                    Top Crops:
+                  </Text>
+                  {popular.map((c) => (
+                    <PressableLink
+                      key={c.slug}
+                      href={{ pathname: "/farms", params: { crop: c.slug } }}
+                      style={({ pressed }) => ({
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        borderRadius: radius.pill,
+                        backgroundColor: pressed ? colors.brandSoft : colors.paper,
+                        borderWidth: 1,
+                        borderColor: colors.border,
+                      })}
+                    >
+                      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.ink }}>{c.name}</Text>
+                    </PressableLink>
+                  ))}
+                </View>
+              ) : <View />}
 
-            <Pressable
-              onPress={() => openTour(0)}
-              accessibilityRole="button"
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-                paddingHorizontal: 12,
-                paddingVertical: 5,
-                borderRadius: radius.pill,
-                backgroundColor: colors.goldSoft,
-                borderWidth: 1,
-                borderColor: colors.gold,
-              }}
-            >
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: colors.goldDark }}>✦ Platform Overview (30s Tour) →</Text>
-            </Pressable>
-          </View>
+              {!compact ? (
+                <Pressable
+                  onPress={() => openTour(0)}
+                  accessibilityRole="button"
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 6,
+                    paddingHorizontal: 12,
+                    paddingVertical: 5,
+                    borderRadius: radius.pill,
+                    backgroundColor: colors.goldSoft,
+                    borderWidth: 1,
+                    borderColor: colors.gold,
+                  }}
+                >
+                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: colors.goldDark }}>✦ Platform Overview (30s Tour) →</Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : null}
 
           <View style={{ height: 1, backgroundColor: colors.border }} />
 
@@ -251,20 +254,20 @@ export default function Home() {
             What we offer
           </Text>
 
-          {/* 4 Visual B2B Pillar Badges */}
-          <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: spacing.md, columnGap: spacing.md }}>
+          {/* 4 Visual B2B Pillar Badges — Full text legibility on mobile (zero ellipsis truncation) */}
+          <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: compact ? 8 : spacing.md, columnGap: compact ? 8 : spacing.md }}>
             {offers.map((o, i) => (
               <View
                 key={o.title}
                 style={{
                   flexGrow: 1,
-                  flexBasis: compact ? "44%" : 200,
+                  flexBasis: compact ? "46%" : 200,
                   flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing.sm,
+                  alignItems: "flex-start",
+                  gap: compact ? 8 : spacing.sm,
                   backgroundColor: colors.paper,
-                  paddingVertical: 10,
-                  paddingHorizontal: 12,
+                  paddingVertical: compact ? 9 : 10,
+                  paddingHorizontal: compact ? 10 : 12,
                   borderRadius: radius.md,
                   borderWidth: 1,
                   borderColor: colors.border,
@@ -272,22 +275,23 @@ export default function Home() {
               >
                 <View
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 19,
+                    width: compact ? 28 : 38,
+                    height: compact ? 28 : 38,
+                    borderRadius: compact ? 14 : 19,
                     backgroundColor: i % 2 ? colors.accentSoft : colors.brandSoft,
                     alignItems: "center",
                     justifyContent: "center",
+                    marginTop: 1,
                   }}
                 >
                   <OfferIcon index={i} color={i % 2 ? colors.accentDark : colors.brand} />
                 </View>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text numberOfLines={1} style={{ fontFamily: fonts.heading, fontSize: 13.5, color: colors.ink }}>
+                <View style={{ flex: 1, minWidth: 0, gap: 1 }}>
+                  <Text style={{ fontFamily: fonts.heading, fontSize: compact ? 12.5 : 13.5, lineHeight: compact ? 16 : 18, color: colors.ink }}>
                     {o.title}
                   </Text>
                   {o.line ? (
-                    <Text numberOfLines={1} style={{ fontFamily: fonts.bodyMedium, fontSize: 11.5, color: colors.inkSoft }}>
+                    <Text style={{ fontFamily: fonts.bodyMedium, fontSize: compact ? 11 : 11.5, lineHeight: compact ? 14.5 : 16, color: colors.inkSoft }}>
                       {o.line}
                     </Text>
                   ) : null}
@@ -298,53 +302,52 @@ export default function Home() {
         </View>
       </View>
 
-      {/* 3 · Bulk Planting Material — 3D Category Bento + Live Lots Rail */}
+      {/* 3 · Bulk Planting Material — Category Bento + Live Lots Rail */}
       {categories.length > 0 || listings.length > 0 ? (
         <View style={section}>
           <SectionHead eyebrow="WHOLESALE SUPPLY LOTS" title="Bulk planting stock, priced by volume." linkLabel="Explore Bulk Supply" href="/listings" />
           {categories.length > 0 ? (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.lg }}>
               {categories.map((c) => (
-                <TiltCard key={c.slug} style={{ width: tileWidth }}>
-                  <PressableLink
-                    href={{ pathname: "/listings", params: { category: c.slug } }}
-                    accessibilityLabel={`${c.name_en} — bulk supply`}
-                    style={({ pressed }) => [
-                      {
-                        width: "100%",
-                        aspectRatio: 0.94,
-                        borderRadius: radius.lg,
-                        overflow: "hidden",
-                        backgroundColor: colors.brandDark,
-                        borderWidth: 1,
-                        borderColor: "rgba(229,180,98,0.28)",
-                        opacity: pressed ? 0.92 : 1,
-                      },
-                    ]}
-                  >
-                    {c.image_url ? (
-                      <Photo uri={c.image_url} alt="" style={StyleSheet.absoluteFill} />
-                    ) : (
-                      <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}>
-                        <LogoMark size={42} onDark />
-                      </View>
-                    )}
-                    <LinearGradient colors={["rgba(8,30,18,0.25)", "transparent", "rgba(8,30,18,0.92)"]} locations={[0, 0.35, 1]} style={StyleSheet.absoluteFill} />
-
-                    {c.listing_count ? (
-                      <View style={{ position: "absolute", top: 10, right: 10, backgroundColor: "rgba(8,30,18,0.82)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(229,180,98,0.35)" }}>
-                        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: GOLD }}>{c.listing_count} Lots</Text>
-                      </View>
-                    ) : null}
-
-                    <View style={{ position: "absolute", left: 12, right: 12, bottom: 12, gap: 3 }}>
-                      <Text numberOfLines={2} style={{ fontFamily: fonts.heading, fontSize: 16, color: "#FFFFFF" }}>
-                        {c.name_en}
-                      </Text>
-                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, color: GOLD }}>Wholesale Slabs →</Text>
+                <PressableLink
+                  key={c.slug}
+                  href={{ pathname: "/listings", params: { category: c.slug } }}
+                  accessibilityLabel={`${c.name_en} — bulk supply`}
+                  style={({ pressed }) => [
+                    {
+                      width: tileWidth,
+                      aspectRatio: 0.94,
+                      borderRadius: radius.lg,
+                      overflow: "hidden",
+                      backgroundColor: colors.brandDark,
+                      borderWidth: 1,
+                      borderColor: "rgba(229,180,98,0.28)",
+                      opacity: pressed ? 0.92 : 1,
+                    },
+                  ]}
+                >
+                  {c.image_url ? (
+                    <Photo uri={c.image_url} alt="" style={StyleSheet.absoluteFill} />
+                  ) : (
+                    <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}>
+                      <LogoMark size={42} onDark />
                     </View>
-                  </PressableLink>
-                </TiltCard>
+                  )}
+                  <LinearGradient colors={["rgba(8,30,18,0.25)", "transparent", "rgba(8,30,18,0.92)"]} locations={[0, 0.35, 1]} style={StyleSheet.absoluteFill} />
+
+                  {c.listing_count ? (
+                    <View style={{ position: "absolute", top: 10, right: 10, backgroundColor: "rgba(8,30,18,0.82)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(229,180,98,0.35)" }}>
+                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: GOLD }}>{c.listing_count} Lots</Text>
+                    </View>
+                  ) : null}
+
+                  <View style={{ position: "absolute", left: 12, right: 12, bottom: 12, gap: 3 }}>
+                    <Text numberOfLines={2} style={{ fontFamily: fonts.heading, fontSize: compact ? 14.5 : 16, lineHeight: compact ? 19 : 21, color: "#FFFFFF" }}>
+                      {c.name_en}
+                    </Text>
+                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: GOLD }}>Wholesale Slabs →</Text>
+                  </View>
+                </PressableLink>
               ))}
             </View>
           ) : null}
@@ -453,63 +456,63 @@ export default function Home() {
         <SectionHead eyebrow="TRADE ARCHITECTURE" title="Two ways to use FarmsClub" linkLabel="How it works" href="/about" />
         <View style={{ flexDirection: wide ? "row" : "column", gap: spacing.lg, marginTop: spacing.lg }}>
           {TRACKS.map((t) => (
-            <TiltCard key={t.title} maxTilt={3.5} style={{ flex: wide ? 1 : undefined }}>
-              <View
-                style={{
-                  minHeight: compact ? 330 : 370,
-                  borderRadius: radius.xl,
-                  overflow: "hidden",
-                  backgroundColor: colors.brandDark,
-                  justifyContent: "flex-end",
-                  borderWidth: 1,
-                  borderColor: "rgba(229,180,98,0.28)",
-                }}
-              >
-                <Photo uri={t.photo} alt="" style={StyleSheet.absoluteFill} />
-                <LinearGradient
-                  colors={["rgba(6,22,13,0.2)", "rgba(6,22,13,0.68)", "rgba(6,22,13,0.96)"]}
-                  locations={[0, 0.4, 1]}
-                  style={StyleSheet.absoluteFill}
-                />
-                <View style={{ padding: compact ? spacing.lg : spacing.xl, gap: spacing.md }}>
-                  <View style={{ alignSelf: "flex-start", backgroundColor: "rgba(229,180,98,0.18)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(229,180,98,0.4)" }}>
-                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.8, color: GOLD }}>{t.badge}</Text>
-                  </View>
-
-                  <Text accessibilityRole="header" aria-level={3} style={{ fontFamily: fonts.display, fontSize: compact ? 24 : 28, color: "#FFFFFF" }}>
-                    {t.title}
-                  </Text>
-
-                  <View style={{ flexDirection: compact ? "column" : "row", gap: 8 }}>
-                    {t.steps.map((s, i) => (
-                      <View
-                        key={s.tag}
-                        style={{
-                          flex: compact ? undefined : 1,
-                          backgroundColor: i === t.steps.length - 1 ? "rgba(229,180,98,0.18)" : "rgba(255,255,255,0.08)",
-                          borderRadius: radius.md,
-                          padding: 10,
-                          borderWidth: 1,
-                          borderColor: i === t.steps.length - 1 ? GOLD : "rgba(255,255,255,0.14)",
-                          gap: 2,
-                        }}
-                      >
-                        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: GOLD }}>{s.tag}</Text>
-                        <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: "#FFFFFF", lineHeight: 18 }}>{s.label}</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  {t.cta.href === "/list-your-farm" && !registrationOpen ? null : (
-                    <View style={{ alignSelf: compact ? "stretch" : "flex-start", marginTop: 4 }}>
-                      <Link href={t.cta.href} asChild>
-                        <Button label={t.cta.label} variant="primary" fullWidth={compact} />
-                      </Link>
-                    </View>
-                  )}
+            <View
+              key={t.title}
+              style={{
+                flex: wide ? 1 : undefined,
+                minHeight: compact ? 310 : 370,
+                borderRadius: radius.xl,
+                overflow: "hidden",
+                backgroundColor: colors.brandDark,
+                justifyContent: "flex-end",
+                borderWidth: 1,
+                borderColor: "rgba(229,180,98,0.28)",
+              }}
+            >
+              <Photo uri={t.photo} alt="" style={StyleSheet.absoluteFill} />
+              <LinearGradient
+                colors={["rgba(6,22,13,0.2)", "rgba(6,22,13,0.68)", "rgba(6,22,13,0.96)"]}
+                locations={[0, 0.4, 1]}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={{ padding: compact ? spacing.lg : spacing.xl, gap: spacing.md }}>
+                <View style={{ alignSelf: "flex-start", backgroundColor: "rgba(229,180,98,0.18)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(229,180,98,0.4)" }}>
+                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.8, color: GOLD }}>{t.badge}</Text>
                 </View>
+
+                <Text accessibilityRole="header" aria-level={3} style={{ fontFamily: fonts.display, fontSize: compact ? 23 : 28, color: "#FFFFFF" }}>
+                  {t.title}
+                </Text>
+
+                <View style={{ flexDirection: compact ? "column" : "row", gap: 8 }}>
+                  {t.steps.map((s, i) => (
+                    <View
+                      key={s.tag}
+                      style={{
+                        flex: compact ? undefined : 1,
+                        backgroundColor: i === t.steps.length - 1 ? "rgba(229,180,98,0.18)" : "rgba(255,255,255,0.08)",
+                        borderRadius: radius.md,
+                        padding: 10,
+                        borderWidth: 1,
+                        borderColor: i === t.steps.length - 1 ? GOLD : "rgba(255,255,255,0.14)",
+                        gap: 2,
+                      }}
+                    >
+                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: GOLD }}>{s.tag}</Text>
+                      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: "#FFFFFF", lineHeight: 18 }}>{s.label}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {t.cta.href === "/list-your-farm" && !registrationOpen ? null : (
+                  <View style={{ alignSelf: compact ? "stretch" : "flex-start", marginTop: 4 }}>
+                    <Link href={t.cta.href} asChild>
+                      <Button label={t.cta.label} variant="primary" fullWidth={compact} />
+                    </Link>
+                  </View>
+                )}
               </View>
-            </TiltCard>
+            </View>
           ))}
         </View>
       </View>
@@ -634,9 +637,8 @@ function PhotoPanel({ photo, eyebrow, title, body, children }: { photo: string; 
   );
 }
 
-function shortPlaceholder(text: string): string {
-  const lead = text.split(/,\s*e\.g\.?/i)[0].trim();
-  return lead.length >= 6 ? lead : text;
+function shortPlaceholder(_text: string): string {
+  return "Search crop or state…";
 }
 
 function pickText<T extends object>(block: T | null | undefined): Partial<T> {

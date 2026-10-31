@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link, type Href } from "expo-router";
-import Svg, { Path, Circle, Polygon } from "react-native-svg";
+import Svg, { Path } from "react-native-svg";
 import { useTheme } from "@/constants/theme-context";
 import { useTour } from "@/lib/tour-context";
 import { Photo } from "@/components/Photo";
@@ -35,7 +35,7 @@ const TRADE_STATS = [
 
 /**
  * Full-bleed Executive B2B Hero Stage: cross-fading slides with a 3D floating telemetry card on desktop,
- * minimal punchy typography, and quick triggers for the 3D Orchard Planner & Interactive Tour.
+ * balanced mobile layout that never clips headlines, and quick triggers for the 3D Orchard Planner & Tour.
  */
 export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]; height: number; children?: React.ReactNode }) {
   const { colors, fonts, spacing, radius } = useTheme();
@@ -81,56 +81,61 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
         >
           <Photo uri={s.image} alt="" eager={i === 0} sizes="100vw" style={StyleSheet.absoluteFill} />
           <LinearGradient
-            colors={["rgba(6,22,13,0.92)", "rgba(8,28,18,0.68)", "rgba(8,28,18,0.32)"]}
+            colors={["rgba(6,22,13,0.92)", "rgba(8,28,18,0.72)", "rgba(8,28,18,0.38)"]}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
             style={StyleSheet.absoluteFill}
           />
-          <LinearGradient colors={["transparent", "rgba(6,22,13,0.82)"]} style={[StyleSheet.absoluteFill, { top: "50%" }]} />
+          <LinearGradient colors={["transparent", "rgba(6,22,13,0.86)"]} style={[StyleSheet.absoluteFill, { top: "45%" }]} />
 
           <View
             style={{
               flex: 1,
               flexDirection: wide ? "row" : "column",
-              alignItems: wide ? "center" : "flex-start",
+              alignItems: wide ? "center" : "stretch",
               justifyContent: wide ? "space-between" : "center",
               width: "100%",
               maxWidth: 1232,
               alignSelf: "center",
               paddingHorizontal: spacing.lg,
-              paddingBottom: compact ? 60 : 76,
-              gap: spacing.xl,
+              paddingTop: compact ? 18 : 28,
+              paddingBottom: compact ? 64 : 76,
+              gap: compact ? spacing.md : spacing.xl,
             }}
           >
             {/* Left Headline & CTAs */}
-            <View style={{ maxWidth: wide ? 640 : 600, flexShrink: 1 }}>
+            <View style={{ maxWidth: wide ? 640 : 600, width: "100%", flexShrink: 1, minWidth: 0 }}>
               <View
                 style={{
                   alignSelf: "flex-start",
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: 7,
+                  gap: 6,
                   backgroundColor: "rgba(229,180,98,0.16)",
                   borderWidth: 1,
                   borderColor: "rgba(229,180,98,0.45)",
                   borderRadius: radius.pill,
-                  paddingHorizontal: 12,
-                  paddingVertical: 5,
-                  marginBottom: spacing.md,
+                  paddingHorizontal: compact ? 10 : 12,
+                  paddingVertical: 4,
+                  marginBottom: compact ? 8 : spacing.md,
+                  maxWidth: "100%",
                 }}
               >
                 <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#52C388" }} />
-                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.8, textTransform: "uppercase", color: "#E5B462" }}>
+                <Text
+                  numberOfLines={1}
+                  style={{ fontFamily: fonts.bodyBold, fontSize: compact ? 10 : 11, letterSpacing: 0.7, textTransform: "uppercase", color: "#E5B462", flexShrink: 1 }}
+                >
                   {s.eyebrow ?? "B2B WHOLESALE SUPPLY & FARM NETWORK"}
                 </Text>
               </View>
 
               <Text
-                numberOfLines={3}
+                numberOfLines={compact ? 2 : 3}
                 style={{
                   fontFamily: fonts.display,
-                  fontSize: wide ? 50 : compact ? 28 : 38,
-                  lineHeight: wide ? 56 : compact ? 34 : 44,
+                  fontSize: wide ? 50 : compact ? 25 : 38,
+                  lineHeight: wide ? 56 : compact ? 31 : 44,
                   color: "#FFFFFF",
                 }}
               >
@@ -142,10 +147,10 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
                   numberOfLines={2}
                   style={{
                     fontFamily: fonts.body,
-                    fontSize: compact ? 14.5 : 17,
-                    lineHeight: compact ? 21 : 25,
+                    fontSize: compact ? 13.5 : 17,
+                    lineHeight: compact ? 19 : 25,
                     color: "rgba(255,255,255,0.88)",
-                    marginTop: spacing.sm,
+                    marginTop: compact ? 6 : spacing.sm,
                     maxWidth: 540,
                   }}
                 >
@@ -154,24 +159,24 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
               ) : null}
 
               {s.cta || s.secondary ? (
-                <View style={{ flexDirection: compact ? "column" : "row", flexWrap: "wrap", gap: spacing.sm, marginTop: compact ? spacing.md : spacing.lg }}>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: compact ? 12 : spacing.lg }}>
                   {s.cta ? (
                     <Link href={s.cta.href} asChild>
-                      <Button label={s.cta.label} fullWidth={compact} />
+                      <Button label={s.cta.label} />
                     </Link>
                   ) : null}
                   {s.secondary ? (
                     <Link href={s.secondary.href} asChild>
-                      <Button label={s.secondary.label} variant="outline" inverted fullWidth={compact} />
+                      <Button label={s.secondary.label} variant="outline" inverted />
                     </Link>
                   ) : null}
                 </View>
               ) : null}
             </View>
 
-            {/* Right 3D Floating Trade Command Card (Desktop) */}
+            {/* Right 3D Floating Trade Command Card (Desktop Only — High-Impact Position) */}
             {wide ? (
-              <TiltCard maxTilt={6} scale={1.02} style={{ width: 350 }}>
+              <TiltCard maxTilt={3.5} scale={1.01} style={{ width: 350 }}>
                 <View
                   style={{
                     backgroundColor: "rgba(8, 28, 17, 0.78)",
@@ -264,7 +269,7 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
       {children}
 
       {count > 1 ? (
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: compact ? 52 : 64 }} pointerEvents="box-none">
+        <View style={{ position: "absolute", left: 0, right: 0, bottom: compact ? 44 : 64 }} pointerEvents="box-none">
           <View style={{ width: "100%", maxWidth: 1232, alignSelf: "center", paddingHorizontal: spacing.lg, flexDirection: "row", alignItems: "center", gap: 8 }} pointerEvents="box-none">
             {slides.map((s, i) => (
               <Pressable

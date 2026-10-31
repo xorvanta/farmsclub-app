@@ -4,7 +4,6 @@ import { useTheme } from "@/constants/theme-context";
 import { PressableLink } from "./PressableLink";
 import { Photo } from "./Photo";
 import { Tag, VerifiedTag } from "./Tag";
-import { TiltCard } from "./3d/TiltCard";
 import { LogoMark } from "./graphics/LogoMark";
 import type { FarmCardApi, HomeFarmCard } from "@/lib/types";
 
@@ -74,7 +73,7 @@ export function placeLine(district: string | null, state: string | null): string
   return parts.length ? parts.join(", ") : null;
 }
 
-/** Storefront §4.1 Verified Farm Estate Card: 4:3 cover with 3D tilt, visual badges, location overlay, and crop pills. */
+/** Storefront §4.1 Verified Farm Estate Card: 4:3 cover with visual badges, location overlay, and crop pills. */
 export function FarmCard({ farm, width }: { farm: FarmCardData; width?: number }) {
   const { colors, fonts, radius, spacing } = useTheme();
   const place = placeLine(farm.district, farm.state);
@@ -82,91 +81,90 @@ export function FarmCard({ farm, width }: { farm: FarmCardData; width?: number }
   const moreCrops = farm.crops.length - crops.length;
 
   return (
-    <TiltCard style={{ width, flex: 1 }}>
-      <PressableLink
-        href={{ pathname: "/farms/[slug]", params: { slug: farm.slug } }}
-        accessibilityLabel={[farm.name, place, farm.verified ? "Verified" : "Self-listed"].filter(Boolean).join(", ")}
-        style={({ pressed }) => [
-          styles.card,
-          {
-            backgroundColor: colors.surface,
-            borderColor: colors.border,
-            borderRadius: radius.lg,
-            opacity: pressed ? 0.94 : 1,
-          },
-        ]}
-      >
-        <View style={{ aspectRatio: 4 / 3, width: "100%", backgroundColor: colors.brandSoft, position: "relative" }}>
-          {farm.image ? (
-            <Photo uri={farm.image} alt={farm.name} style={StyleSheet.absoluteFill} />
-          ) : (
-            <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}>
-              <LogoMark size={44} />
-            </View>
-          )}
-          <LinearGradient
-            colors={["rgba(8,30,18,0.38)", "transparent", "rgba(8,30,18,0.82)"]}
-            locations={[0, 0.45, 1]}
-            style={StyleSheet.absoluteFill}
-          />
-
-          {/* Top Badges: Verified & Film */}
-          <View style={{ position: "absolute", top: 10, left: 10, right: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
-            <VerifiedTag verified={farm.verified} />
-            {farm.video ? <Tag label="Farm Film" tone="onPhoto" icon="▶" /> : null}
+    <PressableLink
+      href={{ pathname: "/farms/[slug]", params: { slug: farm.slug } }}
+      accessibilityLabel={[farm.name, place, farm.verified ? "Verified" : "Self-listed"].filter(Boolean).join(", ")}
+      style={({ pressed }) => [
+        styles.card,
+        {
+          width,
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          borderRadius: radius.lg,
+          opacity: pressed ? 0.94 : 1,
+        },
+      ]}
+    >
+      <View style={{ aspectRatio: 4 / 3, width: "100%", backgroundColor: colors.brandSoft, position: "relative" }}>
+        {farm.image ? (
+          <Photo uri={farm.image} alt={farm.name} style={StyleSheet.absoluteFill} />
+        ) : (
+          <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}>
+            <LogoMark size={44} />
           </View>
+        )}
+        <LinearGradient
+          colors={["rgba(8,30,18,0.38)", "transparent", "rgba(8,30,18,0.82)"]}
+          locations={[0, 0.45, 1]}
+          style={StyleSheet.absoluteFill}
+        />
 
-          {/* Bottom Location Pin on Photo */}
-          {place ? (
-            <View style={{ position: "absolute", left: 10, right: 10, bottom: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-              <Text numberOfLines={1} style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, color: "#E5B462" }}>
-                📍 {place}
+        {/* Top Badges: Verified & Film */}
+        <View style={{ position: "absolute", top: 10, left: 10, right: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
+          <VerifiedTag verified={farm.verified} />
+          {farm.video ? <Tag label="Farm Film" tone="onPhoto" icon="▶" /> : null}
+        </View>
+
+        {/* Bottom Location Pin on Photo */}
+        {place ? (
+          <View style={{ position: "absolute", left: 10, right: 10, bottom: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+            <Text numberOfLines={1} style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, color: "#E5B462", flexShrink: 1 }}>
+              📍 {place}
+            </Text>
+            {farm.training ? <Tag label="Training" tone="accent" /> : null}
+          </View>
+        ) : null}
+      </View>
+
+      <View style={{ padding: spacing.md, gap: 7, flex: 1 }}>
+        <Text numberOfLines={2} style={{ fontFamily: fonts.heading, fontSize: 15.5, color: colors.ink, lineHeight: 21 }}>
+          {farm.name}
+        </Text>
+
+        {farm.types.length > 0 ? (
+          <View style={styles.wrap}>
+            {farm.types.slice(0, 2).map((t) => (
+              <Tag key={t} label={t} tone="brand" />
+            ))}
+          </View>
+        ) : null}
+
+        {crops.length > 0 ? (
+          <View style={[styles.wrap, { marginTop: "auto", paddingTop: 4 }]}>
+            {crops.map((c) => (
+              <View
+                key={c}
+                style={{
+                  backgroundColor: colors.paper,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: radius.pill,
+                  paddingHorizontal: 8,
+                  paddingVertical: 2,
+                }}
+              >
+                <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11.5, color: colors.ink }}>{c}</Text>
+              </View>
+            ))}
+            {moreCrops > 0 ? (
+              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.inkSoft, paddingHorizontal: 4 }}>
+                +{moreCrops}
               </Text>
-              {farm.training ? <Tag label="Training" tone="accent" /> : null}
-            </View>
-          ) : null}
-        </View>
-
-        <View style={{ padding: spacing.md, gap: 7, flex: 1 }}>
-          <Text numberOfLines={2} style={{ fontFamily: fonts.heading, fontSize: 15.5, color: colors.ink, lineHeight: 21 }}>
-            {farm.name}
-          </Text>
-
-          {farm.types.length > 0 ? (
-            <View style={styles.wrap}>
-              {farm.types.slice(0, 2).map((t) => (
-                <Tag key={t} label={t} tone="brand" />
-              ))}
-            </View>
-          ) : null}
-
-          {crops.length > 0 ? (
-            <View style={[styles.wrap, { marginTop: "auto", paddingTop: 4 }]}>
-              {crops.map((c) => (
-                <View
-                  key={c}
-                  style={{
-                    backgroundColor: colors.paper,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    borderRadius: radius.pill,
-                    paddingHorizontal: 8,
-                    paddingVertical: 2,
-                  }}
-                >
-                  <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11.5, color: colors.ink }}>{c}</Text>
-                </View>
-              ))}
-              {moreCrops > 0 ? (
-                <View style={{ justifyContent: "center", paddingHorizontal: 4 }}>
-                  <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.inkFaint }}>{`+${moreCrops}`}</Text>
-                </View>
-              ) : null}
-            </View>
-          ) : null}
-        </View>
-      </PressableLink>
-    </TiltCard>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+    </PressableLink>
   );
 }
 
@@ -181,5 +179,10 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 3,
   },
-  wrap: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  wrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 5,
+  },
 });

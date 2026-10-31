@@ -123,18 +123,18 @@ export default function Listings() {
           gap: spacing.md,
         }}
       >
-        <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: spacing.md }}>
-          <View style={{ gap: 4, maxWidth: 640 }}>
+        <View style={{ flexDirection: compact ? "column" : "row", flexWrap: "wrap", alignItems: compact ? "stretch" : "center", justifyContent: "space-between", gap: spacing.md }}>
+          <View style={{ gap: 4, maxWidth: 640, flexShrink: 1, minWidth: 0 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#52C388" }} />
               <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: "#E5B462" }}>
                 WHOLESALE B2B SUPPLY CATALOG
               </Text>
             </View>
-            <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: compact ? 26 : 32, lineHeight: compact ? 32 : 38, color: "#FFFFFF" }}>
+            <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: compact ? 23 : 32, lineHeight: compact ? 29 : 38, color: "#FFFFFF" }}>
               {activeCategory ? activeCategory.name_en : "Bulk Supply & Plantation Stock"}
             </Text>
-            <Text style={{ fontFamily: fonts.body, fontSize: 14, color: "rgba(255,255,255,0.82)" }}>
+            <Text style={{ fontFamily: fonts.body, fontSize: 13.5, lineHeight: 19, color: "rgba(255,255,255,0.82)" }}>
               Quantity-tiered wholesale rates · Direct road & rail dispatch from verified grower belts.
             </Text>
           </View>
@@ -143,18 +143,19 @@ export default function Listings() {
             onPress={() => setShowPlanner((v) => !v)}
             accessibilityRole="button"
             style={{
+              alignSelf: compact ? "flex-start" : "auto",
               backgroundColor: showPlanner ? "#E5B462" : "rgba(229,180,98,0.16)",
               borderWidth: 1.5,
               borderColor: "#E5B462",
               borderRadius: radius.pill,
-              paddingHorizontal: 16,
-              paddingVertical: 10,
+              paddingHorizontal: 14,
+              paddingVertical: 9,
               flexDirection: "row",
               alignItems: "center",
               gap: 6,
             }}
           >
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: showPlanner ? "#081E12" : "#E5B462" }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: showPlanner ? "#081E12" : "#E5B462" }}>
               {showPlanner ? "✕ Hide 3D Orchard Simulator" : "📐 Open 3D Orchard Simulator"}
             </Text>
           </Pressable>

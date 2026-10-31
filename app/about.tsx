@@ -1,54 +1,58 @@
-import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { View, Text, StyleSheet, useWindowDimensions, Pressable } from "react-native";
 import { Link } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { SeoHead } from "@/components/SeoHead";
-import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { VerifiedTag } from "@/components/Tag";
-import { TiltCard } from "@/components/3d/TiltCard";
-import { Orchard3DPlanner } from "@/components/tools/Orchard3DPlanner";
+import { useTheme } from "@/constants/theme-context";
 import { useTour } from "@/lib/tour-context";
 
-type Step = { badge: string; title: string; body: string; icon: "plant" | "quote" | "truck" | "form" | "camera" | "network" };
+type Step = { badge: string; title: string; body: string; icon: "plant" | "quote" | "truck" | "camera" | "shield" | "users" };
 
-/** Storefront §9.5 — two tracks, visual-first architecture. */
-const TRACKS: { eyebrow: string; title: string; ctaLabel: string; ctaHref: "/listings" | "/list-your-farm"; steps: Step[] }[] = [
+const TRACKS: {
+  eyebrow: string;
+  title: string;
+  steps: Step[];
+  ctaLabel: string;
+  ctaHref: "/listings" | "/list-your-farm";
+}[] = [
   {
-    eyebrow: "TRACK 01 · BULK PROCUREMENT",
-    title: "Buying in bulk",
+    eyebrow: "TRACK 01 · FOR COMMERCIAL BUYERS",
+    title: "Buying planting material in bulk",
+    steps: [
+      { badge: "STEP 1", title: "Pick your crop & quantity slab", body: "Browse live bulk supply and see transparent price tiers by volume.", icon: "plant" },
+      { badge: "STEP 2", title: "Send one consolidated quote request", body: "Share your required count, delivery city, or nearest railway station.", icon: "quote" },
+      { badge: "STEP 3", title: "We confirm & arrange road or rail dispatch", body: "Our trade desk confirms live batch stock and dispatches from the nearest verified farm.", icon: "truck" },
+    ],
     ctaLabel: "Browse Bulk Supply →",
     ctaHref: "/listings",
-    steps: [
-      { badge: "STEP 01", title: "Choose your plants", body: "Browse by crop and see transparent prices for each quantity slab.", icon: "plant" },
-      { badge: "STEP 02", title: "Request a quote", body: "Tell us the quantity, delivery city and nearest railway station.", icon: "quote" },
-      { badge: "STEP 03", title: "We confirm price and dispatch", body: "One point of contact, with delivery by road truck or rail.", icon: "truck" },
-    ],
   },
   {
-    eyebrow: "TRACK 02 · GROWER NETWORK",
-    title: "Own a farm",
+    eyebrow: "TRACK 02 · FOR FARM OWNERS & NURSERIES",
+    title: "Listing your farm on FarmsClub",
+    steps: [
+      { badge: "STEP 1", title: "Fill the 2-minute registration form", body: "Share your farm's location, main crops, acreage, and up to 3 photos in English or Hindi.", icon: "camera" },
+      { badge: "STEP 2", title: "Our team reviews & builds your dossier", body: "We prepare your public farm page and send you a private edit link.", icon: "shield" },
+      { badge: "STEP 3", title: "Connect with bulk buyers & future farmers", body: "Receive verified enquiries for planting material, farm visits, and training.", icon: "users" },
+    ],
     ctaLabel: "List Your Farm (Free) →",
     ctaHref: "/list-your-farm",
-    steps: [
-      { badge: "STEP 01", title: "List your farm", body: "A 2-minute free form with the basics about your farm.", icon: "form" },
-      { badge: "STEP 02", title: "Our team reviews it", body: "We call you. For a Verified profile, our team visits and shoots your farm.", icon: "camera" },
-      { badge: "STEP 03", title: "Get discovered", body: "Buyers and future farmers find your farm across India on FarmsClub.", icon: "network" },
-    ],
   },
 ];
 
 const VERIFIED_PILLARS = [
-  { badge: "ON-SITE VISIT", title: "Team Inspected", sub: "The FarmsClub team physically visits the farm estate." },
-  { badge: "DOCUMENTARY", title: "Filmed on Ground", sub: "Real orchard footage, mother-plant stock & grower interviews." },
-  { badge: "TRANSPARENCY", title: "Clear Labeling", sub: "Self-listed farms are clearly marked until visited by our team." },
+  { badge: "ON-SITE VISIT", title: "Visited in person", sub: "Our field team visits the farm, meets the grower, and films on the ground." },
+  { badge: "MOTHER STOCK", title: "Crops & practices checked", sub: "We document real mother-plant stock, soil type, irrigation, and harvest calendar." },
+  { badge: "TRANSPARENT", title: "Clear badge distinction", sub: "Farms that haven't been visited yet are clearly marked 'Self-listed' until verified." },
 ];
 
+/** Storefront §8.1 — How FarmsClub works: two tracks + Verified explanation. */
 export default function About() {
   const { colors, fonts, spacing, radius } = useTheme();
-  const { width } = useWindowDimensions();
   const { openTour } = useTour();
+  const { width } = useWindowDimensions();
   const wide = width >= 820;
   const compact = width < 560;
 
@@ -95,7 +99,7 @@ export default function About() {
           </Pressable>
         </View>
 
-        <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: compact ? 28 : 36, lineHeight: compact ? 34 : 42, color: "#FFFFFF" }}>
+        <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: compact ? 26 : 36, lineHeight: compact ? 32 : 42, color: "#FFFFFF" }}>
           How FarmsClub works
         </Text>
         <Text style={{ fontFamily: fonts.body, fontSize: 15.5, color: "rgba(255,255,255,0.86)", maxWidth: 620, lineHeight: 23 }}>
@@ -106,61 +110,61 @@ export default function About() {
       {/* Dual-Track Visual Cards */}
       <View style={{ flexDirection: wide ? "row" : "column", gap: spacing.lg }}>
         {TRACKS.map((track) => (
-          <TiltCard key={track.title} maxTilt={3.5} style={{ flex: wide ? 1 : undefined }}>
-            <View
-              style={[
-                styles.card,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderRadius: radius.xl,
-                  padding: compact ? spacing.lg : spacing.xl,
-                  justifyContent: "space-between",
-                  gap: spacing.lg,
-                },
-              ]}
-            >
-              <View style={{ gap: spacing.md }}>
-                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.9, color: colors.accentDark }}>
-                  {track.eyebrow}
-                </Text>
-                <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.display, fontSize: 24, color: colors.ink }}>
-                  {track.title}
-                </Text>
+          <View
+            key={track.title}
+            style={[
+              styles.card,
+              {
+                flex: wide ? 1 : undefined,
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                borderRadius: radius.xl,
+                padding: compact ? spacing.lg : spacing.xl,
+                justifyContent: "space-between",
+                gap: spacing.lg,
+              },
+            ]}
+          >
+            <View style={{ gap: spacing.md }}>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.9, color: colors.accentDark }}>
+                {track.eyebrow}
+              </Text>
+              <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.display, fontSize: compact ? 22 : 24, color: colors.ink }}>
+                {track.title}
+              </Text>
 
-                <View style={{ gap: spacing.md, marginTop: 4 }}>
-                  {track.steps.map((s) => (
-                    <View
-                      key={s.title}
-                      style={{
-                        flexDirection: "row",
-                        gap: spacing.md,
-                        backgroundColor: colors.paper,
-                        padding: spacing.md,
-                        borderRadius: radius.lg,
-                        borderWidth: 1,
-                        borderColor: colors.border,
-                        alignItems: "center",
-                      }}
-                    >
-                      <View style={[styles.num, { backgroundColor: colors.brandSoft }]}>
-                        <StepGlyph kind={s.icon} color={colors.brand} />
-                      </View>
-                      <View style={{ flex: 1, gap: 2 }}>
-                        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 0.6, color: colors.accentDark }}>{s.badge}</Text>
-                        <Text style={{ fontFamily: fonts.heading, fontSize: 15.5, color: colors.ink }}>{s.title}</Text>
-                        <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: colors.inkSoft, lineHeight: 19 }}>{s.body}</Text>
-                      </View>
+              <View style={{ gap: spacing.md, marginTop: 4 }}>
+                {track.steps.map((s) => (
+                  <View
+                    key={s.title}
+                    style={{
+                      flexDirection: "row",
+                      gap: spacing.md,
+                      backgroundColor: colors.paper,
+                      padding: spacing.md,
+                      borderRadius: radius.lg,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      alignItems: "center",
+                    }}
+                  >
+                    <View style={[styles.num, { backgroundColor: colors.brandSoft }]}>
+                      <StepGlyph kind={s.icon} color={colors.brand} />
                     </View>
-                  ))}
-                </View>
+                    <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 0.6, color: colors.accentDark }}>{s.badge}</Text>
+                      <Text style={{ fontFamily: fonts.heading, fontSize: 15.5, color: colors.ink }}>{s.title}</Text>
+                      <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: colors.inkSoft, lineHeight: 19 }}>{s.body}</Text>
+                    </View>
+                  </View>
+                ))}
               </View>
-
-              <Link href={track.ctaHref} asChild>
-                <Button label={track.ctaLabel} fullWidth />
-              </Link>
             </View>
-          </TiltCard>
+
+            <Link href={track.ctaHref} asChild>
+              <Button label={track.ctaLabel} fullWidth />
+            </Link>
+          </View>
         ))}
       </View>
 
@@ -211,9 +215,6 @@ export default function About() {
           ))}
         </View>
       </View>
-
-      {/* Interactive 3D Orchard Simulator Preview */}
-      <Orchard3DPlanner />
     </AppShell>
   );
 }
