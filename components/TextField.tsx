@@ -17,6 +17,7 @@ type Props = {
   autoComplete?: TextInputProps["autoComplete"];
   textContentType?: TextInputProps["textContentType"];
   inputMode?: TextInputProps["inputMode"];
+  onBlur?: () => void;
   /** Used to build stable ids so the label and error are tied to the input for screen readers. */
   id: string;
 };
@@ -25,7 +26,7 @@ type Props = {
  *  itself (aria-label / aria-invalid / aria-describedby on web, accessibilityLabel/Hint natively),
  *  and the error text is a polite live region so it's announced when it appears. */
 export const TextField = forwardRef<TextInput, Props>(function TextField(
-  { label, value, onChangeText, required, placeholder, keyboardType, multiline, error, maxLength, autoCapitalize, autoComplete, textContentType, inputMode, id },
+  { label, value, onChangeText, required, placeholder, keyboardType, multiline, error, maxLength, autoCapitalize, autoComplete, textContentType, inputMode, onBlur, id },
   ref,
 ) {
   const { colors, fonts, radius, spacing } = useTheme();
@@ -54,7 +55,10 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
         autoComplete={autoComplete}
         textContentType={textContentType}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onBlur={() => {
+          setFocused(false);
+          onBlur?.();
+        }}
         accessibilityLabel={`${label}${required ? ", required" : ""}`}
         accessibilityHint={error}
         aria-invalid={error ? true : undefined}

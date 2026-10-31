@@ -31,6 +31,14 @@ export type B2bPriceTier = {
   pricePerUnit: number;
 };
 
+export type B2bDispatchCorridor = {
+  region: string;
+  rail_transit_hours?: string | null;
+  truck_transit_days?: string | null;
+  recommended_mode?: string | null;
+  from_zone?: string | null;
+};
+
 export type B2bListing = {
   id: number;
   /** Only on GET /public/b2b/listings/{id}: false = hidden/unknown (then only `title` is set). */
@@ -57,6 +65,14 @@ export type B2bListing = {
   price_to: number | null;
   /** Only on GET /public/b2b/listings/{id}. */
   tiers?: B2bPriceTier[];
+  recommended_row_spacing_ft?: number | null;
+  recommended_plant_spacing_ft?: number | null;
+  unit_weight_kg?: number | null;
+  units_per_14ft_truck?: number | null;
+  estimated_dispatch_days?: string | null;
+  origin_zone?: string | null;
+  dispatch_corridors?: B2bDispatchCorridor[] | null;
+  dispatch_corridors_note?: string | null;
   // Legacy aliases the backend still sends (= moq / unit).
   bulk_min_quantity?: number | null;
   bulk_unit?: string | null;
@@ -382,4 +398,24 @@ export type RfqRequest = {
   honeypot?: string;
   formRenderedAt?: number;
   formElapsedMs?: number;
+  plannedAcres?: number;
+  spacingPreset?: string;
+  includeMortalityBuffer?: boolean;
+  preferredTransportMode?: string;
+  simulatedUnitRate?: number;
+  simulatedOrderValue?: number;
+};
+
+export type B2bGstinLookup = {
+  gstin: string;
+  validFormat: boolean;
+  verifiedFromRegistry: boolean;
+  legalName: string | null;
+  tradeName: string | null;
+  billingAddress: string | null;
+  city: string | null;
+  state: string | null;
+  stateCode: string | null;
+  pincode: string | null;
+  registryStatus?: string | null;
 };

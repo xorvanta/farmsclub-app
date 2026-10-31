@@ -35,6 +35,8 @@ export default function ListingDetail() {
   const [unavailable, setUnavailable] = useState<{ title: string | null } | null>(null);
   const [farms, setFarms] = useState<FarmCardApi[]>([]);
   const [selectedQty, setSelectedQty] = useState<number | null>(null);
+  const [simUnitRate, setSimUnitRate] = useState<number | null>(null);
+  const [simOrderValue, setSimOrderValue] = useState<number | null>(null);
   const [mobilePlannerOpen, setMobilePlannerOpen] = useState(false);
   const listingId = parseListingId(id);
 
@@ -69,6 +71,12 @@ export default function ListingDetail() {
     });
     return () => setListingContext(null);
   }, [listing, setListingContext]);
+
+  const handleSimulation = useCallback((sim: { qty: number; unitRate: number | null; orderValue: number | null }) => {
+    setSelectedQty(sim.qty);
+    setSimUnitRate(sim.unitRate);
+    setSimOrderValue(sim.orderValue);
+  }, []);
 
   const idPending = id === undefined || id === "" || id === "[id]";
   if (idPending) {
@@ -142,10 +150,26 @@ export default function ListingDetail() {
   const isPhone = width < 560;
   const column = { width: "100%" as const, maxWidth: DETAIL_MAX_WIDTH, alignSelf: "center" as const };
 
+  const rfqParams: Record<string, string> = { listingId: String(listing.id) };
+  if (selectedQty != null) rfqParams.qty = String(selectedQty);
+  if (simUnitRate != null) rfqParams.unitRate = String(simUnitRate);
+  if (simOrderValue != null) rfqParams.orderVal = String(simOrderValue);
+
   const rfqHref = {
     pathname: "/rfq/[listingId]" as const,
-    params: selectedQty ? { listingId: String(listing.id), qty: String(selectedQty) } : { listingId: String(listing.id) },
+    params: rfqParams,
   };
+
+  const corridors = listing.dispatch_corridors ?? [];
+  const uniqueFromZones = new Set(corridors.map((c) => c.from_zone).filter(Boolean));
+  const showFromZoneBadge = uniqueFromZones.size > 1;
+  const hasLogisticsCard =
+    (listing.dispatch_states?.length ?? 0) > 0 ||
+    (listing.transport_modes?.length ?? 0) > 0 ||
+    !!listing.origin_zone ||
+    corridors.length > 0 ||
+    !!listing.estimated_dispatch_days ||
+    listing.units_per_14ft_truck != null;
 
   const gallery = (
     <View style={{ gap: isPhone ? spacing.sm : spacing.md }}>
@@ -207,10 +231,10 @@ export default function ListingDetail() {
         {listing.title}
       </Text>
 
-      <BulkPriceCard listing={listing} onSelectQuantity={setSelectedQty} />
+      <BulkPriceCard listing={listing} onSelectQuantity={setSelectedQty} onSelectSimulation={handleSimulation} />
 
       {/* Visual Logistics & Dispatch Corridor */}
-      {(listing.dispatch_states?.length ?? 0) > 0 || (listing.transport_modes?.length ?? 0) > 0 ? (
+      {hasLogisticsCard ? (
         <View
           style={{
             gap: isPhone ? 10 : spacing.md,
@@ -235,12 +259,103 @@ export default function ListingDetail() {
                 Logistics & Dispatch Corridor
               </Text>
               <Text style={{ fontFamily: fonts.body, fontSize: 12, lineHeight: 16, color: colors.inkSoft }}>
-                Direct nursery loading via road carrier or Indian Railways parcel van
+                {listing.origin_zone
+                  ? `Origin: ${listing.origin_zone}`
+                  : "Direct nursery loading via road carrier or Indian Railways parcel van"}
               </Text>
             </View>
           </View>
+
           {listing.dispatch_states?.length > 0 && <InfoLine label="Origin Belts" values={listing.dispatch_states} />}
           {listing.transport_modes?.length > 0 && <InfoLine label="Transit Modes" values={listing.transport_modes} />}
+
+          {(listing.estimated_dispatch_days || listing.units_per_14ft_truck != null || listing.unit_weight_kg != null) ? (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+              {listing.estimated_dispatch_days ? (
+                <Tag label={`Dispatch in ${listing.estimated_dispatch_days} days`} tone="accent" />
+              ) : null}
+              {listing.units_per_14ft_truck != null && Number(listing.units_per_14ft_truck) > 0 ? (
+                <Tag label={`14ft Truck: ~${formatQty(Number(listing.units_per_14ft_truck))} units`} tone="neutral" />
+              ) : null}
+              {listing.unit_weight_kg != null && Number(listing.unit_weight_kg) > 0 ? (
+                <Tag label={`Unit Wt: ${listing.unit_weight_kg} kg`} tone="neutral" />
+              ) : null}
+            </View>
+          ) : null}
+
+          {corridors.length > 0 ? (
+            <View
+              style={{
+                marginTop: 2,
+                borderRadius: radius.md,
+                backgroundColor: colors.paper,
+                borderWidth: 1,
+                borderColor: colors.border,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  backgroundColor: colors.brandSoft,
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.border,
+                }}
+              >
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.5, color: colors.brand, textTransform: "uppercase" }}>
+                  DESTINATION REGION
+                </Text>
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.5, color: colors.brand, textTransform: "uppercase" }}>
+                  EST. TRANSIT (RAIL / ROAD)
+                </Text>
+              </View>
+              {corridors.map((c, idx) => (
+                <View
+                  key={`${c.from_zone ?? ""}-${c.region}-${idx}`}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 8,
+                    borderTopWidth: idx > 0 ? StyleSheet.hairlineWidth : 0,
+                    borderTopColor: colors.border,
+                  }}
+                >
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.ink }}>
+                      {c.region}
+                    </Text>
+                    {(showFromZoneBadge && c.from_zone) || c.recommended_mode ? (
+                      <Text style={{ fontFamily: fonts.body, fontSize: 11, color: colors.inkSoft }}>
+                        {[showFromZoneBadge && c.from_zone ? `From ${c.from_zone}` : null, c.recommended_mode].filter(Boolean).join(" · ")}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <View style={{ alignItems: "flex-end", flexShrink: 0 }}>
+                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: colors.brand }}>
+                      {[
+                        c.rail_transit_hours ? `🚆 ${c.rail_transit_hours}` : null,
+                        c.truck_transit_days ? `🚚 ${c.truck_transit_days}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join("  ·  ") || "On quote"}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
+          {listing.dispatch_corridors_note ? (
+            <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: colors.inkSoft, lineHeight: 16 }}>
+              {listing.dispatch_corridors_note}
+            </Text>
+          ) : null}
         </View>
       ) : null}
 

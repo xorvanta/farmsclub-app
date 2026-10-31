@@ -22,11 +22,36 @@ function firstParam(v: string | string[] | undefined): string {
 export default function Contact() {
   const { fonts, colors, spacing, radius } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
-  const params = useLocalSearchParams<{ product?: string; topic?: string; farm?: string }>();
+  const params = useLocalSearchParams<{
+    product?: string;
+    topic?: string;
+    farm?: string;
+    acres?: string;
+    spacing?: string;
+    buffer?: string;
+    mode?: string;
+    unitRate?: string;
+    orderVal?: string;
+  }>();
   const product = firstParam(params.product);
   const topic = firstParam(params.topic);
   const farm = firstParam(params.farm);
   const initialNotes = product ? product : topic ? (farm ? `${topic} — ${farm}` : topic) : "";
+
+  const initialPlanner = (() => {
+    const acresNum = Number(firstParam(params.acres));
+    const unitRateNum = Number(firstParam(params.unitRate));
+    const orderValNum = Number(firstParam(params.orderVal));
+    const bufRaw = firstParam(params.buffer);
+    return {
+      plannedAcres: Number.isFinite(acresNum) && acresNum > 0 ? acresNum : null,
+      spacingPreset: firstParam(params.spacing) || null,
+      includeMortalityBuffer: bufRaw === "1" ? true : bufRaw === "0" ? false : null,
+      preferredTransportMode: firstParam(params.mode) || null,
+      simulatedUnitRate: Number.isFinite(unitRateNum) && unitRateNum >= 0 ? unitRateNum : null,
+      simulatedOrderValue: Number.isFinite(orderValNum) && orderValNum >= 0 ? orderValNum : null,
+    };
+  })();
 
   const contact = useB2bContact();
   const waUrl = contact?.whatsappNumber ? whatsappUrl(contact.whatsappNumber) : null;
@@ -119,7 +144,14 @@ export default function Contact() {
           elevation: 3,
         }}
       >
-        <RfqFormBody key={initialNotes} listing={null} listingId={null} scrollRef={scrollRef} initialNotes={initialNotes || undefined} />
+        <RfqFormBody
+          key={initialNotes}
+          listing={null}
+          listingId={null}
+          scrollRef={scrollRef}
+          initialNotes={initialNotes || undefined}
+          initialPlanner={initialPlanner}
+        />
       </View>
     </AppShell>
   );

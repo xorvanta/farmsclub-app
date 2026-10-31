@@ -4,9 +4,18 @@ import { Link } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
 import { TextField } from "./TextField";
 import { Button } from "./Button";
-import { b2bApi, errorMessage } from "@/lib/api";
-import { formatQty, formatQtyWithUnit, normalizeIndianMobile } from "@/lib/format";
+import { ApiError, b2bApi, errorMessage } from "@/lib/api";
+import { formatQty, formatQtyWithUnit, formatRupees, normalizeIndianMobile } from "@/lib/format";
 import type { B2bListing } from "@/lib/types";
+
+export type RfqPlannerSeed = {
+  plannedAcres?: number | null;
+  spacingPreset?: string | null;
+  includeMortalityBuffer?: boolean | null;
+  preferredTransportMode?: string | null;
+  simulatedUnitRate?: number | null;
+  simulatedOrderValue?: number | null;
+};
 
 const LIMITS = { name: 200, email: 200, gstin: 15, city: 100, state: 100, pincode: 6, station: 150, address: 1000, notes: 1000, phone: 16 };
 const GSTIN_RE = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
@@ -65,11 +74,13 @@ export function RfqFormBody({
   scrollRef,
   initialNotes,
   initialQuantity,
+  initialPlanner,
 }: {
   listing?: B2bListing | null;
   listingId?: number | null;
   initialNotes?: string;
   initialQuantity?: string | number;
+  initialPlanner?: RfqPlannerSeed;
   scrollRef?: RefObject<ScrollView | null>;
 }) {
   const { colors, fonts, spacing, radius } = useTheme();
@@ -96,6 +107,9 @@ export function RfqFormBody({
   const [notes, setNotes] = useState(initialNotes ?? "");
 
   const [errors, setErrors] = useState<Partial<Record<FieldKey, string>>>({});
+  const [gstinHint, setGstinHint] = useState<{ verified: boolean; text: string } | null>(null);
+  const [gstinChecking, setGstinChecking] = useState(false);
+  const lastLookedUpGstin = useRef<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -131,7 +145,7 @@ export function RfqFormBody({
     if (!MOBILE_RE.test(normalizeIndianMobile(phone))) next.phone = "Enter a valid 10-digit Indian mobile number.";
     if (email.trim() && !EMAIL_RE.test(email.trim())) next.email = "Enter a valid email address.";
     if (customerGstin.trim() && !GSTIN_RE.test(customerGstin.trim()))
-      next.customerGstin = "Enter a valid 15-character GSTIN (e.g. 27ABCDE1234F1Z5).";
+      next.customerGstin = "Please enter a valid 15-character GSTIN.";
     if (sameAsBilling) {
       if (!billingCity.trim()) next.billingCity = "Enter the city.";
       if (!billingState.trim()) next.billingState = "Enter the state.";
@@ -170,6 +184,81 @@ export function RfqFormBody({
     return full ? full.slice(0, LIMITS.address) : undefined;
   }
 
+  async function handleGstinBlur() {
+    const clean = customerGstin.trim().toUpperCase();
+    if (!clean) {
+      setGstinHint(null);
+      setErrors((prev) => ({ ...prev, customerGstin: undefined }));
+      return;
+    }
+    if (clean === lastLookedUpGstin.current) return;
+    lastLookedUpGstin.current = clean;
+    setGstinChecking(true);
+    try {
+      const res = await b2bApi.lookupGstin(clean);
+      setErrors((prev) => ({ ...prev, customerGstin: undefined }));
+      // Always fill the state from the first 2 digits when provided
+      if (res.state) {
+        setBillingState(res.state);
+      }
+      // Fill name & address only when verifiedFromRegistry is true, keeping fields editable
+      if (res.verifiedFromRegistry) {
+        const company = res.tradeName?.trim() || res.legalName?.trim() || "";
+        if (company) setBillingName(company.slice(0, LIMITS.name));
+        if (res.billingAddress?.trim()) setBillingAddress(res.billingAddress.trim().slice(0, LIMITS.address));
+        if (res.city?.trim()) setBillingCity(res.city.trim().slice(0, LIMITS.city));
+        if (res.pincode?.trim()) setBillingPincode(digitsOnly(res.pincode.trim()).slice(0, LIMITS.pincode));
+        setGstinHint({
+          verified: true,
+          text: `✓ Verified GSTIN${company ? ` · ${company}` : res.state ? ` · ${res.state}` : ""}`,
+        });
+      } else if (res.validFormat) {
+        setGstinHint({
+          verified: false,
+          text: `✓ Valid GSTIN format${res.state ? ` · ${res.state}` : ""}`,
+        });
+      }
+    } catch (e) {
+      lastLookedUpGstin.current = "";
+      if (e instanceof ApiError && e.status === 400) {
+        setGstinHint(null);
+        setErrors((prev) => ({ ...prev, customerGstin: e.message || "Please enter a valid 15-character GSTIN." }));
+      }
+      // 429 or network error: fail silently so manual entry continues uninterrupted
+    } finally {
+      setGstinChecking(false);
+    }
+  }
+
+  // Compute live simulated rate & order value for current quantityInterest when listing has tiers/price_from
+  const activeQtyNum = isListing && /^\d+$/.test(quantityInterest.trim()) ? Number(quantityInterest.trim()) : 0;
+  const computedPricing = (() => {
+    if (isListing && activeQtyNum > 0 && listing) {
+      const tiers = listing.tiers ?? [];
+      if (tiers.length > 0) {
+        const sorted = [...tiers].sort((a, b) => Number(a.minQty) - Number(b.minQty));
+        let matched = sorted[0];
+        for (const t of sorted) {
+          if (activeQtyNum >= Number(t.minQty)) matched = t;
+        }
+        const rate = Math.round(Number(matched.pricePerUnit) * 100) / 100;
+        const val = Math.round(rate * activeQtyNum * 100) / 100;
+        return { unitRate: rate, orderValue: val };
+      }
+      if (listing.price_from != null && Number(listing.price_from) >= 0) {
+        const rate = Math.round(Number(listing.price_from) * 100) / 100;
+        const val = Math.round(rate * activeQtyNum * 100) / 100;
+        return { unitRate: rate, orderValue: val };
+      }
+    }
+    const seedRate = initialPlanner?.simulatedUnitRate;
+    const seedVal = initialPlanner?.simulatedOrderValue;
+    return {
+      unitRate: seedRate != null && seedRate >= 0 && seedRate <= 10_000_000 ? Math.round(seedRate * 100) / 100 : undefined,
+      orderValue: seedVal != null && seedVal >= 0 && seedVal <= 10_000_000_000 ? Math.round(seedVal * 100) / 100 : undefined,
+    };
+  })();
+
   async function submit() {
     if (submittingRef.current) return;
     setSubmitError(null);
@@ -187,6 +276,22 @@ export function RfqFormBody({
     submittingRef.current = true;
     setSubmitting(true);
     try {
+      const acresVal = initialPlanner?.plannedAcres;
+      const validAcres =
+        acresVal != null && Number.isFinite(acresVal) && acresVal >= 0.01 && acresVal <= 100_000
+          ? Math.round(acresVal * 100) / 100
+          : undefined;
+      const validSpacing = initialPlanner?.spacingPreset?.trim()
+        ? initialPlanner.spacingPreset.trim().slice(0, 40)
+        : undefined;
+      const validBuffer =
+        typeof initialPlanner?.includeMortalityBuffer === "boolean"
+          ? initialPlanner.includeMortalityBuffer
+          : undefined;
+      const validMode = initialPlanner?.preferredTransportMode?.trim()
+        ? initialPlanner.preferredTransportMode.trim().slice(0, 60)
+        : undefined;
+
       const result = await b2bApi.submitRfq({
         contactName: contactName.trim(),
         phone: normalizeIndianMobile(phone),
@@ -206,6 +311,12 @@ export function RfqFormBody({
         honeypot,
         formRenderedAt: renderedAt.current,
         formElapsedMs: Math.max(0, Date.now() - renderedAt.current),
+        plannedAcres: validAcres,
+        spacingPreset: validSpacing,
+        includeMortalityBuffer: validBuffer,
+        preferredTransportMode: validMode,
+        simulatedUnitRate: computedPricing.unitRate,
+        simulatedOrderValue: computedPricing.orderValue,
       });
       setSuccessMessage(result.message ?? DEFAULT_SUCCESS);
       scrollRef?.current?.scrollTo({ y: 0, animated: true });
@@ -344,13 +455,35 @@ export function RfqFormBody({
           <TextField
             label={FIELD_LABELS.customerGstin}
             value={customerGstin}
-            onChangeText={(t) => setCustomerGstin(t.toUpperCase().replace(/[^0-9A-Z]/g, ""))}
-            placeholder="Optional — 15-character GSTIN"
+            onChangeText={(t) => {
+              const cleaned = t.toUpperCase().replace(/[^0-9A-Z]/g, "");
+              setCustomerGstin(cleaned);
+              if (gstinHint) setGstinHint(null);
+              if (errors.customerGstin) setErrors((prev) => ({ ...prev, customerGstin: undefined }));
+            }}
+            onBlur={handleGstinBlur}
+            placeholder="Optional — 15-character GSTIN (auto-fills state & company)"
             autoCapitalize="characters"
             autoComplete="off"
             maxLength={LIMITS.gstin}
             {...pick(field("customerGstin", "billing"))}
           />
+          {gstinChecking ? (
+            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11.5, color: colors.inkSoft, marginTop: 4 }}>
+              Verifying GSTIN…
+            </Text>
+          ) : gstinHint && !errors.customerGstin ? (
+            <Text
+              style={{
+                fontFamily: fonts.bodySemiBold,
+                fontSize: 12,
+                color: gstinHint.verified ? colors.success : colors.brand,
+                marginTop: 4,
+              }}
+            >
+              {gstinHint.text}
+            </Text>
+          ) : null}
         </Slot>
         <TextField id="rfq-billingName" label={FIELD_LABELS.billingName} value={billingName} onChangeText={setBillingName} maxLength={LIMITS.name}
           autoComplete="organization" textContentType="organizationName" />
@@ -436,8 +569,58 @@ export function RfqFormBody({
       </FormSection>
 
       <FormSection badge="04" title="Requirement" onY={(y) => (sectionY.current.requirement = y)}>
+        {initialPlanner?.plannedAcres != null || initialPlanner?.spacingPreset ? (
+          <View
+            style={{
+              backgroundColor: colors.brandSoft,
+              borderRadius: radius.md,
+              padding: 10,
+              borderWidth: 1,
+              borderColor: "rgba(18,56,36,0.18)",
+              gap: 3,
+            }}
+          >
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.6, color: colors.brand, textTransform: "uppercase" }}>
+              📐 3D PLANTATION PLAN ATTACHED
+            </Text>
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.ink }}>
+              {[
+                initialPlanner.plannedAcres != null ? `${initialPlanner.plannedAcres} Acres` : null,
+                initialPlanner.spacingPreset ? `Spacing: ${initialPlanner.spacingPreset}` : null,
+                initialPlanner.includeMortalityBuffer ? "+10% Buffer" : null,
+                initialPlanner.preferredTransportMode ? initialPlanner.preferredTransportMode : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </Text>
+          </View>
+        ) : null}
         {isListing ? (
           <>
+            {computedPricing.unitRate != null && computedPricing.orderValue != null && activeQtyNum > 0 ? (
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 6,
+                  backgroundColor: colors.paper,
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: radius.md,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                }}
+              >
+                <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.inkSoft }}>
+                  Active Slab Rate: <Text style={{ fontFamily: fonts.bodyBold, color: colors.ink }}>{formatRupees(computedPricing.unitRate)}/{unit ?? "unit"}</Text>
+                </Text>
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.brand }}>
+                  Est. Lot Value: {formatRupees(computedPricing.orderValue)}
+                </Text>
+              </View>
+            ) : null}
             {quickQtys.length > 0 ? (
               <View style={{ gap: 6 }}>
                 <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.inkSoft }}>

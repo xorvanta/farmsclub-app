@@ -76,13 +76,26 @@ export function ListingCard({ listing }: { listing: B2bListing }) {
 
           {/* Bottom Image Overlay: Price Slab Highlight */}
           {price ? (
-            <View style={{ position: "absolute", bottom: 10, left: 10, right: 10, flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
-              <View style={{ backgroundColor: "rgba(8,30,18,0.88)", paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.sm, borderLeftWidth: 3, borderLeftColor: "#E5B462", maxWidth: "100%" }}>
+            <View style={{ position: "absolute", bottom: 10, left: 10, right: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+              <View style={{ backgroundColor: "rgba(8,30,18,0.88)", paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.sm, borderLeftWidth: 3, borderLeftColor: "#E5B462", flexShrink: 1 }}>
                 <Text numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 16, color: "#FFFFFF" }}>
                   {price}
                   {showsGst(listing) ? <Text style={{ fontFamily: fonts.body, fontSize: 10.5, color: "rgba(255,255,255,0.78)" }}> + GST</Text> : null}
                 </Text>
               </View>
+              {(listing.tiers?.length ?? 0) > 1 ? (
+                <View style={{ backgroundColor: "rgba(229,180,98,0.92)", paddingHorizontal: 7, paddingVertical: 3, borderRadius: radius.pill }}>
+                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#081E12" }}>
+                    {listing.tiers!.length} Slabs
+                  </Text>
+                </View>
+              ) : listing.estimated_dispatch_days ? (
+                <View style={{ backgroundColor: "rgba(18,56,36,0.92)", paddingHorizontal: 7, paddingVertical: 3, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(229,180,98,0.4)" }}>
+                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#6FC28F" }}>
+                    {listing.estimated_dispatch_days}d
+                  </Text>
+                </View>
+              ) : null}
             </View>
           ) : null}
         </View>

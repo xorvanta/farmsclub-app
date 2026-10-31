@@ -4,6 +4,7 @@ import type {
   ApiResponse,
   B2bContact,
   B2bFaq,
+  B2bGstinLookup,
   B2bListing,
   ChatListingContext,
   ChatTurn,
@@ -205,6 +206,10 @@ export const b2bApi = {
   getFaqs: () => request<B2bFaq[]>("/public/b2b/faqs"),
 
   getContact: () => request<B2bContact>("/public/b2b/contact"),
+
+  /** GSTIN format & registry check (GET /public/b2b/gstin/{gstin}). */
+  lookupGstin: (gstin: string) =>
+    request<B2bGstinLookup>(`/public/b2b/gstin/${encodeURIComponent(gstin.trim().toUpperCase())}`),
 
   askChat: (payload: { message: string; history?: ChatTurn[]; listingContext?: ChatListingContext }) =>
     request<{ reply: string }>("/public/b2b/chat/ask", post(payload)),

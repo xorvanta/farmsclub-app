@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -7,7 +7,7 @@ import { useTheme } from "@/constants/theme-context";
 import { formatRupees, formatQty } from "@/lib/format";
 import type { B2bListing } from "@/lib/types";
 
-type PresetKey = "orchard" | "high_density" | "timber" | "canopy";
+type PresetKey = "crop_default" | "orchard" | "high_density" | "timber" | "canopy";
 
 type SpacingPreset = {
   key: PresetKey;
@@ -88,12 +88,47 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
   const wide = width >= 920 && !compactMode;
   const isPhone = width < 560;
 
-  const [presetKey, setPresetKey] = useState<PresetKey>("orchard");
+  const customCropPreset = useMemo<SpacingPreset | null>(() => {
+    const rFt = listing?.recommended_row_spacing_ft != null ? Number(listing.recommended_row_spacing_ft) : 0;
+    const pFt = listing?.recommended_plant_spacing_ft != null ? Number(listing.recommended_plant_spacing_ft) : 0;
+    if (rFt > 0 && pFt > 0) {
+      const perAcre = Math.max(1, Math.round(43560 / (rFt * pFt)));
+      return {
+        key: "crop_default",
+        label: "Crop Recommended",
+        shortLabel: "Crop Rec",
+        spacingFt: `${rFt}×${pFt} ft`,
+        plantsPerAcre: perAcre,
+        cropsHint: listing?.crop?.name ? `${listing.crop.name} standard spacing` : listing?.title ?? "Recommended spacing",
+        gridCols: perAcre >= 500 ? 6 : perAcre <= 150 ? 4 : 5,
+        gridRows: perAcre >= 500 ? 5 : perAcre <= 150 ? 3 : 4,
+        foliageColor: "#25854D",
+        crownColor: "#58CC8E",
+        fruitDotColor: "#E5B462",
+      };
+    }
+    return null;
+  }, [listing]);
+
+  const activePresets = useMemo<SpacingPreset[]>(() => {
+    if (!customCropPreset) return PRESETS;
+    // Keep 4 pills so mobile single-row layout stays compact and unclipped
+    return [customCropPreset, ...PRESETS.slice(0, 3)];
+  }, [customCropPreset]);
+
+  const [presetKey, setPresetKey] = useState<PresetKey>(customCropPreset ? "crop_default" : "orchard");
+  useEffect(() => {
+    if (customCropPreset) setPresetKey("crop_default");
+  }, [customCropPreset]);
+
   const [acres, setAcres] = useState<number>(5);
   const [includeBuffer, setIncludeBuffer] = useState<boolean>(true);
   const [camera, setCamera] = useState<CameraMode>("isometric");
 
-  const preset = useMemo(() => PRESETS.find((p) => p.key === presetKey) ?? PRESETS[0], [presetKey]);
+  const preset = useMemo(
+    () => activePresets.find((p) => p.key === presetKey) ?? activePresets[0],
+    [activePresets, presetKey],
+  );
 
   const basePlants = Math.round(acres * preset.plantsPerAcre);
   const totalPlants = includeBuffer ? Math.round(basePlants * 1.1) : basePlants;
@@ -121,47 +156,80 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
     return null;
   }, [listing, totalPlants]);
 
-  // Logistics load calculation
+  // Logistics load calculation using backend units_per_14ft_truck & unit_weight_kg when available
   const logistics = useMemo(() => {
-    if (totalPlants <= 600) {
+    const truck14Cap =
+      listing?.units_per_14ft_truck != null && Number(listing.units_per_14ft_truck) > 0
+        ? Math.round(Number(listing.units_per_14ft_truck))
+        : 2500;
+    const unitKg =
+      listing?.unit_weight_kg != null && Number(listing.unit_weight_kg) > 0
+        ? Number(listing.unit_weight_kg)
+        : null;
+    const totalKg = unitKg != null ? Math.round(totalPlants * unitKg) : null;
+    const weightLabel =
+      totalKg != null
+        ? totalKg >= 1000
+          ? `${(totalKg / 1000).toFixed(1)}t`
+          : `${formatQty(totalKg)} kg`
+        : null;
+
+    const railCap = Math.max(200, Math.round(truck14Cap * 0.25));
+    const heavyCap = Math.round(truck14Cap * 2.6);
+
+    if (totalPlants <= railCap) {
       return {
         vehicle: "Rail Parcel / Pick-up",
-        capacityPct: Math.min(100, Math.round((totalPlants / 600) * 100)),
-        modeTag: "RAIL / LIGHT ROAD",
+        capacityPct: Math.min(100, Math.round((totalPlants / railCap) * 100)),
+        modeTag: weightLabel ? `RAIL · ~${weightLabel}` : "RAIL / LIGHT ROAD",
       };
     }
-    if (totalPlants <= 2500) {
+    if (totalPlants <= truck14Cap) {
       return {
         vehicle: "14ft Nursery Truck",
-        capacityPct: Math.min(100, Math.round((totalPlants / 2500) * 100)),
-        modeTag: "DIRECT TRUCK",
+        capacityPct: Math.min(100, Math.round((totalPlants / truck14Cap) * 100)),
+        modeTag: weightLabel ? `14FT LOAD · ~${weightLabel}` : "DIRECT TRUCK",
       };
     }
-    if (totalPlants <= 6500) {
+    if (totalPlants <= heavyCap) {
       return {
         vehicle: "17ft Plantation Carrier",
-        capacityPct: Math.min(100, Math.round((totalPlants / 6500) * 100)),
-        modeTag: "HEAVY CARRIER",
+        capacityPct: Math.min(100, Math.round((totalPlants / heavyCap) * 100)),
+        modeTag: weightLabel ? `CARRIER · ~${weightLabel}` : "HEAVY CARRIER",
       };
     }
     return {
-      vehicle: `${Math.ceil(totalPlants / 6000)}× Multi-Axle / Rail Van`,
+      vehicle: `${Math.ceil(totalPlants / (truck14Cap * 2.4))}× Multi-Axle / Rail Van`,
       capacityPct: 96,
-      modeTag: "BULK FLEET",
+      modeTag: weightLabel ? `FLEET · ~${weightLabel}` : "BULK FLEET",
     };
-  }, [totalPlants]);
+  }, [listing, totalPlants]);
 
   const handleRequestQuote = () => {
+    const cleanSpacing = preset.spacingFt.replace("×", "x").slice(0, 40);
+    const cleanMode = logistics.vehicle.slice(0, 60);
+    const plannerParams: Record<string, string> = {
+      qty: String(totalPlants),
+      acres: String(acres),
+      spacing: cleanSpacing,
+      buffer: includeBuffer ? "1" : "0",
+      mode: cleanMode,
+    };
+    if (pricingEstimate) {
+      plannerParams.unitRate = String(Math.round(pricingEstimate.unitRate * 100) / 100);
+      plannerParams.orderVal = String(Math.round(pricingEstimate.totalCost * 100) / 100);
+    }
+
     if (listing?.id) {
       router.push({
         pathname: "/rfq/[listingId]",
-        params: { listingId: String(listing.id), qty: String(totalPlants) },
+        params: { listingId: String(listing.id), ...plannerParams },
       });
     } else {
       const summary = `${preset.label} (${preset.spacingFt}) · ${acres} ${acres === 1 ? "Acre" : "Acres"} · ${formatQty(totalPlants)} saplings${includeBuffer ? " (incl. 10% buffer)" : ""}`;
       router.push({
         pathname: "/contact",
-        params: { product: summary },
+        params: { product: summary, ...plannerParams },
       });
     }
   };
@@ -335,7 +403,7 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
                 1. Spacing Grid
               </Text>
               <View style={{ flexDirection: "row", flexWrap: isPhone ? "nowrap" : "wrap", gap: isPhone ? 6 : 8 }}>
-                {PRESETS.map((p) => {
+                {activePresets.map((p) => {
                   const active = p.key === presetKey;
                   return (
                     <Pressable

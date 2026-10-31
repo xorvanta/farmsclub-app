@@ -14,10 +14,37 @@ import type { B2bListing } from "@/lib/types";
 
 export default function RfqForScreen() {
   const { spacing, colors, radius, fonts } = useTheme();
-  const { listingId: rawId, qty: rawQty } = useLocalSearchParams<{ listingId: string; qty?: string }>();
+  const params = useLocalSearchParams<{
+    listingId: string;
+    qty?: string;
+    acres?: string;
+    spacing?: string;
+    buffer?: string;
+    mode?: string;
+    unitRate?: string;
+    orderVal?: string;
+  }>();
+  const rawId = params.listingId;
+  const rawQty = params.qty;
   const listingId = parseListingId(rawId);
   const prefillQty = Array.isArray(rawQty) ? rawQty[0] : rawQty;
   const scrollRef = useRef<ScrollView>(null);
+
+  const initialPlanner = (() => {
+    const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+    const acresNum = Number(first(params.acres));
+    const unitRateNum = Number(first(params.unitRate));
+    const orderValNum = Number(first(params.orderVal));
+    const bufRaw = first(params.buffer);
+    return {
+      plannedAcres: Number.isFinite(acresNum) && acresNum > 0 ? acresNum : null,
+      spacingPreset: first(params.spacing)?.trim() || null,
+      includeMortalityBuffer: bufRaw === "1" ? true : bufRaw === "0" ? false : null,
+      preferredTransportMode: first(params.mode)?.trim() || null,
+      simulatedUnitRate: Number.isFinite(unitRateNum) && unitRateNum >= 0 ? unitRateNum : null,
+      simulatedOrderValue: Number.isFinite(orderValNum) && orderValNum >= 0 ? orderValNum : null,
+    };
+  })();
 
   const [listing, setListing] = useState<B2bListing | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -108,7 +135,13 @@ export default function RfqForScreen() {
           </Text>
         </LinearGradient>
 
-        <RfqFormBody listing={listing} listingId={listing.id} scrollRef={scrollRef} initialQuantity={prefillQty} />
+        <RfqFormBody
+          listing={listing}
+          listingId={listing.id}
+          scrollRef={scrollRef}
+          initialQuantity={prefillQty}
+          initialPlanner={initialPlanner}
+        />
       </View>
     );
   }

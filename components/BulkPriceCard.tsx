@@ -14,9 +14,11 @@ import type { B2bListing, B2bPriceTier } from "@/lib/types";
 export function BulkPriceCard({
   listing,
   onSelectQuantity,
+  onSelectSimulation,
 }: {
   listing: B2bListing;
   onSelectQuantity?: (qty: number) => void;
+  onSelectSimulation?: (sim: { qty: number; unitRate: number | null; orderValue: number | null }) => void;
 }) {
   const { fonts, radius, spacing } = useTheme();
   const { width } = useWindowDimensions();
@@ -74,6 +76,14 @@ export function BulkPriceCard({
   const estTotal = activeUnitPrice != null ? activeUnitPrice * simQty : null;
   const estSavings = activeUnitPrice != null && baseUnitPrice != null ? Math.max(0, (baseUnitPrice - activeUnitPrice) * simQty) : 0;
 
+  useEffect(() => {
+    onSelectSimulation?.({
+      qty: simQty,
+      unitRate: activeUnitPrice != null ? Math.round(activeUnitPrice * 100) / 100 : null,
+      orderValue: estTotal != null ? Math.round(estTotal * 100) / 100 : null,
+    });
+  }, [simQty, activeUnitPrice, estTotal, onSelectSimulation]);
+
   // Quick preset buttons derived from tiers or standard multipliers
   const presetQuantities = useMemo(() => {
     if (sortedTiers.length > 0) {
@@ -119,13 +129,22 @@ export function BulkPriceCard({
             WHOLESALE VOLUME SLABS
           </Text>
         </View>
-        {moq != null ? (
-          <View style={{ backgroundColor: "rgba(255,255,255,0.12)", paddingHorizontal: 9, paddingVertical: 3, borderRadius: radius.pill }}>
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: "#FFFFFF" }}>
-              MOQ: {formatQty(Number(moq))} {unit ? pluralUnit(unit, Number(moq)) : ""}
-            </Text>
-          </View>
-        ) : null}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          {listing.estimated_dispatch_days ? (
+            <View style={{ backgroundColor: "rgba(82,195,136,0.22)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }}>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, color: "#6FC28F" }}>
+                Dispatch: {listing.estimated_dispatch_days}d
+              </Text>
+            </View>
+          ) : null}
+          {moq != null ? (
+            <View style={{ backgroundColor: "rgba(255,255,255,0.12)", paddingHorizontal: 9, paddingVertical: 3, borderRadius: radius.pill }}>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: "#FFFFFF" }}>
+                MOQ: {formatQty(Number(moq))} {unit ? pluralUnit(unit, Number(moq)) : ""}
+              </Text>
+            </View>
+          ) : null}
+        </View>
       </View>
 
       {price && (
