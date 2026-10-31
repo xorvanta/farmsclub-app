@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="fcBrand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#123824" />
+      <stop offset="100%" stop-color="#081E12" />
+    </linearGradient>
+  </defs>
+  <path d="M24 3 42 13.5v21L24 45 6 34.5v-21L24 3Z" fill="url(#fcBrand)" />
+  <path d="M24 34c0-10.5 7-16.5 14.5-17.5-1 10-6.5 16-14.5 17.5Z" fill="#C85A17" />
+  <path d="M24 34c0-10.5-7-16.5-14.5-17.5 1 10 6.5 16 14.5 17.5Z" fill="#FDF0E4" opacity="0.92" />
+  <path d="M24 34V22" stroke="#081E12" stroke-width="1.6" stroke-linecap="round" fill="none" />
+</svg>

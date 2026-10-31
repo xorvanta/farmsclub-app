@@ -11,8 +11,8 @@ import { SparkleIcon } from "@/components/graphics/SparkleIcon";
 import { Logo } from "@/components/Logo";
 
 /** Storefront §2.1 desktop links. */
-const NAV: { href: Href; path: string; label: string; badge?: string }[] = [
-  { href: "/listings", path: "/listings", label: "Bulk Supply", badge: "B2B" },
+const NAV: { href: Href; path: string; label: string }[] = [
+  { href: "/listings", path: "/listings", label: "Bulk Supply" },
   { href: "/farms", path: "/farms", label: "Verified Farms" },
   { href: "/about", path: "/about", label: "How It Works" },
   { href: "/faqs", path: "/faqs", label: "FAQs" },
@@ -141,20 +141,6 @@ export function Header() {
                       <Text style={{ fontFamily: active ? fonts.bodySemiBold : fonts.bodyMedium, fontSize: 13.5, color: active ? "#FFFFFF" : colors.ink }}>
                         {item.label}
                       </Text>
-                      {item.badge ? (
-                        <View
-                          style={{
-                            backgroundColor: active ? "#E5B462" : colors.brandSoft,
-                            paddingHorizontal: 6,
-                            paddingVertical: 1,
-                            borderRadius: radius.pill,
-                          }}
-                        >
-                          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 9.5, color: active ? "#081E12" : colors.brand }}>
-                            {item.badge}
-                          </Text>
-                        </View>
-                      ) : null}
                     </Pressable>
                   </Link>
                 );

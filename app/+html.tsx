@@ -65,6 +65,9 @@ export default function Root({ children }: PropsWithChildren) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="theme-color" content="#081E12" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         {/* The web build is light-only (see constants/theme-context.tsx). */}
         <meta name="color-scheme" content="light" />
         {/* BETA (Storefront §12.3): no indexing until farmsclub.in is live — REMOVE AT LAUNCH, together
