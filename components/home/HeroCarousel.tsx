@@ -2,10 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link, type Href } from "expo-router";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Path, Circle, Polygon } from "react-native-svg";
 import { useTheme } from "@/constants/theme-context";
+import { useTour } from "@/lib/tour-context";
 import { Photo } from "@/components/Photo";
 import { Button } from "@/components/Button";
+import { TiltCard } from "@/components/3d/TiltCard";
 
 export type HeroSlide = {
   key: string;
@@ -25,15 +27,21 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+const MANDI_STATS = [
+  { badge: "MANDI SLABS", value: "Tiered Rates", sub: "Volume drops unit price" },
+  { badge: "LOGISTICS", value: "Road & Rail", sub: "Pan-India nursery transit" },
+  { badge: "NETWORK", value: "Ground-Filmed", sub: "Verified mother stock" },
+];
+
 /**
- * Full-bleed photo carousel for the top of the home page: cross-fading slides, each with one
- * short title and a button. Advances on its own (not with reduced motion), pauses while hovered,
- * and has dots + arrows. `children` sits over every slide (the page's hidden H1).
+ * Full-bleed Sovereign Mandi Hero Stage: cross-fading slides with a 3D floating telemetry card on desktop,
+ * minimal punchy typography, and quick triggers for the 3D Orchard Planner & Interactive Tour.
  */
 export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]; height: number; children?: React.ReactNode }) {
-  const { colors, fonts, spacing } = useTheme();
+  const { colors, fonts, spacing, radius } = useTheme();
+  const { openTour } = useTour();
   const { width } = useWindowDimensions();
-  const wide = width >= 860;
+  const wide = width >= 940;
   const compact = width < 560;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -56,6 +64,12 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
   if (count === 0) return null;
   const hoverProps = Platform.OS === "web" ? { onMouseEnter: () => setPaused(true), onMouseLeave: () => setPaused(false) } : {};
 
+  const scrollToPlanner = () => {
+    if (Platform.OS === "web" && typeof document !== "undefined") {
+      document.getElementById("mandi-3d-planner")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
   return (
     <View style={{ height, position: "relative", overflow: "hidden", backgroundColor: colors.brandDark }} {...hoverProps} accessibilityLabel="Highlights">
       {slides.map((s, i) => (
@@ -67,28 +81,80 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
         >
           <Photo uri={s.image} alt="" eager={i === 0} sizes="100vw" style={StyleSheet.absoluteFill} />
           <LinearGradient
-            colors={["rgba(8,28,18,0.82)", "rgba(8,28,18,0.45)", "rgba(8,28,18,0.15)"]}
+            colors={["rgba(6,22,13,0.92)", "rgba(8,28,18,0.68)", "rgba(8,28,18,0.32)"]}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
             style={StyleSheet.absoluteFill}
           />
-          <LinearGradient colors={["transparent", "rgba(8,28,18,0.55)"]} style={[StyleSheet.absoluteFill, { top: "55%" }]} />
-          <View style={{ flex: 1, justifyContent: "center", width: "100%", maxWidth: 1232, alignSelf: "center", paddingHorizontal: spacing.lg, paddingBottom: compact ? 56 : 72 }}>
-            <View style={{ maxWidth: 620 }}>
-              {s.eyebrow ? (
-                <View style={{ alignSelf: "flex-start", backgroundColor: "rgba(255,255,255,0.16)", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5, marginBottom: spacing.md }}>
-                  <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: "#FFFFFF" }}>{s.eyebrow}</Text>
-                </View>
-              ) : null}
-              <Text numberOfLines={3} style={{ fontFamily: fonts.display, fontSize: wide ? 52 : compact ? 29 : 40, lineHeight: wide ? 58 : compact ? 35 : 46, color: "#FFFFFF" }}>{s.title}</Text>
+          <LinearGradient colors={["transparent", "rgba(6,22,13,0.82)"]} style={[StyleSheet.absoluteFill, { top: "50%" }]} />
+
+          <View
+            style={{
+              flex: 1,
+              flexDirection: wide ? "row" : "column",
+              alignItems: wide ? "center" : "flex-start",
+              justifyContent: wide ? "space-between" : "center",
+              width: "100%",
+              maxWidth: 1232,
+              alignSelf: "center",
+              paddingHorizontal: spacing.lg,
+              paddingBottom: compact ? 60 : 76,
+              gap: spacing.xl,
+            }}
+          >
+            {/* Left Headline & CTAs */}
+            <View style={{ maxWidth: wide ? 640 : 600, flexShrink: 1 }}>
+              <View
+                style={{
+                  alignSelf: "flex-start",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 7,
+                  backgroundColor: "rgba(229,180,98,0.16)",
+                  borderWidth: 1,
+                  borderColor: "rgba(229,180,98,0.45)",
+                  borderRadius: radius.pill,
+                  paddingHorizontal: 12,
+                  paddingVertical: 5,
+                  marginBottom: spacing.md,
+                }}
+              >
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#52C388" }} />
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.8, textTransform: "uppercase", color: "#E5B462" }}>
+                  {s.eyebrow ?? "SOVEREIGN B2B MANDI & FARM NETWORK"}
+                </Text>
+              </View>
+
+              <Text
+                numberOfLines={3}
+                style={{
+                  fontFamily: fonts.display,
+                  fontSize: wide ? 50 : compact ? 28 : 38,
+                  lineHeight: wide ? 56 : compact ? 34 : 44,
+                  color: "#FFFFFF",
+                }}
+              >
+                {s.title}
+              </Text>
+
               {s.subline ? (
-                <Text numberOfLines={3} style={{ fontFamily: fonts.body, fontSize: compact ? 15 : 18, lineHeight: compact ? 22 : 27, color: "rgba(255,255,255,0.9)", marginTop: spacing.md }}>
+                <Text
+                  numberOfLines={2}
+                  style={{
+                    fontFamily: fonts.body,
+                    fontSize: compact ? 14.5 : 17,
+                    lineHeight: compact ? 21 : 25,
+                    color: "rgba(255,255,255,0.88)",
+                    marginTop: spacing.sm,
+                    maxWidth: 540,
+                  }}
+                >
                   {s.subline}
                 </Text>
               ) : null}
+
               {s.cta || s.secondary ? (
-                // Phones: the two buttons stack at one width instead of two ragged rows.
-                <View style={{ flexDirection: compact ? "column" : "row", flexWrap: "wrap", gap: spacing.sm, marginTop: compact ? spacing.lg : spacing.xl }}>
+                <View style={{ flexDirection: compact ? "column" : "row", flexWrap: "wrap", gap: spacing.sm, marginTop: compact ? spacing.md : spacing.lg }}>
                   {s.cta ? (
                     <Link href={s.cta.href} asChild>
                       <Button label={s.cta.label} fullWidth={compact} />
@@ -102,6 +168,95 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
                 </View>
               ) : null}
             </View>
+
+            {/* Right 3D Floating Mandi Command Card (Desktop) */}
+            {wide ? (
+              <TiltCard maxTilt={6} scale={1.02} style={{ width: 350 }}>
+                <View
+                  style={{
+                    backgroundColor: "rgba(8, 28, 17, 0.78)",
+                    borderRadius: radius.xl,
+                    padding: spacing.lg,
+                    borderWidth: 1,
+                    borderColor: "rgba(229,180,98,0.36)",
+                    gap: spacing.md,
+                    shadowColor: "#000",
+                    shadowOpacity: 0.35,
+                    shadowRadius: 24,
+                    shadowOffset: { width: 0, height: 12 },
+                  }}
+                >
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.9, color: "#E5B462" }}>
+                      MANDI TRADE TELEMETRY
+                    </Text>
+                    <View style={{ backgroundColor: "rgba(82,195,136,0.2)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }}>
+                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#6FC28F" }}>● LIVE DESK</Text>
+                    </View>
+                  </View>
+
+                  <View style={{ gap: 8 }}>
+                    {MANDI_STATS.map((st) => (
+                      <View
+                        key={st.badge}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          backgroundColor: "rgba(255,255,255,0.06)",
+                          borderRadius: radius.md,
+                          paddingVertical: 9,
+                          paddingHorizontal: 12,
+                          borderWidth: 1,
+                          borderColor: "rgba(255,255,255,0.1)",
+                        }}
+                      >
+                        <View>
+                          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#E5B462", letterSpacing: 0.5 }}>{st.badge}</Text>
+                          <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: "rgba(255,255,255,0.72)" }}>{st.sub}</Text>
+                        </View>
+                        <Text style={{ fontFamily: fonts.display, fontSize: 15, color: "#FFFFFF" }}>{st.value}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View style={{ flexDirection: "row", gap: 8, paddingTop: 2 }}>
+                    <Pressable
+                      onPress={scrollToPlanner}
+                      accessibilityRole="button"
+                      style={{
+                        flex: 1,
+                        paddingVertical: 10,
+                        paddingHorizontal: 10,
+                        borderRadius: radius.md,
+                        backgroundColor: "rgba(229,180,98,0.18)",
+                        borderWidth: 1,
+                        borderColor: "#E5B462",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: "#E5B462" }}>📐 3D Orchard Sim</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => openTour(0)}
+                      accessibilityRole="button"
+                      style={{
+                        flex: 1,
+                        paddingVertical: 10,
+                        paddingHorizontal: 10,
+                        borderRadius: radius.md,
+                        backgroundColor: "rgba(255,255,255,0.1)",
+                        borderWidth: 1,
+                        borderColor: "rgba(255,255,255,0.22)",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: "#FFFFFF" }}>✦ 30s Guide</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </TiltCard>
+            ) : null}
           </View>
         </Animated.View>
       ))}
@@ -119,7 +274,7 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
                 accessibilityLabel={`Show slide ${i + 1} of ${count}`}
                 accessibilityState={{ selected: i === index }}
                 hitSlop={10}
-                style={{ height: 6, width: i === index ? 28 : 10, borderRadius: 3, backgroundColor: i === index ? "#FFFFFF" : "rgba(255,255,255,0.45)" }}
+                style={{ height: 6, width: i === index ? 32 : 10, borderRadius: 3, backgroundColor: i === index ? "#E5B462" : "rgba(255,255,255,0.42)" }}
               />
             ))}
             {wide ? (
@@ -150,12 +305,12 @@ export function Arrow({ dir, onPress, tone = "light" }: { dir: "left" | "right";
         alignItems: "center",
         justifyContent: "center",
         borderWidth: 1,
-        borderColor: light ? "rgba(255,255,255,0.5)" : colors.border,
-        shadowColor: "#0C291A",
+        borderColor: light ? "rgba(229,180,98,0.55)" : colors.border,
+        shadowColor: "#081E12",
         shadowOpacity: light ? 0 : 0.14,
         shadowRadius: 10,
         shadowOffset: { width: 0, height: 3 },
-        backgroundColor: light ? (hovered || pressed ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)") : hovered || pressed ? colors.brandSoft : colors.surface,
+        backgroundColor: light ? (hovered || pressed ? "rgba(229,180,98,0.25)" : "rgba(8,30,18,0.55)") : hovered || pressed ? colors.brandSoft : colors.surface,
       })}
     >
       <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={light ? "#FFFFFF" : colors.ink} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">

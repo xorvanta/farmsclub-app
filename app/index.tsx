@@ -19,10 +19,13 @@ import { LogoMark } from "@/components/graphics/LogoMark";
 import { HeroCarousel, type HeroSlide } from "@/components/home/HeroCarousel";
 import { Rail } from "@/components/home/Rail";
 import { VideoShowcase, mergeVideos } from "@/components/home/VideoShowcase";
+import { Orchard3DPlanner } from "@/components/tools/Orchard3DPlanner";
+import { TiltCard } from "@/components/3d/TiltCard";
 import { HOME_PHOTOS } from "@/constants/homePhotos";
 import { useFcCategories } from "@/lib/useFcCategories";
 import { fcApi } from "@/lib/api";
 import { useChat } from "@/lib/chat-context";
+import { useTour } from "@/lib/tour-context";
 import type { FcContent, FcFilters } from "@/lib/types";
 
 /** Spec §4 draft copy — used until /public/fc/content answers (admin edits the live text). */
@@ -32,14 +35,14 @@ const DEFAULT_HERO = {
   searchPlaceholder: "Search a crop or state, e.g. mango, teak, Bihar",
 };
 const DEFAULT_OFFERS = [
-  { title: "Real farm stories", line: "Filmed on the ground by our team" },
-  { title: "Bulk planting material", line: "Saplings priced by quantity" },
-  { title: "Delivery by road or rail", line: "Arranged from the nearest source" },
-  { title: "One point of contact", line: "From quote to dispatch" },
+  { title: "Real farm stories", line: "Filmed on the ground" },
+  { title: "Bulk planting material", line: "Tiered mandi pricing" },
+  { title: "Road & rail dispatch", line: "Nearest verified source" },
+  { title: "One point of contact", line: "Quote to delivery" },
 ];
 const HELP_BANNER = {
-  title: "Not sure what to plant, or how much?",
-  body: "Ask Trellis, our assistant, any time — or send us your requirement and our team comes back with options and a price.",
+  title: "Planning a commercial orchard or bulk procurement?",
+  body: "Simulate your acreage above, ask Trellis AI any time, or send our trade desk your requirement for a custom wholesale quote.",
 };
 const DEFAULT_BANNER = {
   title: "Own a farm?",
@@ -47,12 +50,38 @@ const DEFAULT_BANNER = {
   buttonLabel: "List your farm (free)",
 };
 
-const TRACKS: { title: string; photo: string; cta: { label: string; href: "/listings" | "/list-your-farm" }; steps: string[] }[] = [
-  { title: "Buying in bulk", photo: HOME_PHOTOS.seedlings, cta: { label: "Get bulk planting material", href: "/listings" }, steps: ["Choose your plants", "Request a quote", "We confirm price and dispatch"] },
-  { title: "Own a farm", photo: HOME_PHOTOS.trellis, cta: { label: "List your farm", href: "/list-your-farm" }, steps: ["List your farm", "Our team reviews it", "Buyers and new farmers discover you"] },
+const TRACKS: {
+  badge: string;
+  title: string;
+  photo: string;
+  cta: { label: string; href: "/listings" | "/list-your-farm" };
+  steps: { tag: string; label: string }[];
+}[] = [
+  {
+    badge: "FOR COMMERCIAL BUYERS",
+    title: "Buying in bulk",
+    photo: HOME_PHOTOS.seedlings,
+    cta: { label: "Browse Bulk Supply →", href: "/listings" },
+    steps: [
+      { tag: "STEP 01", label: "Pick crop & quantity slab" },
+      { tag: "STEP 02", label: "Submit 1-click quote request" },
+      { tag: "STEP 03", label: "Road or rail dispatch arranged" },
+    ],
+  },
+  {
+    badge: "FOR GROWERS & NURSERIES",
+    title: "Own a farm",
+    photo: HOME_PHOTOS.trellis,
+    cta: { label: "List Your Farm (Free) →", href: "/list-your-farm" },
+    steps: [
+      { tag: "STEP 01", label: "2-minute free registration" },
+      { tag: "STEP 02", label: "On-ground team review & film" },
+      { tag: "STEP 03", label: "Discovered by pan-India buyers" },
+    ],
+  },
 ];
 
-const GOLD = "#E7B57A";
+const GOLD = "#E5B462";
 
 export default function Home() {
   const { colors, fonts, spacing, radius } = useTheme();
@@ -62,6 +91,7 @@ export default function Home() {
   const compact = width < 560;
   const categories = useFcCategories();
   const { openChat } = useChat();
+  const { openTour } = useTour();
 
   const [content, setContent] = useState<FcContent | null>(null);
   const [filters, setFilters] = useState<FcFilters | null>(null);
@@ -82,7 +112,6 @@ export default function Home() {
   const faqs = cleanFaqs(content?.homeFaqs).slice(0, 5);
   const registrationOpen = !(content && content.registrationOpen === false);
 
-  // Slides change only when the content answer arrives (hero/banner/farms are derived from it).
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const slides = useMemo(() => buildSlides(content, hero, banner, farms, registrationOpen), [content, registrationOpen]);
   const videos = mergeVideos(
@@ -99,14 +128,13 @@ export default function Home() {
     if (q.length >= 1) router.push({ pathname: "/search", params: { q } });
   };
 
-  const listingWidth = compact ? Math.min(280, Math.floor(width * 0.74)) : 280;
+  const listingWidth = compact ? Math.min(285, Math.floor(width * 0.76)) : 290;
   const farmCardWidth = compact ? Math.min(300, Math.floor(width * 0.78)) : 300;
   const tileColumns = contentWidth < 480 ? 2 : contentWidth < 900 ? 3 : Math.min(6, Math.max(4, categories.length));
   const tileWidth = Math.floor((contentWidth - spacing.md * (tileColumns - 1)) / tileColumns);
-  // Short enough on phones that the search card below it is in view above the bottom bar.
-  const heroHeight = wide ? 600 : compact ? 470 : 560;
+  const heroHeight = wide ? 590 : compact ? 460 : 540;
 
-  const section = { width: "100%" as const, maxWidth: 1232, alignSelf: "center" as const, paddingHorizontal: spacing.lg, marginTop: wide ? 72 : 48 };
+  const section = { width: "100%" as const, maxWidth: 1232, alignSelf: "center" as const, paddingHorizontal: spacing.lg, marginTop: wide ? 68 : 44 };
 
   return (
     <AppShell>
@@ -116,32 +144,39 @@ export default function Home() {
         image={content?.shareImageUrl ?? null}
       />
 
-      {/* 1 · Photo carousel */}
+      {/* 1 · Sovereign Mandi Hero Carousel */}
       <HeroCarousel slides={slides} height={heroHeight}>
         <Text accessibilityRole="header" aria-level={1} style={visuallyHidden}>
           {hero.headline}
         </Text>
       </HeroCarousel>
 
-      {/* 2 · Search card over the hero's bottom edge + what we offer */}
-      <View style={{ width: "100%", maxWidth: 1232, alignSelf: "center", paddingHorizontal: spacing.lg, marginTop: compact ? -36 : -44, zIndex: 3 }}>
+      {/* 2 · Floating B2B Trade Command Dock */}
+      <View style={{ width: "100%", maxWidth: 1232, alignSelf: "center", paddingHorizontal: spacing.lg, marginTop: compact ? -38 : -48, zIndex: 3 }}>
         <View
           style={{
             backgroundColor: colors.surface,
             borderRadius: radius.xl,
             padding: compact ? spacing.lg : spacing.xl,
-            gap: spacing.lg,
-            shadowColor: "#0C291A",
-            shadowOffset: { width: 0, height: 12 },
+            gap: spacing.md,
+            borderWidth: 1,
+            borderColor: colors.border,
+            shadowColor: "#081E12",
+            shadowOffset: { width: 0, height: 14 },
             shadowOpacity: 0.12,
             shadowRadius: 32,
-            elevation: 6,
+            elevation: 8,
           }}
         >
+          {/* Search Command Input */}
           <View style={{ flexDirection: "row", gap: spacing.sm, alignItems: "center" }} accessibilityRole="search">
             <View style={{ flex: 1 }}>
-              {/* The full "e.g. mango, teak, Bihar" placeholder is cut off on a phone — show just its lead. */}
-              <SearchBar value={query} onChangeText={setQuery} placeholder={compact ? shortPlaceholder(hero.searchPlaceholder) : hero.searchPlaceholder} onSubmit={submitSearch} />
+              <SearchBar
+                value={query}
+                onChangeText={setQuery}
+                placeholder={compact ? shortPlaceholder(hero.searchPlaceholder) : hero.searchPlaceholder}
+                onSubmit={submitSearch}
+              />
             </View>
             <Pressable
               onPress={submitSearch}
@@ -149,7 +184,7 @@ export default function Home() {
               accessibilityLabel="Search farms and listings"
               style={({ pressed }) => ({
                 height: 50,
-                paddingHorizontal: compact ? 18 : 26,
+                paddingHorizontal: compact ? 18 : 28,
                 borderRadius: radius.md,
                 backgroundColor: pressed ? "#A54C12" : colors.cta,
                 justifyContent: "center",
@@ -161,37 +196,98 @@ export default function Home() {
                 elevation: 3,
               })}
             >
-              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 14.5, color: "#FFFFFF" }}>Search</Text>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14.5, color: "#FFFFFF" }}>Search Mandi</Text>
             </Pressable>
           </View>
-          {popular.length > 0 ? (
-            <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: spacing.sm, marginTop: -spacing.xs }}>
-              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.inkSoft }}>Popular:</Text>
-              {popular.map((c) => (
-                <PressableLink
-                  key={c.slug}
-                  href={{ pathname: "/farms", params: { crop: c.slug } }}
-                  style={({ pressed }) => ({ paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.pill, backgroundColor: pressed ? colors.brandSoft : colors.paper, borderWidth: 1, borderColor: colors.border })}
-                >
-                  <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.ink }}>{c.name}</Text>
-                </PressableLink>
-              ))}
-            </View>
-          ) : null}
+
+          {/* Instant Crop Pills + Quick Tour Trigger */}
+          <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: spacing.sm }}>
+            {popular.length > 0 ? (
+              <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6, flex: 1 }}>
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, textTransform: "uppercase", letterSpacing: 0.5, color: colors.inkSoft }}>
+                  Top Crops:
+                </Text>
+                {popular.map((c) => (
+                  <PressableLink
+                    key={c.slug}
+                    href={{ pathname: "/farms", params: { crop: c.slug } }}
+                    style={({ pressed }) => ({
+                      paddingHorizontal: 12,
+                      paddingVertical: 5,
+                      borderRadius: radius.pill,
+                      backgroundColor: pressed ? colors.brandSoft : colors.paper,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                    })}
+                  >
+                    <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.ink }}>{c.name}</Text>
+                  </PressableLink>
+                ))}
+              </View>
+            ) : <View />}
+
+            <Pressable
+              onPress={() => openTour(0)}
+              accessibilityRole="button"
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                paddingHorizontal: 12,
+                paddingVertical: 5,
+                borderRadius: radius.pill,
+                backgroundColor: colors.goldSoft,
+                borderWidth: 1,
+                borderColor: colors.gold,
+              }}
+            >
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: colors.goldDark }}>✦ How Mandi Works (30s Tour) →</Text>
+            </Pressable>
+          </View>
+
           <View style={{ height: 1, backgroundColor: colors.border }} />
+
           <Text accessibilityRole="header" aria-level={2} style={visuallyHidden}>
             What we offer
           </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: spacing.lg, columnGap: spacing.lg }}>
+
+          {/* 4 Visual Mandi Pillar Badges */}
+          <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: spacing.md, columnGap: spacing.md }}>
             {offers.map((o, i) => (
-              <View key={o.title} style={{ flexGrow: 1, flexBasis: compact ? "42%" : 200, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-                <View style={{ width: compact ? 40 : 46, height: compact ? 40 : 46, borderRadius: 23, backgroundColor: i % 2 ? colors.accentSoft : colors.brandSoft, alignItems: "center", justifyContent: "center" }}>
+              <View
+                key={o.title}
+                style={{
+                  flexGrow: 1,
+                  flexBasis: compact ? "44%" : 200,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                  backgroundColor: colors.paper,
+                  paddingVertical: 10,
+                  paddingHorizontal: 12,
+                  borderRadius: radius.md,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                }}
+              >
+                <View
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 19,
+                    backgroundColor: i % 2 ? colors.accentSoft : colors.brandSoft,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <OfferIcon index={i} color={i % 2 ? colors.accentDark : colors.brand} />
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={{ fontFamily: fonts.heading, fontSize: compact ? 13.5 : 14.5, lineHeight: compact ? 18 : 20, color: colors.ink }}>{o.title}</Text>
-                  {o.line && !compact ? (
-                    <Text numberOfLines={1} style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.inkSoft }}>
+                  <Text numberOfLines={1} style={{ fontFamily: fonts.heading, fontSize: 13.5, color: colors.ink }}>
+                    {o.title}
+                  </Text>
+                  {o.line ? (
+                    <Text numberOfLines={1} style={{ fontFamily: fonts.bodyMedium, fontSize: 11.5, color: colors.inkSoft }}>
                       {o.line}
                     </Text>
                   ) : null}
@@ -202,43 +298,71 @@ export default function Home() {
         </View>
       </View>
 
-      {/* 3 · Bulk planting material — category tiles + products */}
+      {/* 3 · Bulk Planting Material — 3D Category Bento + Live Lots Rail */}
       {categories.length > 0 || listings.length > 0 ? (
         <View style={section}>
-          <SectionHead eyebrow="Bulk supply" title="Plantation stock, priced by quantity." linkLabel="See all" href="/listings" />
+          <SectionHead eyebrow="WHOLESALE MANDI LOTS" title="Bulk planting stock, priced by volume." linkLabel="Open Full Mandi" href="/listings" />
           {categories.length > 0 ? (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.lg }}>
               {categories.map((c) => (
-                <PressableLink
-                  key={c.slug}
-                  href={{ pathname: "/listings", params: { category: c.slug } }}
-                  accessibilityLabel={`${c.name_en} — bulk supply`}
-                  style={({ pressed }) => [{ width: tileWidth, aspectRatio: 0.92, borderRadius: radius.lg, overflow: "hidden", backgroundColor: colors.brand, opacity: pressed ? 0.92 : 1 }]}
-                >
-                  {c.image_url ? (
-                    <Photo uri={c.image_url} alt="" style={StyleSheet.absoluteFill} />
-                  ) : (
-                    <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}>
-                      <LogoMark size={40} onDark />
+                <TiltCard key={c.slug} style={{ width: tileWidth }}>
+                  <PressableLink
+                    href={{ pathname: "/listings", params: { category: c.slug } }}
+                    accessibilityLabel={`${c.name_en} — bulk supply`}
+                    style={({ pressed }) => [
+                      {
+                        width: "100%",
+                        aspectRatio: 0.94,
+                        borderRadius: radius.lg,
+                        overflow: "hidden",
+                        backgroundColor: colors.brandDark,
+                        borderWidth: 1,
+                        borderColor: "rgba(229,180,98,0.28)",
+                        opacity: pressed ? 0.92 : 1,
+                      },
+                    ]}
+                  >
+                    {c.image_url ? (
+                      <Photo uri={c.image_url} alt="" style={StyleSheet.absoluteFill} />
+                    ) : (
+                      <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}>
+                        <LogoMark size={42} onDark />
+                      </View>
+                    )}
+                    <LinearGradient colors={["rgba(8,30,18,0.25)", "transparent", "rgba(8,30,18,0.92)"]} locations={[0, 0.35, 1]} style={StyleSheet.absoluteFill} />
+
+                    {c.listing_count ? (
+                      <View style={{ position: "absolute", top: 10, right: 10, backgroundColor: "rgba(8,30,18,0.82)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(229,180,98,0.35)" }}>
+                        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: GOLD }}>{c.listing_count} Lots</Text>
+                      </View>
+                    ) : null}
+
+                    <View style={{ position: "absolute", left: 12, right: 12, bottom: 12, gap: 3 }}>
+                      <Text numberOfLines={2} style={{ fontFamily: fonts.heading, fontSize: 16, color: "#FFFFFF" }}>
+                        {c.name_en}
+                      </Text>
+                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, color: GOLD }}>Wholesale Slabs →</Text>
                     </View>
-                  )}
-                  <LinearGradient colors={["transparent", "rgba(12,41,26,0.88)"]} style={[StyleSheet.absoluteFill, { top: "40%" }]} />
-                  <View style={{ position: "absolute", left: 12, right: 12, bottom: 12 }}>
-                    <Text numberOfLines={2} style={{ fontFamily: fonts.heading, fontSize: 16, color: "#FFFFFF" }}>
-                      {c.name_en}
-                    </Text>
-                    <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, color: GOLD, marginTop: 2 }}>Buy in bulk →</Text>
-                  </View>
-                </PressableLink>
+                  </PressableLink>
+                </TiltCard>
               ))}
             </View>
           ) : null}
+
           {listings.length > 0 ? (
             <View style={{ marginTop: categories.length > 0 ? spacing.xxl : spacing.lg }}>
               {categories.length > 0 ? (
-                <Text accessibilityRole="header" aria-level={3} style={{ fontFamily: fonts.heading, fontSize: 18, color: colors.ink, marginBottom: spacing.md }}>
-                  {content?.featuredListingsSource === "admin" ? "Featured stock" : "Just listed"}
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.md }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.success }} />
+                    <Text accessibilityRole="header" aria-level={3} style={{ fontFamily: fonts.heading, fontSize: 18, color: colors.ink }}>
+                      {content?.featuredListingsSource === "admin" ? "Featured Bulk Lots" : "Live Bulk Lots"}
+                    </Text>
+                  </View>
+                  <Link href="/listings" style={{ fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: colors.brand }}>
+                    View all lots →
+                  </Link>
+                </View>
               ) : null}
               <Rail items={listings} itemWidth={listingWidth} keyOf={(l) => String(l.id)} render={(l) => <ListingCard listing={l} />} label="Bulk planting material" />
             </View>
@@ -248,9 +372,9 @@ export default function Home() {
         <View style={section}>
           <PhotoPanel
             photo={HOME_PHOTOS.seedlings}
-            eyebrow="Bulk supply"
+            eyebrow="WHOLESALE MANDI"
             title="Planting material in bulk"
-            body="Tell us the plants and the quantity you need. Our team confirms the price and arranges dispatch."
+            body="Select your crop and quantity slab. Our trade desk confirms live batch availability and dispatch."
           >
             <Link href="/contact" asChild>
               <Button label="Send a bulk enquiry" fullWidth={compact} />
@@ -262,84 +386,150 @@ export default function Home() {
         </View>
       )}
 
-      {/* 4 · See the farms — videos (only when there are real videos) */}
-      <VideoShowcase videos={videos} title="See the farms" subtitle={offers[0]?.line || undefined} />
+      {/* 4 · Flagship Interactive 3D Orchard & Bulk Load Visualizer */}
+      <View style={section}>
+        <Orchard3DPlanner />
+      </View>
 
-      {/* 5 · Farm stories */}
+      {/* 5 · See the farms — documentary video showcase */}
+      <VideoShowcase videos={videos} title="See the farms on the ground" subtitle={offers[0]?.line || undefined} />
+
+      {/* 6 · Verified Farm Stories Rail */}
       {farms.length > 0 ? (
         <View style={section}>
-          <SectionHead eyebrow="Farm stories" title="Real farms, filmed on the ground." linkLabel="See all farms" href="/farms" />
+          <SectionHead eyebrow="VERIFIED GROWER NETWORK" title="Real farms, filmed on the ground." linkLabel="Explore all farms" href="/farms" />
           <View style={{ marginTop: spacing.lg }}>
             <Rail items={farms} itemWidth={farmCardWidth} keyOf={(f) => f.slug} render={(f) => <FarmCard farm={f} />} label="Farm stories" />
           </View>
         </View>
       ) : null}
 
-      {/* 6 · Browse farms */}
+      {/* 7 · Visual India Mandi Explorer (States & Crops Matrix) */}
       {stateChips.length > 0 || cropChips.length > 0 ? (
         <View style={section}>
-          <SectionHead eyebrow="Browse" title="Find farms by state or crop" />
-          {stateChips.length > 0 ? (
-            <ChipRow label="States" items={stateChips.map((s) => ({ key: s.slug, label: s.name, href: { pathname: "/farms", params: { state: s.slug } } }))} />
-          ) : null}
-          {cropChips.length > 0 ? (
-            <ChipRow label="Crops" items={cropChips.map((c) => ({ key: c.slug, label: c.name, href: { pathname: "/farms", params: { crop: c.slug } } }))} />
-          ) : null}
+          <SectionHead eyebrow="PAN-INDIA NETWORK" title="Explore farms by state or crop belt" linkLabel="Directory" href="/farms" />
+          <View
+            style={{
+              marginTop: spacing.lg,
+              backgroundColor: colors.surface,
+              borderRadius: radius.xl,
+              padding: compact ? spacing.lg : spacing.xl,
+              borderWidth: 1,
+              borderColor: colors.border,
+              gap: spacing.lg,
+            }}
+          >
+            {stateChips.length > 0 ? (
+              <VisualFilterGrid
+                label="STATE BELTS"
+                icon="📍"
+                items={stateChips.map((s) => ({
+                  key: s.slug,
+                  label: s.name,
+                  count: s.farms,
+                  href: { pathname: "/farms", params: { state: s.slug } },
+                }))}
+              />
+            ) : null}
+            {stateChips.length > 0 && cropChips.length > 0 ? <View style={{ height: 1, backgroundColor: colors.border }} /> : null}
+            {cropChips.length > 0 ? (
+              <VisualFilterGrid
+                label="MAJOR CROPS"
+                icon="🌱"
+                items={cropChips.map((c) => ({
+                  key: c.slug,
+                  label: c.name,
+                  count: c.farms,
+                  href: { pathname: "/farms", params: { crop: c.slug } },
+                }))}
+              />
+            ) : null}
+          </View>
         </View>
       ) : null}
 
-      {/* 7 · How it works — two photo cards */}
+      {/* 8 · Visual Dual-Track Trade Architecture */}
       <View style={section}>
-        <SectionHead eyebrow="How it works" title="Two ways to use FarmsClub" linkLabel="Learn more" href="/about" />
+        <SectionHead eyebrow="TRADE ARCHITECTURE" title="Two ways to use FarmsClub" linkLabel="How it works" href="/about" />
         <View style={{ flexDirection: wide ? "row" : "column", gap: spacing.lg, marginTop: spacing.lg }}>
           {TRACKS.map((t) => (
-            <View key={t.title} style={{ flex: wide ? 1 : undefined, minHeight: compact ? 340 : 380, borderRadius: radius.xl, overflow: "hidden", backgroundColor: colors.brand, justifyContent: "flex-end" }}>
-              <Photo uri={t.photo} alt="" style={StyleSheet.absoluteFill} />
-              <LinearGradient colors={["rgba(8,28,18,0.15)", "rgba(8,28,18,0.6)", "rgba(8,28,18,0.94)"]} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} />
-              <View style={{ padding: compact ? spacing.lg : spacing.xl, gap: spacing.md }}>
-                <Text accessibilityRole="header" aria-level={3} style={{ fontFamily: fonts.display, fontSize: compact ? 22 : 26, color: "#FFFFFF" }}>
-                  {t.title}
-                </Text>
-                <View style={{ gap: spacing.sm }}>
-                  {t.steps.map((s, i) => (
-                    <View key={s} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-                      <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: i === t.steps.length - 1 ? colors.cta : "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" }}>
-                        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: "#FFFFFF" }}>{i + 1}</Text>
-                      </View>
-                      <Text style={{ flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: "#FFFFFF" }}>{s}</Text>
-                    </View>
-                  ))}
-                </View>
-                {t.cta.href === "/list-your-farm" && !registrationOpen ? null : (
-                  <View style={{ alignSelf: compact ? "stretch" : "flex-start", marginTop: spacing.xs }}>
-                    <Link href={t.cta.href} asChild>
-                      <Button label={t.cta.label} variant="outline" inverted fullWidth={compact} />
-                    </Link>
+            <TiltCard key={t.title} maxTilt={3.5} style={{ flex: wide ? 1 : undefined }}>
+              <View
+                style={{
+                  minHeight: compact ? 330 : 370,
+                  borderRadius: radius.xl,
+                  overflow: "hidden",
+                  backgroundColor: colors.brandDark,
+                  justifyContent: "flex-end",
+                  borderWidth: 1,
+                  borderColor: "rgba(229,180,98,0.28)",
+                }}
+              >
+                <Photo uri={t.photo} alt="" style={StyleSheet.absoluteFill} />
+                <LinearGradient
+                  colors={["rgba(6,22,13,0.2)", "rgba(6,22,13,0.68)", "rgba(6,22,13,0.96)"]}
+                  locations={[0, 0.4, 1]}
+                  style={StyleSheet.absoluteFill}
+                />
+                <View style={{ padding: compact ? spacing.lg : spacing.xl, gap: spacing.md }}>
+                  <View style={{ alignSelf: "flex-start", backgroundColor: "rgba(229,180,98,0.18)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(229,180,98,0.4)" }}>
+                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.8, color: GOLD }}>{t.badge}</Text>
                   </View>
-                )}
+
+                  <Text accessibilityRole="header" aria-level={3} style={{ fontFamily: fonts.display, fontSize: compact ? 24 : 28, color: "#FFFFFF" }}>
+                    {t.title}
+                  </Text>
+
+                  <View style={{ flexDirection: compact ? "column" : "row", gap: 8 }}>
+                    {t.steps.map((s, i) => (
+                      <View
+                        key={s.tag}
+                        style={{
+                          flex: compact ? undefined : 1,
+                          backgroundColor: i === t.steps.length - 1 ? "rgba(229,180,98,0.18)" : "rgba(255,255,255,0.08)",
+                          borderRadius: radius.md,
+                          padding: 10,
+                          borderWidth: 1,
+                          borderColor: i === t.steps.length - 1 ? GOLD : "rgba(255,255,255,0.14)",
+                          gap: 2,
+                        }}
+                      >
+                        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: GOLD }}>{s.tag}</Text>
+                        <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: "#FFFFFF", lineHeight: 18 }}>{s.label}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {t.cta.href === "/list-your-farm" && !registrationOpen ? null : (
+                    <View style={{ alignSelf: compact ? "stretch" : "flex-start", marginTop: 4 }}>
+                      <Link href={t.cta.href} asChild>
+                        <Button label={t.cta.label} variant="primary" fullWidth={compact} />
+                      </Link>
+                    </View>
+                  )}
+                </View>
               </View>
-            </View>
+            </TiltCard>
           ))}
         </View>
       </View>
 
-      {/* 8 · Help banner — was a second "Own a farm? / List your farm" right under the Own a farm card
-          (owner, 25 Oct 2026); the admin's banner copy still feeds the hero's own-a-farm slide. */}
+      {/* 9 · Trellis Concierge Banner */}
       <View style={[section, { paddingHorizontal: 0 }]}>
-        <SectionBanner tone="accent" eyebrow="Need help choosing?" title={HELP_BANNER.title} body={HELP_BANNER.body}>
+        <SectionBanner tone="accent" eyebrow="TRELLIS AI & TRADE CONCIERGE" title={HELP_BANNER.title} body={HELP_BANNER.body}>
           <View style={{ flexDirection: compact ? "column" : "row", flexWrap: compact ? "nowrap" : "wrap", gap: spacing.sm }}>
-            <Button label="Ask Trellis" variant="secondary" onPress={() => openChat()} fullWidth={compact} />
+            <Button label="Ask Trellis AI" variant="secondary" onPress={() => openChat()} fullWidth={compact} />
             <Link href="/contact" asChild>
-              <Button label="Send your requirement" variant="outline" inverted fullWidth={compact} />
+              <Button label="Send Bulk Requirement →" variant="outline" inverted fullWidth={compact} />
             </Link>
           </View>
         </SectionBanner>
       </View>
 
-      {/* 9 · Short FAQ */}
+      {/* 10 · Short FAQ */}
       {faqs.length > 0 ? (
-        <View style={[section, { maxWidth: 820, marginBottom: spacing.xxxl }]}>
-          <SectionTitle title="Questions, answered" linkLabel="All FAQs" href="/faqs" />
+        <View style={[section, { maxWidth: 860, marginBottom: spacing.xxxl }]}>
+          <SectionTitle title="Quick Answers" linkLabel="All FAQs" href="/faqs" />
           <View style={{ marginTop: spacing.md }}>
             <FaqList faqs={faqs} />
           </View>
@@ -351,10 +541,6 @@ export default function Home() {
   );
 }
 
-/**
- * Carousel slides: the admin's uploaded photos once saved; until then the home copy over built-in
- * nursery photos, with up to two featured farms' own cover photos in between.
- */
 function buildSlides(
   content: FcContent | null,
   hero: typeof DEFAULT_HERO,
@@ -376,10 +562,11 @@ function buildSlides(
     {
       key: "welcome",
       image: HOME_PHOTOS.polytunnel,
+      eyebrow: "INDIA'S SOVEREIGN B2B FARM EXCHANGE",
       title: hero.headline,
       subline: hero.subline,
-      cta: { label: "Explore farms", href: "/farms" },
-      secondary: { label: "Get bulk planting material", href: "/listings" },
+      cta: { label: "Browse Bulk Supply →", href: "/listings" },
+      secondary: { label: "Explore Verified Farms", href: "/farms" },
     },
   ];
   for (const f of farms.filter((x) => x.image).slice(0, 2)) {
@@ -389,20 +576,22 @@ function buildSlides(
       eyebrow: placeLine(f.district, f.state),
       title: f.name,
       subline: f.crops.length ? f.crops.slice(0, 3).join(" · ") : null,
-      cta: { label: "Visit the farm", href: { pathname: "/farms/[slug]", params: { slug: f.slug } } },
+      cta: { label: "Inspect Farm Dossier →", href: { pathname: "/farms/[slug]", params: { slug: f.slug } } },
     });
   }
   out.push({
     key: "bulk",
     image: HOME_PHOTOS.trellis,
+    eyebrow: "WHOLESALE QUANTITY SLABS",
     title: "Bulk planting material",
-    subline: "Saplings priced by quantity, delivered by road or rail.",
-    cta: { label: "See bulk supply", href: "/listings" },
-    secondary: { label: "Send an enquiry", href: "/contact" },
+    subline: "Saplings priced by quantity slab, dispatched by road truck or Indian Railways.",
+    cta: { label: "Open Bulk Mandi →", href: "/listings" },
+    secondary: { label: "Send Custom RFQ", href: "/contact" },
   });
   out.push({
     key: "own-a-farm",
     image: HOME_PHOTOS.planting,
+    eyebrow: "GROWER NETWORK",
     title: banner.title,
     subline: banner.subline,
     cta: registrationOpen ? { label: banner.buttonLabel, href: "/list-your-farm" } : null,
@@ -410,18 +599,21 @@ function buildSlides(
   return out;
 }
 
-/** Section heading with a small coloured label above it. */
 function SectionHead({ eyebrow, title, linkLabel, href }: { eyebrow: string; title: string; linkLabel?: string; href?: Href }) {
   const { colors, fonts } = useTheme();
   return (
     <View style={{ gap: 4 }}>
-      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: colors.accentDark }}>{eyebrow}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent }} />
+        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 1, textTransform: "uppercase", color: colors.accentDark }}>
+          {eyebrow}
+        </Text>
+      </View>
       <SectionTitle title={title} linkLabel={linkLabel} href={href} />
     </View>
   );
 }
 
-/** Wide photo panel with a dark tint, a title, one line and buttons. */
 function PhotoPanel({ photo, eyebrow, title, body, children }: { photo: string; eyebrow: string; title: string; body: string; children?: React.ReactNode }) {
   const { fonts, spacing, radius } = useTheme();
   const { width } = useWindowDimensions();
@@ -429,9 +621,9 @@ function PhotoPanel({ photo, eyebrow, title, body, children }: { photo: string; 
   return (
     <View style={{ borderRadius: radius.xl, overflow: "hidden", minHeight: compact ? 320 : 360, justifyContent: "center" }}>
       <Photo uri={photo} alt="" style={StyleSheet.absoluteFill} sizes="100vw" />
-      <LinearGradient colors={["rgba(8,28,18,0.9)", "rgba(8,28,18,0.55)", "rgba(8,28,18,0.1)"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={["rgba(8,28,18,0.92)", "rgba(8,28,18,0.58)", "rgba(8,28,18,0.15)"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
       <View style={{ padding: compact ? spacing.lg : spacing.xxl, maxWidth: 560, gap: spacing.md }}>
-        <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: GOLD }}>{eyebrow}</Text>
+        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: GOLD }}>{eyebrow}</Text>
         <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.display, fontSize: compact ? 26 : 34, lineHeight: compact ? 32 : 40, color: "#FFFFFF" }}>
           {title}
         </Text>
@@ -442,13 +634,11 @@ function PhotoPanel({ photo, eyebrow, title, body, children }: { photo: string; 
   );
 }
 
-/** "Search a crop or state, e.g. mango, teak, Bihar" → "Search a crop or state". */
 function shortPlaceholder(text: string): string {
   const lead = text.split(/,\s*e\.g\.?/i)[0].trim();
   return lead.length >= 6 ? lead : text;
 }
 
-/** Non-empty string fields of an admin content block, so blanks fall back to the spec copy. */
 function pickText<T extends object>(block: T | null | undefined): Partial<T> {
   const out: Partial<T> = {};
   if (!block) return out;
@@ -456,27 +646,45 @@ function pickText<T extends object>(block: T | null | undefined): Partial<T> {
   return out;
 }
 
-function ChipRow({ label, items }: { label: string; items: { key: string; label: string; href: { pathname: "/farms"; params: Record<string, string> } }[] }) {
+function VisualFilterGrid({
+  label,
+  icon,
+  items,
+}: {
+  label: string;
+  icon: string;
+  items: { key: string; label: string; count: number; href: { pathname: "/farms"; params: Record<string, string> } }[];
+}) {
   const { colors, fonts, spacing, radius } = useTheme();
   return (
-    <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
-      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.5, textTransform: "uppercase", color: colors.inkSoft }}>{label}</Text>
+    <View style={{ gap: spacing.sm }}>
+      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 0.8, textTransform: "uppercase", color: colors.inkSoft }}>
+        {icon} {label}
+      </Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
         {items.map((it) => (
           <PressableLink
             key={it.key}
             href={it.href}
             style={({ pressed }) => ({
-              minHeight: 44,
-              justifyContent: "center",
-              paddingHorizontal: 16,
+              minHeight: 42,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+              paddingLeft: 14,
+              paddingRight: 10,
               borderRadius: radius.pill,
               borderWidth: 1,
               borderColor: colors.border,
-              backgroundColor: pressed ? colors.brandSoft : colors.surface,
+              backgroundColor: pressed ? colors.brandSoft : colors.paper,
             })}
           >
-            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.ink }}>{it.label}</Text>
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: colors.ink }}>{it.label}</Text>
+            {it.count > 0 ? (
+              <View style={{ backgroundColor: colors.brandSoft, paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.pill }}>
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: colors.brand }}>{it.count}</Text>
+              </View>
+            ) : null}
           </PressableLink>
         ))}
       </View>
@@ -484,18 +692,17 @@ function ChipRow({ label, items }: { label: string; items: { key: string; label:
   );
 }
 
-/** Simple line icons for the four "What we offer" items (in content order). */
 function OfferIcon({ index, color }: { index: number; color: string }) {
-  const p = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const p = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   switch (index % 4) {
-    case 0: // camera — filmed farm stories
+    case 0:
       return (
         <Svg {...p}>
           <Rect x={3} y={6.5} width={13} height={11} rx={2} />
           <Path d="m16 10.5 5-3v9l-5-3" />
         </Svg>
       );
-    case 1: // sapling
+    case 1:
       return (
         <Svg {...p}>
           <Path d="M12 20v-8" />
@@ -504,7 +711,7 @@ function OfferIcon({ index, color }: { index: number; color: string }) {
           <Path d="M7 20h10" />
         </Svg>
       );
-    case 2: // truck
+    case 2:
       return (
         <Svg {...p}>
           <Rect x={2.5} y={8} width={11} height={8} rx={1} />
@@ -513,7 +720,7 @@ function OfferIcon({ index, color }: { index: number; color: string }) {
           <Circle cx={17} cy={18.5} r={1.7} />
         </Svg>
       );
-    default: // person / one contact
+    default:
       return (
         <Svg {...p}>
           <Circle cx={12} cy={8} r={3.5} />

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, type ScrollView } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Link, useLocalSearchParams } from "expo-router";
 import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
@@ -13,8 +14,9 @@ import type { B2bListing } from "@/lib/types";
 
 export default function RfqForScreen() {
   const { spacing, colors, radius, fonts } = useTheme();
-  const { listingId: rawId } = useLocalSearchParams<{ listingId: string }>();
+  const { listingId: rawId, qty: rawQty } = useLocalSearchParams<{ listingId: string; qty?: string }>();
   const listingId = parseListingId(rawId);
+  const prefillQty = Array.isArray(rawQty) ? rawQty[0] : rawQty;
   const scrollRef = useRef<ScrollView>(null);
 
   const [listing, setListing] = useState<B2bListing | null>(null);
@@ -40,7 +42,6 @@ export default function RfqForScreen() {
 
   useEffect(() => load(), [load]);
 
-  // Static-export template render (no id yet) — neutral loading view.
   const idPending = rawId === undefined || rawId === "" || rawId === "[listingId]";
 
   let body: React.ReactNode;
@@ -74,32 +75,50 @@ export default function RfqForScreen() {
     const moq = listingMoqLabel(listing);
     body = (
       <View style={{ gap: spacing.lg }}>
-        <View style={{ gap: 4, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-          <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.5, textTransform: "uppercase", color: colors.inkSoft }}>Request a quote</Text>
-          <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: 22, color: colors.ink, lineHeight: 28 }}>
+        <LinearGradient
+          colors={["#071A10", "#123824"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            borderRadius: radius.lg,
+            padding: spacing.lg,
+            borderWidth: 1,
+            borderColor: "rgba(229,180,98,0.35)",
+            gap: 6,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.9, textTransform: "uppercase", color: "#E5B462" }}>
+              MANDI WHOLESALE QUOTE REQUEST
+            </Text>
+            <Link href={{ pathname: "/listings/[id]", params: { id: String(listing.id) } }} style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: "#6FC28F" }}>
+              ← Back to lot details
+            </Link>
+          </View>
+          <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: 23, color: "#FFFFFF", lineHeight: 29 }}>
             {listing.title}
           </Text>
           {price || moq ? (
-            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.brand }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14.5, color: "#E5B462" }}>
               {[price ? `${price}${showsGst(listing) ? " + GST" : ""}` : null, moq].filter(Boolean).join(" · ")}
             </Text>
           ) : null}
-          <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: colors.inkSoft, marginTop: 4, lineHeight: 19 }}>
-            Share your requirement once — the FarmsClub team confirms price, availability and dispatch with you.
+          <Text style={{ fontFamily: fonts.body, fontSize: 13, color: "rgba(255,255,255,0.82)", marginTop: 2, lineHeight: 19 }}>
+            Share your requirement once — the FarmsClub trade desk confirms live batch price, availability, and road/rail dispatch.
           </Text>
-        </View>
-        <RfqFormBody listing={listing} listingId={listing.id} scrollRef={scrollRef} />
+        </LinearGradient>
+
+        <RfqFormBody listing={listing} listingId={listing.id} scrollRef={scrollRef} initialQuantity={prefillQty} />
       </View>
     );
   }
 
   return (
-    // No bottom nav on the form: it would sit over the keyboard and the submit button.
     <AppShell
       keyboardAware
       hideBottomNav
       scrollRef={scrollRef}
-      contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl, maxWidth: 680, width: "100%", alignSelf: "center" }}
+      contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl, maxWidth: 720, width: "100%", alignSelf: "center" }}
     >
       <SeoHead
         title={listing ? `Request a quote: ${listing.title} · FarmsClub` : "Request a quote · FarmsClub"}
@@ -111,8 +130,13 @@ export default function RfqForScreen() {
           backgroundColor: colors.surface,
           borderColor: colors.border,
           borderWidth: 1,
-          borderRadius: radius.lg,
+          borderRadius: radius.xl,
           padding: spacing.xl,
+          shadowColor: "#081E12",
+          shadowOpacity: 0.06,
+          shadowRadius: 18,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 3,
         }}
       >
         {body}

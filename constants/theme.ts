@@ -19,6 +19,7 @@ export const fonts = {
   bodyBold: "Inter_700Bold",
   devanagari: "NotoSansDevanagari_700Bold",
   devanagariSemiBold: "NotoSansDevanagari_600SemiBold",
+  mono: "Archivo_600SemiBold",
 };
 
 export const spacing = {
@@ -40,26 +41,29 @@ export const radius = {
   pill: 999,
 };
 
-// Brand — deep forest pine, a trade-serious green distinct from a consumer plant shop's palette.
+// Brand — Sovereign Mandi palette: deep botanical pine, copper terracotta, harvest brass gold, and warm khadi parchment.
 export const light = {
-  brand: "#143D28",
-  brandDark: "#0C291A",
-  brandSoft: "#EBF3EC",
-  accent: "#C25E1A",
-  accentDark: "#A24B10",
-  accentSoft: "#FBF1E6",
+  brand: "#123824",
+  brandDark: "#081E12",
+  brandSoft: "#E8F2EA",
+  accent: "#C85A17",
+  accentDark: "#9E420B",
+  accentSoft: "#FDF0E4",
   // Primary-button fill (Warm Terracotta). White text on it is 4.95+:1 (WCAG AA compliant for normal text).
   cta: "#C25E1A",
-  ink: "#111C15",
-  inkSoft: "#4F5D54",
-  inkFaint: "#839287",
-  paper: "#F9F8F5",
+  gold: "#E5B462",
+  goldDark: "#9A6B1F",
+  goldSoft: "#FCF5E5",
+  ink: "#0E1A13",
+  inkSoft: "#4A5A50",
+  inkFaint: "#7D8E83",
+  paper: "#F6F4EE",
   surface: "#FFFFFF",
-  surfaceRaised: "#FFFFFF",
-  border: "#E6E2D8",
-  borderStrong: "#D0C9BA",
-  success: "#238350",
-  successSoft: "#E5F5EC",
+  surfaceRaised: "#FCFBF8",
+  border: "#E3DDD0",
+  borderStrong: "#CBC2B0",
+  success: "#1E824C",
+  successSoft: "#E3F5EB",
   warning: "#B87A18",
   warningSoft: "#FCF2DD",
   danger: "#B83A3A",
@@ -76,6 +80,9 @@ export const dark = {
   accentDark: "#C78A36",
   accentSoft: "#332616",
   cta: "#C25E1A",
+  gold: "#E5B462",
+  goldDark: "#C7953E",
+  goldSoft: "#2D2414",
 
   ink: "#EDEFE9",
   inkSoft: "#B2BBB0",

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Text, View } from "react-native";
+import { Text, View, Pressable } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
@@ -17,11 +18,10 @@ const norm = (s: string) => s.trim().toLowerCase();
 
 /**
  * Storefront §9.10: `/search?q=` — farms matching name/crop/state and listings matching
- * title/crop/variety, two sections, each with "See all". The farms "See all" opens the directory
- * pre-filtered when the query is exactly a state or crop that has farms.
+ * title/crop/variety, two sections, each with "See all".
  */
 export default function Search() {
-  const { colors, fonts, spacing } = useTheme();
+  const { colors, fonts, spacing, radius } = useTheme();
   const params = useLocalSearchParams<{ q?: string }>();
   const urlQ = (Array.isArray(params.q) ? params.q[0] : params.q)?.trim() ?? "";
   const [text, setText] = useState(urlQ);
@@ -40,7 +40,6 @@ export default function Search() {
     setText(urlQ);
   }, [urlQ]);
 
-  // Typing updates ?q= after a short pause (the page and Back keep the query).
   useEffect(() => {
     const next = text.trim();
     if (next === urlQ) return;
@@ -87,22 +86,59 @@ export default function Search() {
 
   const farms = result?.farms ?? [];
   const listings = result?.listings ?? [];
+  const quickSuggestions = (filters?.crops ?? []).slice(0, 8).map((c) => c.name);
 
   return (
-    <AppShell contentContainerStyle={{ width: "100%", maxWidth: 1232, alignSelf: "center", paddingHorizontal: spacing.lg, paddingTop: spacing.xl, paddingBottom: spacing.xxl }}>
+    <AppShell contentContainerStyle={{ width: "100%", maxWidth: 1232, alignSelf: "center", paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xxl }}>
       <SeoHead title={urlQ ? `Search: ${urlQ} · FarmsClub` : "Search · FarmsClub"} description="Search FarmsClub farms and bulk planting material by crop, state or name." />
-      <SectionTitle level={1} title="Search" subtitle="Farms and bulk planting material" />
-      <View style={{ marginTop: spacing.lg }}>
+
+      <LinearGradient
+        colors={["#071A10", "#123824", "#184A30"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          borderRadius: radius.xl,
+          padding: spacing.xl,
+          borderWidth: 1,
+          borderColor: "rgba(229,180,98,0.32)",
+          gap: spacing.md,
+        }}
+      >
+        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, color: "#E5B462", textTransform: "uppercase" }}>
+          UNIFIED MANDI & FARM SEARCH
+        </Text>
+        <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: 28, color: "#FFFFFF" }}>
+          Search Farms & Bulk Supply
+        </Text>
         <SearchBar value={text} onChangeText={setText} placeholder="Search a crop or state, e.g. mango, teak, Bihar" />
-      </View>
+        {quickSuggestions.length > 0 ? (
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Try:</Text>
+            {quickSuggestions.map((s) => (
+              <Pressable
+                key={s}
+                onPress={() => setText(s)}
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: radius.pill,
+                  backgroundColor: "rgba(255,255,255,0.12)",
+                }}
+              >
+                <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, color: "#E5B462" }}>{s}</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+      </LinearGradient>
 
       <View style={{ marginTop: spacing.xl, gap: spacing.xxl }}>
         {urlQ.length < 2 ? (
-          <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft }}>Type at least 2 letters to search.</Text>
+          <Text style={{ fontFamily: fonts.body, fontSize: 14.5, color: colors.inkSoft }}>Type at least 2 letters above, or tap a crop chip to search.</Text>
         ) : error ? (
           <ErrorState message={error} onRetry={() => setAttempt((n) => n + 1)} />
         ) : !result ? (
-          <LoadingState label="Searching…" />
+          <LoadingState label="Searching Mandi & Farms…" />
         ) : farms.length === 0 && listings.length === 0 ? (
           <EmptyState title={`Nothing found for “${urlQ}”`} body="Try a crop (mango, teak), a state, or browse everything.">
             <Link href="/farms" asChild>
@@ -114,18 +150,6 @@ export default function Search() {
           </EmptyState>
         ) : (
           <>
-            {farms.length > 0 ? (
-              <View style={{ gap: spacing.md }}>
-                <SectionTitle title="Farms" linkLabel="See all" href={farmsHref} />
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-                  {farms.map((f) => (
-                    <View key={f.slug} style={{ width: cardWidth }}>
-                      <FarmCard farm={fromFarmCard(f)} />
-                    </View>
-                  ))}
-                </View>
-              </View>
-            ) : null}
             {listings.length > 0 ? (
               <View style={{ gap: spacing.md }}>
                 <SectionTitle title="Bulk planting material" linkLabel="See all" href={listingsHref} />
@@ -133,6 +157,18 @@ export default function Search() {
                   {listings.map((l) => (
                     <View key={l.id} style={{ width: cardWidth }}>
                       <ListingCard listing={l} />
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+            {farms.length > 0 ? (
+              <View style={{ gap: spacing.md }}>
+                <SectionTitle title="Farms" linkLabel="See all" href={farmsHref} />
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+                  {farms.map((f) => (
+                    <View key={f.slug} style={{ width: cardWidth }}>
+                      <FarmCard farm={fromFarmCard(f)} />
                     </View>
                   ))}
                 </View>

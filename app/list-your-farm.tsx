@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, Text, View, type ScrollView } from "react-native";
 import { Link } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import { SeoHead } from "@/components/SeoHead";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
@@ -187,13 +188,66 @@ export default function ListYourFarm() {
   }, [submitting, ownerName, mobile, onWhatsapp, farmName, stateId, districtId, typeIds, cropIds, otherCrops, land, serviceIds, training, bulk, consent, photos, bot, districtRequired]);
 
   const header = (
-    <View style={{ gap: spacing.md, marginBottom: spacing.xl }}>
-      {hindiOn && <LangSwitch lang={lang} onChange={setLang} />}
-      <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: lf.display, fontSize: 28, lineHeight: lang === "hi" ? 40 : 34, color: colors.ink }}>
+    <LinearGradient
+      colors={["#081E12", "#123824"]}
+      style={{
+        padding: spacing.xl,
+        borderRadius: radius.xl,
+        borderWidth: 1,
+        borderColor: "rgba(229,180,98,0.28)",
+        gap: spacing.md,
+        marginBottom: spacing.xl,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+        <View
+          style={{
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: radius.pill,
+            backgroundColor: "rgba(229,180,98,0.14)",
+            borderWidth: 1,
+            borderColor: "rgba(229,180,98,0.35)",
+          }}
+        >
+          <Text style={{ fontFamily: fonts.mono, fontSize: 10.5, color: "#E5B462", letterSpacing: 1 }}>
+            GROWER & NURSERY ONBOARDING · FREE
+          </Text>
+        </View>
+        {hindiOn && <LangSwitch lang={lang} onChange={setLang} />}
+      </View>
+      <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: lf.display, fontSize: 28, lineHeight: lang === "hi" ? 40 : 34, color: "#FFFFFF" }}>
         {t.regTitle}
       </Text>
-      <Text style={{ fontFamily: lf.body, fontSize: 15, lineHeight: lang === "hi" ? 26 : 22, color: colors.inkSoft }}>{t.regIntro}</Text>
-    </View>
+      <Text style={{ fontFamily: lf.body, fontSize: 15, lineHeight: lang === "hi" ? 26 : 22, color: "rgba(255,255,255,0.78)" }}>
+        {t.regIntro}
+      </Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+        {[
+          { code: "01", text: lang === "hi" ? "2 मिनट का फ़ॉर्म" : "2-Min Form" },
+          { code: "02", text: lang === "hi" ? "टीम सत्यापन" : "Team Verification" },
+          { code: "03", text: lang === "hi" ? "थोक ख़रीददार नेटवर्क" : "Pan-India B2B Buyers" },
+        ].map((step) => (
+          <View
+            key={step.code}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: radius.pill,
+              backgroundColor: "rgba(255,255,255,0.08)",
+              borderWidth: 1,
+              borderColor: "rgba(255,255,255,0.14)",
+            }}
+          >
+            <Text style={{ fontFamily: fonts.mono, fontSize: 10.5, color: "#E5B462" }}>{step.code}</Text>
+            <Text style={{ fontFamily: lf.semibold, fontSize: 11.5, color: "#FFFFFF" }}>{step.text}</Text>
+          </View>
+        ))}
+      </View>
+    </LinearGradient>
   );
 
   let body: React.ReactNode;
@@ -453,7 +507,7 @@ export default function ListYourFarm() {
           backgroundColor: colors.surface,
           borderColor: colors.border,
           borderWidth: 1,
-          borderRadius: radius.lg,
+          borderRadius: radius.xl,
           padding: spacing.lg,
         }}
       >

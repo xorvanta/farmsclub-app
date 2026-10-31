@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform, Text, View, useWindowDimensions, type ScrollView } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell } from "@/components/AppShell";
@@ -21,8 +22,8 @@ import { Block, FactsRow, GrownBlock, ProductsBlock, ServicesBlock, StoryBlock, 
 import { fcApi, errorMessage, isNotFound } from "@/lib/api";
 import type { B2bListing, FarmProfile } from "@/lib/types";
 
-const PAGE_MAX = 1120;
-const SIDE_WIDTH = 340;
+const PAGE_MAX = 1140;
+const SIDE_WIDTH = 350;
 const CONTACT_ID = "farm-contact";
 
 /**
@@ -42,7 +43,6 @@ export default function FarmProfileScreen() {
   const [notFound, setNotFound] = useState(false);
   const [listings, setListings] = useState<B2bListing[]>([]);
 
-  // Static-export template render: no slug yet → neutral loading view, never a not-found.
   const slugPending = !slug || slug === "[slug]";
 
   const load = useCallback(() => {
@@ -55,7 +55,6 @@ export default function FarmProfileScreen() {
       .getFarm(slug)
       .then((data) => {
         setFarm(data);
-        // An old slug resolves to the farm; put the current one in the address bar.
         if (data.slug && data.slug !== slug) router.replace({ pathname: "/farms/[slug]", params: { slug: data.slug } });
       })
       .catch((e) => (isNotFound(e) ? setNotFound(true) : setError(errorMessage(e))));
@@ -63,7 +62,6 @@ export default function FarmProfileScreen() {
 
   useEffect(() => load(), [load]);
 
-  // Block 12 — loaded separately; hidden when empty or failed.
   useEffect(() => {
     if (!farm?.slug) return;
     let alive = true;
@@ -117,13 +115,11 @@ export default function FarmProfileScreen() {
     );
   }
 
-  // ── layout ──
   const pageWidth = Math.min(width, PAGE_MAX + spacing.lg * 2) - spacing.lg * 2;
   const twoCol = width >= 1024;
   const mainWidth = twoCol ? pageWidth - SIDE_WIDTH - spacing.xxl : pageWidth;
   const compact = width < HEADER_COMPACT_WIDTH;
 
-  // ── data ──
   const district = farm.district?.name?.trim() || null;
   const state = farm.state?.name?.trim() || null;
   const place = placeLine(district, state);
@@ -154,13 +150,30 @@ export default function FarmProfileScreen() {
     <View
       nativeID={CONTACT_ID}
       onLayout={(e) => (contactY.current.block = e.nativeEvent.layout.y)}
-      style={{ backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md }}
+      style={{
+        backgroundColor: colors.surface,
+        borderColor: colors.border,
+        borderWidth: 1,
+        borderRadius: radius.xl,
+        padding: spacing.lg,
+        gap: spacing.md,
+        shadowColor: "#081E12",
+        shadowOpacity: 0.06,
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 3,
+      }}
     >
       {farm.whatsapp_available ? (
         <>
-          <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.display, fontSize: 19, color: colors.ink }}>
-            Talk to the farm
-          </Text>
+          <View style={{ gap: 2 }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.8, color: colors.brand, textTransform: "uppercase" }}>
+              DIRECT GROWER CONNECT
+            </Text>
+            <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.display, fontSize: 20, color: colors.ink }}>
+              Talk to the farm
+            </Text>
+          </View>
           <WhatsAppButton slug={farm.slug} src="profile" fullWidth />
           <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.inkSoft, lineHeight: 18 }}>
             Opens WhatsApp with a short hello. The farm's number is never shown on FarmsClub.
@@ -168,9 +181,14 @@ export default function FarmProfileScreen() {
         </>
       ) : (
         <>
-          <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.display, fontSize: 19, color: colors.ink }}>
-            Ask about this farm
-          </Text>
+          <View style={{ gap: 2 }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.8, color: colors.brand, textTransform: "uppercase" }}>
+              FARM ENQUIRY DESK
+            </Text>
+            <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.display, fontSize: 20, color: colors.ink }}>
+              Ask about this farm
+            </Text>
+          </View>
           <FarmEnquiryForm slug={farm.slug} farmName={farm.name} />
         </>
       )}
@@ -178,7 +196,18 @@ export default function FarmProfileScreen() {
   );
 
   const header = (
-    <View style={{ gap: spacing.sm }}>
+    <LinearGradient
+      colors={["#071A10", "#123824", "#184A30"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={{
+        borderRadius: radius.xl,
+        padding: compact ? spacing.lg : spacing.xl,
+        borderWidth: 1,
+        borderColor: "rgba(229,180,98,0.32)",
+        gap: spacing.sm,
+      }}
+    >
       <View role="navigation" aria-label="Breadcrumb" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
         <Crumb href={{ pathname: "/farms" }} label="Farms" />
         {farm.state ? (
@@ -194,28 +223,31 @@ export default function FarmProfileScreen() {
           </>
         ) : null}
       </View>
-      <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: width >= 860 ? 34 : 27, lineHeight: width >= 860 ? 40 : 33, color: colors.ink }}>
+
+      <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: width >= 860 ? 36 : 27, lineHeight: width >= 860 ? 42 : 33, color: "#FFFFFF" }}>
         {farm.name}
       </Text>
+
       {place || area ? (
-        <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.inkSoft }}>
-          {[place, area].filter(Boolean).join(" · ")}
+        <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 15, color: "#E5B462" }}>
+          📍 {[place, area].filter(Boolean).join(" · ")}
         </Text>
       ) : null}
-      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+
+      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 4 }}>
         <VerifiedTag verified={!!farm.verified} />
-        {farm.fc_code ? <Tag label={farm.fc_code} tone="neutral" /> : null}
+        {farm.fc_code ? <Tag label={farm.fc_code} tone="onPhoto" /> : null}
         {types.map((t) => (
-          <Tag key={t} label={t} tone="brand" />
+          <Tag key={t} label={t} tone="accent" />
         ))}
       </View>
-    </View>
+    </LinearGradient>
   );
 
   const media = heroId ? (
     <YouTubeEmbed videoId={heroId} title={farm.hero_video?.title || `${farm.name} — FarmsClub film`} />
   ) : cover ? (
-    <Photo uri={cover} alt={farm.name} eager style={{ width: "100%", aspectRatio: 16 / 9, borderRadius: radius.lg }} sizes="(max-width: 1024px) 100vw, 760px" />
+    <Photo uri={cover} alt={farm.name} eager style={{ width: "100%", aspectRatio: 16 / 9, borderRadius: radius.xl }} sizes="(max-width: 1024px) 100vw, 760px" />
   ) : null;
 
   const listingsGrid = gridOf(listings.length, mainWidth);
@@ -224,7 +256,6 @@ export default function FarmProfileScreen() {
 
   const mainColumn = (
     <View style={{ gap: spacing.xxl, width: twoCol ? mainWidth : "100%" }} onLayout={(e) => (contactY.current.column = e.nativeEvent.layout.y)}>
-      {/* On one column the header leads; on two columns it spans the top (rendered above). */}
       {!twoCol ? header : null}
       {media ? (
         <View style={{ gap: 6 }}>
@@ -311,7 +342,7 @@ export default function FarmProfileScreen() {
               {hasFacts ? (
                 <View style={{ gap: spacing.sm }}>
                   <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.display, fontSize: 19, color: colors.ink }}>
-                    Key facts
+                    Estate Telemetry
                   </Text>
                   <FactsRow facts={farm.facts} columns={2} />
                 </View>
@@ -340,18 +371,17 @@ export default function FarmProfileScreen() {
 }
 
 function Crumb({ href, label }: { href: React.ComponentProps<typeof Link>["href"]; label: string }) {
-  const { colors, fonts } = useTheme();
+  const { fonts } = useTheme();
   return (
-    <Link href={href} style={{ fontFamily: fonts.bodyMedium, fontSize: 13.5, color: colors.brand, paddingVertical: 10 }}>
+    <Link href={href} style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: "rgba(255,255,255,0.85)", paddingVertical: 4 }}>
       {label}
     </Link>
   );
 }
 
 function Sep() {
-  const { colors } = useTheme();
   return (
-    <Text aria-hidden style={{ color: colors.inkFaint, fontSize: 13 }}>
+    <Text aria-hidden style={{ color: "rgba(229,180,98,0.65)", fontSize: 13 }}>
       ›
     </Text>
   );

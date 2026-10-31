@@ -5,12 +5,9 @@ import { useTheme } from "@/constants/theme-context";
 import { TextField } from "./TextField";
 import { Button } from "./Button";
 import { b2bApi, errorMessage } from "@/lib/api";
-import { formatQtyWithUnit, normalizeIndianMobile } from "@/lib/format";
+import { formatQty, formatQtyWithUnit, normalizeIndianMobile } from "@/lib/format";
 import type { B2bListing } from "@/lib/types";
 
-/** Column limits from b2b_leads (V127) and PublicB2bController: names/email 200, city/state 100,
- *  station 150, address/notes 1000; GSTIN and pincode are format-checked. The phone box allows
- *  room for "+91 98765 43210" / "098765 43210" — it's reduced to the 10 digits before sending. */
 const LIMITS = { name: 200, email: 200, gstin: 15, city: 100, state: 100, pincode: 6, station: 150, address: 1000, notes: 1000, phone: 16 };
 const GSTIN_RE = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -39,7 +36,6 @@ type FieldKey =
   | "quantityInterest"
   | "notes";
 
-/** Display order — the first entry with an error is the one scrolled to and focused. */
 const FIELD_ORDER: FieldKey[] = [
   "contactName", "phone", "email", "customerGstin", "billingName", "billingAddress", "billingCity", "billingState",
   "billingPincode", "deliveryCity", "deliveryState", "deliveryPincode", "destinationStation", "quantityInterest", "notes",
@@ -63,22 +59,17 @@ const FIELD_LABELS: Record<FieldKey, string> = {
   notes: "Requirement",
 };
 
-/** Shared by /rfq/[listingId] (enquiring about one listing) and /contact (a general enquiry,
- *  no listing attached) — same backend call (POST /public/b2b/rfq), same field set per
- *  B2B_Admin_Spec_v1.2 §3, just with `listing`/`listingId` null for the general case.
- *
- *  `scrollRef` is the page's ScrollView (AppShell) — on a failed submit the form scrolls to and
- *  focuses the first field with a problem, and lists all of them above the submit button. */
 export function RfqFormBody({
   listing,
   listingId,
   scrollRef,
   initialNotes,
+  initialQuantity,
 }: {
   listing?: B2bListing | null;
   listingId?: number | null;
-  /** Prefills "What are you looking to source?" (e.g. a hidden listing's name, "Farm verification — <farm>"). */
   initialNotes?: string;
+  initialQuantity?: string | number;
   scrollRef?: RefObject<ScrollView | null>;
 }) {
   const { colors, fonts, spacing, radius } = useTheme();
@@ -101,7 +92,7 @@ export function RfqFormBody({
   const [deliveryState, setDeliveryState] = useState("");
   const [deliveryPincode, setDeliveryPincode] = useState("");
   const [destinationStation, setDestinationStation] = useState("");
-  const [quantityInterest, setQuantityInterest] = useState("");
+  const [quantityInterest, setQuantityInterest] = useState(initialQuantity ? String(initialQuantity).replace(/\D/g, "") : "");
   const [notes, setNotes] = useState(initialNotes ?? "");
 
   const [errors, setErrors] = useState<Partial<Record<FieldKey, string>>>({});
@@ -109,24 +100,27 @@ export function RfqFormBody({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Where each field sits, for scroll-to-first-error: form → section → field offsets.
   const formY = useRef(0);
   const sectionY = useRef<Record<string, number>>({});
   const fieldPos = useRef<Partial<Record<FieldKey, { section: string; y: number }>>>({});
   const inputRefs = useRef<Partial<Record<FieldKey, TextInput | null>>>({});
 
-  // One "form opened" per mount, for the opens → submits funnel on the FarmsClub team's RFQ stats.
   useEffect(() => {
     b2bApi.trackRfqOpen(listingId ?? listing?.id ?? null);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (initialQuantity) {
+      const cleaned = String(initialQuantity).replace(/\D/g, "");
+      if (cleaned) setQuantityInterest(cleaned);
+    }
+  }, [initialQuantity]);
+
   const isListing = !!listing;
-  const stationRequired = isListing; // a specific-product enquiry needs it to quote transit; a general one doesn't yet
+  const stationRequired = isListing;
   const moq = listing ? listing.moq ?? listing.bulk_min_quantity ?? null : null;
   const unit = listing ? listing.unit ?? listing.bulk_unit ?? null : null;
 
-  // Ship-to is always captured: with "same as billing" ticked it comes from the billing
-  // city/state/pincode, otherwise from the separate delivery fields.
   const shipTo = sameAsBilling
     ? { city: billingCity.trim(), state: billingState.trim(), pincode: billingPincode.trim() }
     : { city: deliveryCity.trim(), state: deliveryState.trim(), pincode: deliveryPincode.trim() };
@@ -165,12 +159,9 @@ export function RfqFormBody({
       const y = formY.current + (sectionY.current[pos.section] ?? 0) + pos.y - 24;
       scrollRef.current.scrollTo({ y: Math.max(0, y), animated: true });
     }
-    // On web focusing also scrolls the field into view; natively it opens the keyboard there.
     setTimeout(() => inputRefs.current[key]?.focus(), Platform.OS === "web" ? 0 : 250);
   }
 
-  /** Composed billing address: the street lines, then "City, State - 123456". The backend keeps
-   *  one billing_address column, so city/state/pincode travel inside it. */
   function composedBillingAddress(): string | undefined {
     const place = [billingCity.trim(), billingState.trim()].filter(Boolean).join(", ");
     const pin = billingPincode.trim();
@@ -180,11 +171,9 @@ export function RfqFormBody({
   }
 
   async function submit() {
-    if (submittingRef.current) return; // a second tap before React re-renders the disabled button
+    if (submittingRef.current) return;
     setSubmitError(null);
     if (honeypot) {
-      // Only a bot fills the hidden field — but a person with an over-eager autofill could too,
-      // so they get a clear message rather than a fake success.
       setSubmitError(HONEYPOT_ERROR);
       return;
     }
@@ -233,12 +222,12 @@ export function RfqFormBody({
     return (
       <View style={styles.center} accessibilityLiveRegion="polite" aria-live="polite">
         <View style={[styles.successBadge, { backgroundColor: colors.successSoft, borderRadius: radius.pill }]} aria-hidden>
-          <Text style={{ fontFamily: fonts.heading, color: colors.success }}>✓</Text>
+          <Text style={{ fontFamily: fonts.heading, fontSize: 22, color: colors.success }}>✓</Text>
         </View>
-        <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: 22, color: colors.ink, marginTop: spacing.lg, textAlign: "center" }}>
+        <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: 24, color: colors.ink, marginTop: spacing.lg, textAlign: "center" }}>
           {updated ? "Enquiry updated" : "Enquiry received"}
         </Text>
-        <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, marginTop: 8, textAlign: "center", maxWidth: 380, lineHeight: 20 }}>
+        <Text style={{ fontFamily: fonts.body, fontSize: 14.5, color: colors.inkSoft, marginTop: 8, textAlign: "center", maxWidth: 400, lineHeight: 21 }}>
           {successMessage}
         </Text>
         <View style={{ marginTop: spacing.xl }}>
@@ -262,9 +251,20 @@ export function RfqFormBody({
     },
   });
 
+  // Quick quantity chips for listing RFQ
+  const quickQtys = isListing
+    ? (() => {
+        const tiers = listing?.tiers ?? [];
+        if (tiers.length > 0) {
+          return [...new Set(tiers.map((t) => Number(t.minQty)))].slice(0, 4);
+        }
+        const base = moq && Number(moq) > 0 ? Number(moq) : 100;
+        return [base, base * 5, base * 10, base * 25];
+      })()
+    : [];
+
   return (
     <View style={{ gap: spacing.lg }} onLayout={(e) => (formY.current = e.nativeEvent.layout.y)}>
-      {/* Honeypot — invisible and unreachable for people (and screen readers); bots fill it. */}
       <TextInput
         value={honeypot}
         onChangeText={setHoneypot}
@@ -276,7 +276,34 @@ export function RfqFormBody({
         tabIndex={-1}
       />
 
-      <FormSection title="Contact" onY={(y) => (sectionY.current.contact = y)}>
+      {/* Visual 3-Step Procurement Strip */}
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 8,
+          backgroundColor: colors.paper,
+          padding: 10,
+          borderRadius: radius.md,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}
+      >
+        {[
+          { step: "01", label: "Buyer & GST" },
+          { step: "02", label: "Dispatch & Rail/Road" },
+          { step: "03", label: "Volume & Specs" },
+        ].map((s) => (
+          <View key={s.step} style={{ flex: 1, minWidth: 110, flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center" }}>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#FFFFFF" }}>{s.step}</Text>
+            </View>
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.ink }}>{s.label}</Text>
+          </View>
+        ))}
+      </View>
+
+      <FormSection badge="01" title="Contact" onY={(y) => (sectionY.current.contact = y)}>
         <Slot onY={field("contactName", "contact").onLayoutWrap}>
           <TextField label={FIELD_LABELS.contactName} value={contactName} onChangeText={setContactName} required maxLength={LIMITS.name}
             autoComplete="name" textContentType="name" {...pick(field("contactName", "contact"))} />
@@ -312,7 +339,7 @@ export function RfqFormBody({
         </Slot>
       </FormSection>
 
-      <FormSection title="Billing" onY={(y) => (sectionY.current.billing = y)}>
+      <FormSection badge="02" title="Billing" onY={(y) => (sectionY.current.billing = y)}>
         <Slot onY={field("customerGstin", "billing").onLayoutWrap}>
           <TextField
             label={FIELD_LABELS.customerGstin}
@@ -353,7 +380,7 @@ export function RfqFormBody({
         </Slot>
       </FormSection>
 
-      <FormSection title="Delivery" onY={(y) => (sectionY.current.delivery = y)}>
+      <FormSection badge="03" title="Delivery" onY={(y) => (sectionY.current.delivery = y)}>
         <Pressable
           onPress={() => setSameAsBilling((v) => !v)}
           style={styles.checkboxRow}
@@ -408,9 +435,40 @@ export function RfqFormBody({
         </Slot>
       </FormSection>
 
-      <FormSection title="Requirement" onY={(y) => (sectionY.current.requirement = y)}>
+      <FormSection badge="04" title="Requirement" onY={(y) => (sectionY.current.requirement = y)}>
         {isListing ? (
           <>
+            {quickQtys.length > 0 ? (
+              <View style={{ gap: 6 }}>
+                <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.inkSoft }}>
+                  Quick Volume Presets:
+                </Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                  {quickQtys.map((q) => {
+                    const active = quantityInterest === String(q);
+                    return (
+                      <Pressable
+                        key={q}
+                        onPress={() => setQuantityInterest(String(q))}
+                        style={{
+                          paddingHorizontal: 12,
+                          paddingVertical: 6,
+                          borderRadius: radius.pill,
+                          backgroundColor: active ? colors.brand : colors.paper,
+                          borderWidth: 1,
+                          borderColor: active ? colors.brand : colors.border,
+                        }}
+                      >
+                        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: active ? "#FFFFFF" : colors.ink }}>
+                          {formatQty(q)} {unit ?? "units"}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            ) : null}
+
             <Slot onY={field("quantityInterest", "requirement").onLayoutWrap}>
               <TextField
                 label={`Quantity interested in (${unit ?? "units"})`}
@@ -471,31 +529,32 @@ export function RfqFormBody({
         </Text>
       ) : null}
 
-      <Button label="Submit enquiry" fullWidth loading={submitting} onPress={submit} />
+      <Button label="Submit bulk enquiry →" fullWidth loading={submitting} onPress={submit} />
       <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: colors.inkSoft, textAlign: "center" }}>
-        Your details are only seen by the FarmsClub team.
+        🔒 Handled confidentially by the FarmsClub B2B Trade Desk.
       </Text>
     </View>
   );
 }
 
-/** TextField props from a `field()` descriptor (drops the layout callback). */
 function pick(f: { id: string; error?: string; ref: (r: TextInput | null) => void }) {
   return { id: f.id, error: f.error, ref: f.ref };
 }
 
-/** Reports its own y offset within the section, for scroll-to-first-error. */
 function Slot({ onY, children }: { onY: (y: number) => void; children: React.ReactNode }) {
   return <View onLayout={(e) => onY(e.nativeEvent.layout.y)}>{children}</View>;
 }
 
-function FormSection({ title, children, onY }: { title: string; children: React.ReactNode; onY: (y: number) => void }) {
+function FormSection({ badge, title, children, onY }: { badge: string; title: string; children: React.ReactNode; onY: (y: number) => void }) {
   const { colors, fonts, spacing } = useTheme();
   return (
     <View style={{ gap: spacing.md }} onLayout={(e) => onY(e.nativeEvent.layout.y)}>
-      <Text accessibilityRole="header" style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: colors.inkSoft }}>
-        {title}
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingTop: 4 }}>
+        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: colors.accentDark }}>{badge}</Text>
+        <Text accessibilityRole="header" style={{ fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 0.7, textTransform: "uppercase", color: colors.inkSoft }}>
+          {title}
+        </Text>
+      </View>
       {children}
     </View>
   );

@@ -24,7 +24,9 @@ import {
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "@/constants/theme-context";
 import { ChatProvider } from "@/lib/chat-context";
+import { TourProvider } from "@/lib/tour-context";
 import { ChatWidget } from "@/components/ChatWidget";
+import { TourGuide } from "@/components/TourGuide";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -40,6 +42,7 @@ function RootStack() {
           contentStyle: { backgroundColor: colors.paper },
         }}
       />
+      <TourGuide />
       <ChatWidget />
     </View>
   );
@@ -67,9 +70,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <ChatProvider>
-          <RootStack />
-        </ChatProvider>
+        <TourProvider>
+          <ChatProvider>
+            <RootStack />
+          </ChatProvider>
+        </TourProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

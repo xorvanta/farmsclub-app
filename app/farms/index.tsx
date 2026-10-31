@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, useWindowDimensions } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
 import { AppShell, useContentWidth } from "@/components/AppShell";
-import { SectionTitle } from "@/components/SectionTitle";
 import { FilterSelect } from "@/components/FilterSelect";
 import { FarmCard, fromFarmCard, farmColumns } from "@/components/FarmCard";
 import { Checkbox } from "@/components/Checkbox";
@@ -34,12 +34,12 @@ function humanize(slug: string): string {
 
 /**
  * Storefront §5 farms directory. Filters (state, farm type, crop, training) come from
- * GET /public/fc/filters — only values that have Live farms — and live in the URL
- * (`/farms?state=bihar&crop=mango&training=1`), so Back, refresh and shared links keep them.
- * The server only ever returns Live farms; Verified/Self-listed comes from each card.
+ * GET /public/fc/filters — only values that have Live farms — and live in the URL.
  */
 export default function Farms() {
-  const { colors, fonts, spacing } = useTheme();
+  const { colors, fonts, spacing, radius } = useTheme();
+  const { width } = useWindowDimensions();
+  const compact = width < 560;
   const params = useLocalSearchParams<{ state?: string; district?: string; type?: string; crop?: string; training?: string; sort?: string }>();
   const state = first(params.state).toLowerCase();
   const district = first(params.district).toLowerCase();
@@ -113,7 +113,6 @@ export default function Farms() {
   const stateOptions = (filters?.states ?? []).filter((s) => s.farms > 0).map((s) => ({ value: s.slug, label: s.name }));
   const typeOptions = (filters?.farm_types ?? []).filter((t) => t.farms > 0).map((t) => ({ value: t.slug, label: t.name }));
   const cropOptions = (filters?.crops ?? []).filter((c) => c.farms > 0).map((c) => ({ value: c.slug, label: c.name }));
-  // A value from a shared/breadcrumb link that isn't in the list (or arrived as an id/code) still shows selected.
   const withCurrent = (opts: { value: string; label: string }[], v: string) =>
     v && !opts.some((o) => o.value === v) ? [{ value: v, label: humanize(v) }, ...opts] : opts;
 
@@ -121,13 +120,55 @@ export default function Farms() {
   const title = stateName ? `Farms in ${stateName} · FarmsClub` : "Farms · FarmsClub";
 
   return (
-    <AppShell contentContainerStyle={{ width: "100%", maxWidth: 1232, alignSelf: "center", paddingHorizontal: spacing.lg, paddingTop: spacing.xl, paddingBottom: spacing.xxl }}>
+    <AppShell contentContainerStyle={{ width: "100%", maxWidth: 1232, alignSelf: "center", paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xxl }}>
       <SeoHead title={title} description="Real farms across India — their stories, videos, what they grow, services and training. Filter by state, farm type and crop." />
 
-      <SectionTitle level={1} title="Farms" subtitle="Real farms across India" />
+      {/* Verified Farm Network Hero Header */}
+      <LinearGradient
+        colors={["#071A10", "#123824", "#184A30"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          borderRadius: radius.xl,
+          padding: compact ? spacing.lg : spacing.xl,
+          borderWidth: 1,
+          borderColor: "rgba(229,180,98,0.32)",
+          gap: spacing.sm,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#52C388" }} />
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: "#E5B462" }}>
+              GROUND-FILMED GROWER NETWORK
+            </Text>
+          </View>
+          <Link href="/list-your-farm" style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: "#E5B462" }}>
+            + List Your Farm (Free) →
+          </Link>
+        </View>
+        <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: compact ? 26 : 32, lineHeight: compact ? 32 : 38, color: "#FFFFFF" }}>
+          {stateName ? `Farms in ${stateName}` : "Verified Farms & Estates"}
+        </Text>
+        <Text style={{ fontFamily: fonts.body, fontSize: 14, color: "rgba(255,255,255,0.82)", maxWidth: 640 }}>
+          Inspect real farms across India — on-ground films, soil & mother-plant credentials, what they grow, and field training.
+        </Text>
+      </LinearGradient>
 
-      {/* Filters */}
-      <View style={{ marginTop: spacing.lg, gap: spacing.md }} accessibilityRole="search" aria-label="Filter farms">
+      {/* Filter Card */}
+      <View
+        style={{
+          marginTop: spacing.lg,
+          backgroundColor: colors.surface,
+          borderRadius: radius.lg,
+          padding: spacing.md,
+          borderWidth: 1,
+          borderColor: colors.border,
+          gap: spacing.md,
+        }}
+        accessibilityRole="search"
+        aria-label="Filter farms"
+      >
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
           <FilterSelect id="farms-state" label="State" allLabel="All states" value={state} options={withCurrent(stateOptions, state)} onChange={(v) => router.setParams({ state: v || undefined, district: undefined })} />
           <FilterSelect id="farms-type" label="Farm type" allLabel="All farm types" value={type} options={withCurrent(typeOptions, type)} onChange={(v) => setParam("type", v)} />
@@ -139,7 +180,6 @@ export default function Farms() {
           ) : (
             <View />
           )}
-          {/* flexShrink so the chips wrap inside the screen instead of running off its right edge. */}
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap", flexShrink: 1, maxWidth: "100%" }}>
             <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.inkSoft }}>Sort:</Text>
             {SORTS.map((s) => (
@@ -166,8 +206,8 @@ export default function Farms() {
               </Pressable>
             ) : null}
             {hasFilter ? (
-              <Pressable onPress={clearFilters} accessibilityRole="button" style={{ minHeight: 44, justifyContent: "center", paddingHorizontal: 4 }}>
-                <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: colors.cta }}>Clear filters</Text>
+              <Pressable onPress={clearFilters} accessibilityRole="button" style={{ minHeight: 38, justifyContent: "center", paddingHorizontal: 12, borderRadius: 999, backgroundColor: colors.accentSoft }}>
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: colors.cta }}>Clear filters ✕</Text>
               </Pressable>
             ) : null}
           </View>
@@ -190,8 +230,8 @@ export default function Farms() {
         ) : (
           <>
             {total != null ? (
-              <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft, marginBottom: spacing.md }} accessibilityLiveRegion="polite" aria-live="polite">
-                {total === 1 ? "1 farm" : `${total.toLocaleString("en-IN")} farms`}
+              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.inkSoft, marginBottom: spacing.md }} accessibilityLiveRegion="polite" aria-live="polite">
+                {total === 1 ? "Showing 1 farm estate" : `Showing ${total.toLocaleString("en-IN")} farm estates`}
               </Text>
             ) : null}
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap }}>
@@ -203,7 +243,7 @@ export default function Farms() {
             </View>
             {hasMore ? (
               <View style={{ alignItems: "center", marginTop: spacing.xl }}>
-                <Button label="Load more" variant="outline" loading={loadingMore} onPress={loadMore} />
+                <Button label="Load more farms" variant="outline" loading={loadingMore} onPress={loadMore} />
               </View>
             ) : null}
           </>
@@ -211,7 +251,7 @@ export default function Farms() {
       </View>
 
       <View style={{ marginTop: spacing.xxl }}>
-        <SectionBanner insetHorizontal={false} title="Own a farm?" body="Share your story with buyers and future farmers across India. Listing is free.">
+        <SectionBanner insetHorizontal={false} eyebrow="GROWER NETWORK" title="Own a farm?" body="Share your story with buyers and future farmers across India. Listing is free.">
           <Link href="/list-your-farm" asChild>
             <Button label="List your farm (free)" />
           </Link>

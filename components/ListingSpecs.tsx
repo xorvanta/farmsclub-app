@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { View, Text, Image, Pressable, ScrollView, StyleSheet } from "react-native";
+import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { useTheme } from "@/constants/theme-context";
 import { listingUnit, propagationLabel } from "@/lib/listing";
 import type { B2bListing } from "@/lib/types";
@@ -67,33 +68,81 @@ export function specificationSummary(spec: string | null): string | null {
   return rows.map((r) => `${r.label}: ${r.value}`).join(", ");
 }
 
-/** Storefront §9.2 specification table — only filled rows: Variety · Propagation · Age · Height ·
- *  Bag/pot size · Unit · then any other spec fields/text the listing carries. */
+/** Storefront §9.2 Visual Specification Matrix — renders primary agronomic parameters as visual bento tiles,
+ *  followed by any additional custom specification rows or notes. */
 export function SpecificationSection({ listing }: { listing: B2bListing }) {
   const { colors, fonts, radius, spacing } = useTheme();
   const { rows: specRows, text } = parseSpecification(listing.specification);
-  const fixed: { label: string; value: string | null | undefined }[] = [
-    { label: "Variety", value: listing.variety?.trim() },
-    { label: "Propagation", value: propagationLabel(listing.propagation) },
-    { label: "Age", value: listing.age?.trim() },
-    { label: "Height", value: listing.height?.trim() },
-    { label: "Bag/pot size", value: listing.bag_size?.trim() },
-    { label: "Unit", value: listingUnit(listing) },
-    { label: "Brand", value: listing.manufacturer_brand?.trim() },
+  const fixed: { label: string; value: string | null | undefined; icon: string }[] = [
+    { label: "Variety", value: listing.variety?.trim(), icon: "leaf" },
+    { label: "Propagation", value: propagationLabel(listing.propagation), icon: "graft" },
+    { label: "Plant Age", value: listing.age?.trim(), icon: "clock" },
+    { label: "Sapling Height", value: listing.height?.trim(), icon: "ruler" },
+    { label: "Bag / Pot Size", value: listing.bag_size?.trim(), icon: "bag" },
+    { label: "Trade Unit", value: listingUnit(listing), icon: "box" },
+    { label: "Brand / Nursery", value: listing.manufacturer_brand?.trim(), icon: "shield" },
   ];
   const fixedLabels = new Set(fixed.map((f) => f.label.toLowerCase()));
-  const rows = [
-    ...fixed.filter((r): r is { label: string; value: string } => !!r.value),
-    ...specRows.filter((r) => !fixedLabels.has(r.label.toLowerCase())),
-  ];
-  if (!rows.length && !text) return null;
+  const filledFixed = fixed.filter((r): r is { label: string; value: string; icon: string } => !!r.value);
+  const extraRows = specRows.filter((r) => !fixedLabels.has(r.label.toLowerCase()) && !["age", "height", "bag/pot size", "unit", "brand"].includes(r.label.toLowerCase()));
+
+  if (!filledFixed.length && !extraRows.length && !text) return null;
 
   return (
-    <View style={{ gap: spacing.sm }}>
-      <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 16.5, color: colors.ink }}>
-        Specifications
-      </Text>
-      {rows.length > 0 && (
+    <View style={{ gap: spacing.md }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 16.5, color: colors.ink }}>
+          Lot Specifications & Grading
+        </Text>
+      </View>
+
+      {/* Visual Bento Grid for Primary Specs */}
+      {filledFixed.length > 0 && (
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+          {filledFixed.map((item) => (
+            <View
+              key={item.label}
+              style={{
+                flexGrow: 1,
+                flexBasis: "45%",
+                minWidth: 140,
+                backgroundColor: colors.surface,
+                borderRadius: radius.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                padding: spacing.md,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  backgroundColor: colors.brandSoft,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <SpecGlyph kind={item.icon} color={colors.brand} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.4, color: colors.inkFaint }}>
+                  {item.label}
+                </Text>
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink, marginTop: 1 }}>
+                  {item.value}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Extra Custom Spec Rows */}
+      {extraRows.length > 0 && (
         <View
           style={{
             borderWidth: 1,
@@ -101,14 +150,9 @@ export function SpecificationSection({ listing }: { listing: B2bListing }) {
             borderRadius: radius.md,
             overflow: "hidden",
             backgroundColor: colors.surface,
-            shadowColor: "#111C15",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.03,
-            shadowRadius: 5,
-            elevation: 1,
           }}
         >
-          {rows.map((r, i) => (
+          {extraRows.map((r, i) => (
             <View
               key={`${r.label}-${i}`}
               style={[
@@ -126,16 +170,69 @@ export function SpecificationSection({ listing }: { listing: B2bListing }) {
           ))}
         </View>
       )}
+
       {text ? (
-        <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, lineHeight: 21 }}>{text}</Text>
+        <View style={{ backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md }}>
+          <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, lineHeight: 21 }}>{text}</Text>
+        </View>
       ) : null}
     </View>
   );
 }
 
+function SpecGlyph({ kind, color }: { kind: string; color: string }) {
+  const p = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  switch (kind) {
+    case "leaf":
+      return (
+        <Svg {...p}>
+          <Path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+          <Path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+        </Svg>
+      );
+    case "graft":
+      return (
+        <Svg {...p}>
+          <Path d="M12 22v-9" />
+          <Path d="M12 13 7 8" />
+          <Path d="M12 10l5-5" />
+          <Circle cx={7} cy={6} r={2} />
+          <Circle cx={17} cy={4} r={2} />
+        </Svg>
+      );
+    case "clock":
+      return (
+        <Svg {...p}>
+          <Circle cx={12} cy={12} r={9} />
+          <Path d="M12 7v5l3 3" />
+        </Svg>
+      );
+    case "ruler":
+      return (
+        <Svg {...p}>
+          <Path d="M12 3v18" />
+          <Path d="m8 7 4-4 4 4" />
+          <Path d="m8 17 4 4 4-4" />
+        </Svg>
+      );
+    case "bag":
+      return (
+        <Svg {...p}>
+          <Path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+          <Path d="M3 6h18" />
+        </Svg>
+      );
+    default:
+      return (
+        <Svg {...p}>
+          <Rect x={3} y={3} width={18} height={18} rx={3} />
+          <Path d="m9 12 2 2 4-4" />
+        </Svg>
+      );
+  }
+}
+
 /** Main image plus a thumbnail strip when there's more than one image. */
-/** `maxHeight` caps the main image on wide screens (an aspect ratio alone would make it as tall
- *  as the column is wide). `alt` describes the images for screen readers. */
 export function ImageGallery({
   images,
   fallback,
@@ -149,7 +246,7 @@ export function ImageGallery({
   maxHeight?: number;
   alt?: string;
 }) {
-  const { colors, radius, spacing } = useTheme();
+  const { colors, fonts, radius, spacing } = useTheme();
   const [active, setActive] = useState(0);
   const current = images[Math.min(active, images.length - 1)];
 
@@ -162,14 +259,36 @@ export function ImageGallery({
           width: "100%",
           position: "relative",
           overflow: "hidden",
-          borderRadius: radius.lg,
+          borderRadius: radius.xl,
           backgroundColor: colors.surface,
           borderWidth: 1,
           borderColor: colors.border,
+          shadowColor: "#081E12",
+          shadowOpacity: 0.08,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 4,
         }}
       >
         {current ? <Image source={{ uri: current }} style={styles.image} resizeMode="cover" alt={alt ? `${alt} — photo ${active + 1} of ${images.length}` : ""} /> : fallback}
+
+        {/* Floating B2B Quality Stamp & Photo Counter */}
+        <View style={{ position: "absolute", top: 12, left: 12, right: 12, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <View style={{ backgroundColor: "rgba(8,30,18,0.82)", paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(229,180,98,0.4)" }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.6, color: "#E5B462" }}>
+              ✓ QUALITY GRADED STOCK
+            </Text>
+          </View>
+          {images.length > 1 ? (
+            <View style={{ backgroundColor: "rgba(8,30,18,0.78)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill }}>
+              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: "#FFFFFF" }}>
+                {active + 1} / {images.length}
+              </Text>
+            </View>
+          ) : null}
+        </View>
       </View>
+
       {images.length > 1 && (
         <ScrollView
           horizontal
@@ -184,13 +303,13 @@ export function ImageGallery({
               accessibilityLabel={`Show photo ${i + 1} of ${images.length}`}
               accessibilityState={{ selected: i === active }}
               style={{
-                width: 68,
-                height: 68,
+                width: 72,
+                height: 72,
                 borderRadius: radius.md,
                 overflow: "hidden",
                 borderWidth: 2,
                 borderColor: i === active ? colors.brand : colors.border,
-                opacity: i === active ? 1 : 0.78,
+                opacity: i === active ? 1 : 0.72,
               }}
             >
               <Image source={{ uri }} style={styles.image} resizeMode="cover" alt="" accessible={false} />
