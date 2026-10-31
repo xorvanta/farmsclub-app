@@ -27,14 +27,14 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-const MANDI_STATS = [
-  { badge: "MANDI SLABS", value: "Tiered Rates", sub: "Volume drops unit price" },
+const TRADE_STATS = [
+  { badge: "VOLUME SLABS", value: "Tiered Rates", sub: "Volume drops unit price" },
   { badge: "LOGISTICS", value: "Road & Rail", sub: "Pan-India nursery transit" },
   { badge: "NETWORK", value: "Ground-Filmed", sub: "Verified mother stock" },
 ];
 
 /**
- * Full-bleed Sovereign Mandi Hero Stage: cross-fading slides with a 3D floating telemetry card on desktop,
+ * Full-bleed Executive B2B Hero Stage: cross-fading slides with a 3D floating telemetry card on desktop,
  * minimal punchy typography, and quick triggers for the 3D Orchard Planner & Interactive Tour.
  */
 export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]; height: number; children?: React.ReactNode }) {
@@ -66,7 +66,7 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
 
   const scrollToPlanner = () => {
     if (Platform.OS === "web" && typeof document !== "undefined") {
-      document.getElementById("mandi-3d-planner")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById("orchard-3d-planner")?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   };
 
@@ -121,7 +121,7 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
               >
                 <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#52C388" }} />
                 <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.8, textTransform: "uppercase", color: "#E5B462" }}>
-                  {s.eyebrow ?? "SOVEREIGN B2B MANDI & FARM NETWORK"}
+                  {s.eyebrow ?? "B2B WHOLESALE SUPPLY & FARM NETWORK"}
                 </Text>
               </View>
 
@@ -169,7 +169,7 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
               ) : null}
             </View>
 
-            {/* Right 3D Floating Mandi Command Card (Desktop) */}
+            {/* Right 3D Floating Trade Command Card (Desktop) */}
             {wide ? (
               <TiltCard maxTilt={6} scale={1.02} style={{ width: 350 }}>
                 <View
@@ -188,7 +188,7 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
                 >
                   <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                     <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.9, color: "#E5B462" }}>
-                      MANDI TRADE TELEMETRY
+                      B2B TRADE TELEMETRY
                     </Text>
                     <View style={{ backgroundColor: "rgba(82,195,136,0.2)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }}>
                       <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#6FC28F" }}>● LIVE DESK</Text>
@@ -196,7 +196,7 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
                   </View>
 
                   <View style={{ gap: 8 }}>
-                    {MANDI_STATS.map((st) => (
+                    {TRADE_STATS.map((st) => (
                       <View
                         key={st.badge}
                         style={{

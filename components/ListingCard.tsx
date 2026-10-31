@@ -12,7 +12,7 @@ import { listingCategoryName, listingMoqLabel, listingPriceLabel, listingSpecChi
 import type { B2bListing } from "@/lib/types";
 
 /**
- * Storefront §4.2 B2B Mandi Lot Card:
+ * Storefront §4.2 B2B Wholesale Lot Card:
  * Wrapped in 3D TiltCard. Image with floating MOQ & category badges, bold tiered price block,
  * visual spec chips, and a high-contrast "Request quote" CTA.
  * The image/title block and the button remain two separate links so <a> never nests inside <a>.

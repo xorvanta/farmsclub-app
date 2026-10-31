@@ -41,7 +41,7 @@ export const radius = {
   pill: 999,
 };
 
-// Brand — Sovereign Mandi palette: deep botanical pine, copper terracotta, harvest brass gold, and warm khadi parchment.
+// Brand — Executive B2B Wholesale palette: deep botanical pine, copper terracotta, harvest brass gold, and warm khadi parchment.
 export const light = {
   brand: "#123824",
   brandDark: "#081E12",

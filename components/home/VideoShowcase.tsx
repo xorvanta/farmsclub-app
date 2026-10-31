@@ -23,7 +23,7 @@ export function mergeVideos(...lists: HomeVideo[][]): HomeVideo[] {
 }
 
 /**
- * "See the farms": a dark full-width Sovereign Mandi cinema reel with one large player and the other videos beside it
+ * "See the farms": a dark full-width documentary cinema reel with one large player and the other videos beside it
  * (below it on phones). Picking a video plays it in the large player. Real videos only — the
  * section isn't rendered when there are none.
  */

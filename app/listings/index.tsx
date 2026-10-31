@@ -33,7 +33,7 @@ function firstParam(v: string | string[] | undefined): string {
 }
 
 /**
- * Bulk supply Mandi Exchange (Storefront §9.1). Category, crop, sort and search live in the URL
+ * Bulk supply Wholesale Catalog (Storefront §9.1). Category, crop, sort and search live in the URL
  * (?category=fruit-plants&crop=Mango&sort=price_asc&q=alphonso).
  */
 export default function Listings() {
@@ -110,7 +110,7 @@ export default function Listings() {
 
   const filterBar = (
     <View style={{ paddingHorizontal: gutter, paddingTop: spacing.lg, paddingBottom: spacing.md, gap: spacing.lg }}>
-      {/* Mandi Trade Floor Header */}
+      {/* Wholesale Trade Floor Header */}
       <LinearGradient
         colors={["#071A10", "#123824", "#184A30"]}
         start={{ x: 0, y: 0 }}
@@ -128,14 +128,14 @@ export default function Listings() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#52C388" }} />
               <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: "#E5B462" }}>
-                WHOLESALE B2B MANDI FLOOR
+                WHOLESALE B2B SUPPLY CATALOG
               </Text>
             </View>
             <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: compact ? 26 : 32, lineHeight: compact ? 32 : 38, color: "#FFFFFF" }}>
               {activeCategory ? activeCategory.name_en : "Bulk Supply & Plantation Stock"}
             </Text>
             <Text style={{ fontFamily: fonts.body, fontSize: 14, color: "rgba(255,255,255,0.82)" }}>
-              Quantity-tiered mandi rates · Direct road & rail dispatch from verified grower belts.
+              Quantity-tiered wholesale rates · Direct road & rail dispatch from verified grower belts.
             </Text>
           </View>
 

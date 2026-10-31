@@ -36,7 +36,7 @@ const DEFAULT_HERO = {
 };
 const DEFAULT_OFFERS = [
   { title: "Real farm stories", line: "Filmed on the ground" },
-  { title: "Bulk planting material", line: "Tiered mandi pricing" },
+  { title: "Bulk planting material", line: "Tiered volume pricing" },
   { title: "Road & rail dispatch", line: "Nearest verified source" },
   { title: "One point of contact", line: "Quote to delivery" },
 ];
@@ -144,7 +144,7 @@ export default function Home() {
         image={content?.shareImageUrl ?? null}
       />
 
-      {/* 1 · Sovereign Mandi Hero Carousel */}
+      {/* 1 · Executive B2B Hero Carousel */}
       <HeroCarousel slides={slides} height={heroHeight}>
         <Text accessibilityRole="header" aria-level={1} style={visuallyHidden}>
           {hero.headline}
@@ -196,7 +196,7 @@ export default function Home() {
                 elevation: 3,
               })}
             >
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14.5, color: "#FFFFFF" }}>Search Mandi</Text>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14.5, color: "#FFFFFF" }}>Search</Text>
             </Pressable>
           </View>
 
@@ -241,7 +241,7 @@ export default function Home() {
                 borderColor: colors.gold,
               }}
             >
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: colors.goldDark }}>✦ How Mandi Works (30s Tour) →</Text>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: colors.goldDark }}>✦ Platform Overview (30s Tour) →</Text>
             </Pressable>
           </View>
 
@@ -251,7 +251,7 @@ export default function Home() {
             What we offer
           </Text>
 
-          {/* 4 Visual Mandi Pillar Badges */}
+          {/* 4 Visual B2B Pillar Badges */}
           <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: spacing.md, columnGap: spacing.md }}>
             {offers.map((o, i) => (
               <View
@@ -301,7 +301,7 @@ export default function Home() {
       {/* 3 · Bulk Planting Material — 3D Category Bento + Live Lots Rail */}
       {categories.length > 0 || listings.length > 0 ? (
         <View style={section}>
-          <SectionHead eyebrow="WHOLESALE MANDI LOTS" title="Bulk planting stock, priced by volume." linkLabel="Open Full Mandi" href="/listings" />
+          <SectionHead eyebrow="WHOLESALE SUPPLY LOTS" title="Bulk planting stock, priced by volume." linkLabel="Explore Bulk Supply" href="/listings" />
           {categories.length > 0 ? (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.lg }}>
               {categories.map((c) => (
@@ -372,7 +372,7 @@ export default function Home() {
         <View style={section}>
           <PhotoPanel
             photo={HOME_PHOTOS.seedlings}
-            eyebrow="WHOLESALE MANDI"
+            eyebrow="WHOLESALE SUPPLY"
             title="Planting material in bulk"
             body="Select your crop and quantity slab. Our trade desk confirms live batch availability and dispatch."
           >
@@ -404,7 +404,7 @@ export default function Home() {
         </View>
       ) : null}
 
-      {/* 7 · Visual India Mandi Explorer (States & Crops Matrix) */}
+      {/* 7 · Visual Pan-India Network Explorer (States & Crops Matrix) */}
       {stateChips.length > 0 || cropChips.length > 0 ? (
         <View style={section}>
           <SectionHead eyebrow="PAN-INDIA NETWORK" title="Explore farms by state or crop belt" linkLabel="Directory" href="/farms" />
@@ -585,7 +585,7 @@ function buildSlides(
     eyebrow: "WHOLESALE QUANTITY SLABS",
     title: "Bulk planting material",
     subline: "Saplings priced by quantity slab, dispatched by road truck or Indian Railways.",
-    cta: { label: "Open Bulk Mandi →", href: "/listings" },
+    cta: { label: "Explore Bulk Supply →", href: "/listings" },
     secondary: { label: "Send Custom RFQ", href: "/contact" },
   });
   out.push({

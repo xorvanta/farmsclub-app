@@ -19,8 +19,8 @@ type TourStep = {
 const STEPS: TourStep[] = [
   {
     id: "slabs",
-    badge: "STEP 1 OF 4 · MANDI QUANTITY SLABS",
-    title: "Volume unlocks wholesale mandi pricing",
+    badge: "STEP 1 OF 4 · WHOLESALE QUANTITY SLABS",
+    title: "Volume unlocks tiered wholesale pricing",
     caption: "Every bulk lot on FarmsClub shows transparent tier slabs. Higher volume automatically drops your per-sapling rate.",
     metrics: [
       { label: "Tier Pricing", value: "100% Transparent" },
@@ -97,7 +97,7 @@ export function TourGuide() {
       router.push("/listings");
     } else if (current.id === "planner3d") {
       if (Platform.OS === "web" && typeof document !== "undefined") {
-        const el = document.getElementById("mandi-3d-planner");
+        const el = document.getElementById("orchard-3d-planner");
         if (el) {
           el.scrollIntoView({ behavior: "smooth", block: "center" });
           return;
@@ -149,7 +149,7 @@ export function TourGuide() {
             <Pressable
               onPress={() => openTour(0)}
               accessibilityRole="button"
-              accessibilityLabel="Take the 30-second interactive Mandi tour"
+              accessibilityLabel="Take the 30-second interactive platform tour"
               style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: compact ? 1 : undefined }}
             >
               <View
@@ -169,7 +169,7 @@ export function TourGuide() {
               </View>
               <View>
                 <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: "#FFFFFF" }}>
-                  New to FarmsClub Mandi?
+                  New to FarmsClub B2B?
                 </Text>
                 <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11, color: "#E5B462" }}>
                   Take 30s Interactive Tour →
@@ -206,7 +206,7 @@ export function TourGuide() {
               },
             ]}
           >
-            {/* Top Dark Mandi Visual Stage */}
+            {/* Top Dark Visual Stage */}
             <LinearGradient
               colors={["#071A10", "#123824", "#184A30"]}
               start={{ x: 0, y: 0 }}
@@ -280,7 +280,7 @@ export function TourGuide() {
                       {[
                         { qty: "100–499", rate: "₹85", tag: "Starter Lot" },
                         { qty: "500–2,499", rate: "₹73", tag: "Orchard Slab" },
-                        { qty: "2,500+", rate: "₹63", tag: "Mandi Bulk" },
+                        { qty: "2,500+", rate: "₹63", tag: "Estate Bulk" },
                       ].map((slab, i) => {
                         const active = demoTier === i;
                         return (

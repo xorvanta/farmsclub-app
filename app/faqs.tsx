@@ -32,7 +32,7 @@ export default function Faqs() {
         }}
       >
         <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, color: "#E5B462", textTransform: "uppercase" }}>
-          MANDI & FARM NETWORK KNOWLEDGE BASE
+          B2B PROCUREMENT & FARM NETWORK KNOWLEDGE BASE
         </Text>
         <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: 28, lineHeight: 34, color: "#FFFFFF" }}>
           Frequently asked questions

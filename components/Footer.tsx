@@ -8,7 +8,7 @@ import { Logo, TAGLINE } from "@/components/Logo";
 /** Storefront §2.3: brand block, Explore / Help / Legal columns, and the legal line. */
 const COLUMNS: { title: string; links: { label: string; href: Href }[] }[] = [
   {
-    title: "Mandi & Network",
+    title: "Platform & Network",
     links: [
       { label: "Bulk supply", href: "/listings" },
       { label: "Verified farms", href: "/farms" },
@@ -34,7 +34,7 @@ const COLUMNS: { title: string; links: { label: string; href: Href }[] }[] = [
 
 const PILLARS = [
   { badge: "01 · GROUND-FILMED", label: "Real farm documentaries & mother stock" },
-  { badge: "02 · MANDI SLABS", label: "Transparent quantity-tiered pricing" },
+  { badge: "02 · VOLUME SLABS", label: "Transparent quantity-tiered pricing" },
   { badge: "03 · PAN-INDIA TRANSIT", label: "Road trucks & Indian Railways dispatch" },
 ];
 
@@ -120,7 +120,7 @@ export function Footer() {
         <View style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.12)", paddingTop: spacing.lg, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 8 }}>
           <Text style={{ fontFamily: fonts.body, fontSize: 12, lineHeight: 18, color: "rgba(255,255,255,0.65)" }}>{LEGAL_LINE}</Text>
           <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12, color: "rgba(229,180,98,0.8)" }}>
-            Sovereign Mandi Edition · Built for High-Volume Agri Trade
+            FarmsClub B2B Edition · Built for High-Volume Agri Trade
           </Text>
         </View>
       </View>

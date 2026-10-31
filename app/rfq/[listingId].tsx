@@ -89,7 +89,7 @@ export default function RfqForScreen() {
         >
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
             <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.9, textTransform: "uppercase", color: "#E5B462" }}>
-              MANDI WHOLESALE QUOTE REQUEST
+              B2B WHOLESALE QUOTE REQUEST
             </Text>
             <Link href={{ pathname: "/listings/[id]", params: { id: String(listing.id) } }} style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: "#6FC28F" }}>
               ← Back to lot details

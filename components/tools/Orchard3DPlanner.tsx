@@ -164,7 +164,7 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
 
   return (
     <View
-      nativeID="mandi-3d-planner"
+      nativeID="orchard-3d-planner"
       style={{
         borderRadius: radius.xl,
         overflow: "hidden",
@@ -459,7 +459,7 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
                 ) : (
                   <View style={{ backgroundColor: "rgba(30,130,76,0.35)", paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill }}>
                     <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, color: "#6FC28F" }}>
-                      {totalPlants >= 2500 ? "Tier 3 Mandi Slab Unlocked" : totalPlants >= 500 ? "Tier 2 Orchard Slab Unlocked" : "MOQ Wholesale Tier"}
+                      {totalPlants >= 2500 ? "Tier 3 Estate Slab Unlocked" : totalPlants >= 500 ? "Tier 2 Orchard Slab Unlocked" : "MOQ Wholesale Tier"}
                     </Text>
                   </View>
                 )}

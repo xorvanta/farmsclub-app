@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type PropsWithChildren } from "react";
 import { Platform } from "react-native";
 
-const STORAGE_KEY = "fc_mandi_tour_seen_v1";
+const STORAGE_KEY = "fc_b2b_tour_seen_v1";
 
 type TourContextValue = {
   isOpen: boolean;

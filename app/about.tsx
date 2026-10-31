@@ -59,7 +59,7 @@ export default function About() {
         description="How FarmsClub works: buy planting material in bulk with quantity pricing, or list your farm and get discovered by buyers and future farmers."
       />
 
-      {/* Sovereign Mandi Blueprint Hero */}
+      {/* Executive B2B Blueprint Hero */}
       <LinearGradient
         colors={["#071A10", "#123824", "#184A30"]}
         start={{ x: 0, y: 0 }}
@@ -99,7 +99,7 @@ export default function About() {
           How FarmsClub works
         </Text>
         <Text style={{ fontFamily: fonts.body, fontSize: 15.5, color: "rgba(255,255,255,0.86)", maxWidth: 620, lineHeight: 23 }}>
-          Two connected ecosystems: a verified grower network filmed on the ground, and a wholesale B2B mandi for bulk planting stock.
+          Two connected ecosystems: a verified grower network filmed on the ground, and a wholesale B2B procurement desk for bulk planting stock.
         </Text>
       </LinearGradient>
 

@@ -5,9 +5,9 @@ import { useB2bContact, whatsappUrl } from "@/constants/contact";
 import { useTour } from "@/lib/tour-context";
 
 /**
- * Sovereign Mandi Live Trade Strip above the header:
+ * Executive B2B Live Trade Strip above the header:
  * Shows live B2B trade badges (Quantity Tiers · Road & Rail Dispatch), the admin's hours & WhatsApp
- * link when configured, and a quick "30s Mandi Tour" trigger.
+ * link when configured, and a quick "30s Tour" trigger.
  */
 export function AnnouncementBar() {
   const { colors, fonts, spacing } = useTheme();
@@ -40,12 +40,12 @@ export function AnnouncementBar() {
           gap: 8,
         }}
       >
-        {/* Left: Live Mandi Telemetry */}
+        {/* Left: Live B2B Telemetry */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(82,195,136,0.14)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}>
             <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#52C388" }} />
             <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.6, color: "#6FC28F" }}>
-              B2B MANDI EXCHANGE
+              B2B WHOLESALE DESK
             </Text>
           </View>
           {!compact ? (

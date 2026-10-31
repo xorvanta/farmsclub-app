@@ -1,15 +1,15 @@
 import { ScrollViewStyleReset } from "expo-router/html";
 import type { PropsWithChildren } from "react";
 
-const MANDI_WEB_CSS = `
+const GLOBAL_WEB_CSS = `
 :root {
   --in-oklab: ;
   --in-oklch: ;
-  --mandi-brand: #123824;
-  --mandi-dark: #081E12;
-  --mandi-gold: #E5B462;
-  --mandi-cta: #C25E1A;
-  --mandi-paper: #F6F4EE;
+  --fc-brand: #123824;
+  --fc-dark: #081E12;
+  --fc-gold: #E5B462;
+  --fc-cta: #C25E1A;
+  --fc-paper: #F6F4EE;
 }
 
 @supports (background: linear-gradient(in oklab, white, black)) {
@@ -25,7 +25,7 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom sleek mandi scrollbar */
+/* Custom sleek scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -41,12 +41,12 @@ html, body {
   background: #123824;
 }
 
-@keyframes mandiPulse {
+@keyframes fcPulse {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.35); opacity: 0.55; }
 }
 
-@keyframes mandiFloat {
+@keyframes fcFloat {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-5px); }
 }
@@ -85,7 +85,7 @@ export default function Root({ children }: PropsWithChildren) {
         <meta property="og:image" content="https://farmsclub.in/og-farmsclub.png" />
         <link rel="preconnect" href="https://i.ytimg.com" />
         <ScrollViewStyleReset />
-        <style dangerouslySetInnerHTML={{ __html: MANDI_WEB_CSS }} />
+        <style dangerouslySetInnerHTML={{ __html: GLOBAL_WEB_CSS }} />
       </head>
       <body>{children}</body>
     </html>

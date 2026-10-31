@@ -69,7 +69,7 @@ export function Header() {
             <Pressable
               onPress={() => openTour(0)}
               accessibilityRole="button"
-              accessibilityLabel="Take 30-second Mandi tour"
+              accessibilityLabel="Take 30-second platform tour"
               style={{
                 flexDirection: "row",
                 alignItems: "center",

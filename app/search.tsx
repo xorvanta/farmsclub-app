@@ -105,7 +105,7 @@ export default function Search() {
         }}
       >
         <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, color: "#E5B462", textTransform: "uppercase" }}>
-          UNIFIED MANDI & FARM SEARCH
+          UNIFIED B2B SUPPLY & FARM SEARCH
         </Text>
         <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: 28, color: "#FFFFFF" }}>
           Search Farms & Bulk Supply
@@ -138,7 +138,7 @@ export default function Search() {
         ) : error ? (
           <ErrorState message={error} onRetry={() => setAttempt((n) => n + 1)} />
         ) : !result ? (
-          <LoadingState label="Searching Mandi & Farms…" />
+          <LoadingState label="Searching Bulk Supply & Farms…" />
         ) : farms.length === 0 && listings.length === 0 ? (
           <EmptyState title={`Nothing found for “${urlQ}”`} body="Try a crop (mango, teak), a state, or browse everything.">
             <Link href="/farms" asChild>

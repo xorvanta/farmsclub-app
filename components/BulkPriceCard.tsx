@@ -7,7 +7,7 @@ import { listingMoq, listingPriceLabel, listingUnit, pluralUnit, showsGst } from
 import type { B2bListing, B2bPriceTier } from "@/lib/types";
 
 /**
- * Interactive Mandi Slab & Lot Calculator (Storefront §9.2):
+ * Interactive Wholesale Slab & Lot Calculator (Storefront §9.2):
  * Displays "₹78–₹90 / plant", interactive quantity band rows with price per unit, MOQ,
  * AND a live volume simulator that highlights the active price slab and computes estimated lot value.
  */
@@ -114,7 +114,7 @@ export function BulkPriceCard({
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#52C388" }} />
           <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: "#E5B462" }}>
-            MANDI WHOLESALE SLABS
+            WHOLESALE VOLUME SLABS
           </Text>
         </View>
         {moq != null ? (
