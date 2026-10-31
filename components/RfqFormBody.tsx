@@ -280,10 +280,10 @@ export function RfqFormBody({
       <View
         style={{
           flexDirection: "row",
-          flexWrap: "wrap",
-          gap: 8,
+          gap: 6,
           backgroundColor: colors.paper,
-          padding: 10,
+          paddingVertical: 8,
+          paddingHorizontal: 10,
           borderRadius: radius.md,
           borderWidth: 1,
           borderColor: colors.border,
@@ -291,14 +291,14 @@ export function RfqFormBody({
       >
         {[
           { step: "01", label: "Buyer & GST" },
-          { step: "02", label: "Dispatch & Rail/Road" },
-          { step: "03", label: "Volume & Specs" },
+          { step: "02", label: "Rail / Road" },
+          { step: "03", label: "Lot Specs" },
         ].map((s) => (
-          <View key={s.step} style={{ flex: 1, minWidth: 110, flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#FFFFFF" }}>{s.step}</Text>
+          <View key={s.step} style={{ flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 5 }}>
+            <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 9.5, color: "#FFFFFF" }}>{s.step}</Text>
             </View>
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.ink }}>{s.label}</Text>
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.ink, flexShrink: 1 }}>{s.label}</Text>
           </View>
         ))}
       </View>

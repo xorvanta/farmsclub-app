@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { View, Text, StyleSheet, Platform, useWindowDimensions, type ScrollView } from "react-native";
+import { View, Text, StyleSheet, Platform, Pressable, useWindowDimensions, type ScrollView } from "react-native";
 import { Link, useLocalSearchParams } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { SeoHead } from "@/components/SeoHead";
 import { useTheme } from "@/constants/theme-context";
@@ -34,6 +35,7 @@ export default function ListingDetail() {
   const [unavailable, setUnavailable] = useState<{ title: string | null } | null>(null);
   const [farms, setFarms] = useState<FarmCardApi[]>([]);
   const [selectedQty, setSelectedQty] = useState<number | null>(null);
+  const [mobilePlannerOpen, setMobilePlannerOpen] = useState(false);
   const listingId = parseListingId(id);
 
   const load = useCallback(() => {
@@ -137,6 +139,7 @@ export default function ListingDetail() {
     .filter(Boolean)
     .join(" · ");
   const wide = width >= 880;
+  const isPhone = width < 560;
   const column = { width: "100%" as const, maxWidth: DETAIL_MAX_WIDTH, alignSelf: "center" as const };
 
   const rfqHref = {
@@ -145,7 +148,7 @@ export default function ListingDetail() {
   };
 
   const gallery = (
-    <View style={{ gap: spacing.md }}>
+    <View style={{ gap: isPhone ? spacing.sm : spacing.md }}>
       <ImageGallery
         images={images}
         aspectRatio={wide ? 1.25 : 1.35}
@@ -158,28 +161,33 @@ export default function ListingDetail() {
         }
       />
 
-      {/* Visual Trade Guarantees under Gallery */}
-      <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
+      {/* Visual Trade Guarantees under Gallery — Single non-wrapping row on mobile */}
+      <View style={{ flexDirection: "row", gap: isPhone ? 6 : spacing.sm }}>
         {[
-          { title: "Nursery Graded", sub: "Batch inspected" },
-          { title: "Road & Rail", sub: "Pan-India transit" },
-          { title: "Single Desk", sub: "Quote to dispatch" },
+          { title: "Nursery Graded", sub: "Batch checked" },
+          { title: "Road & Rail", sub: "Pan-India" },
+          { title: "Single Desk", sub: "Quote to door" },
         ].map((g) => (
           <View
             key={g.title}
             style={{
               flex: 1,
-              minWidth: 100,
+              minWidth: 0,
               backgroundColor: colors.surface,
               borderRadius: radius.md,
-              padding: 10,
+              paddingVertical: isPhone ? 8 : 10,
+              paddingHorizontal: isPhone ? 6 : 10,
               borderWidth: 1,
               borderColor: colors.border,
               alignItems: "center",
             }}
           >
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: colors.brand }}>{g.title}</Text>
-            <Text style={{ fontFamily: fonts.body, fontSize: 11, color: colors.inkSoft }}>{g.sub}</Text>
+            <Text numberOfLines={1} style={{ fontFamily: fonts.bodyBold, fontSize: isPhone ? 11 : 12, color: colors.brand }}>
+              {g.title}
+            </Text>
+            <Text numberOfLines={1} style={{ fontFamily: fonts.body, fontSize: isPhone ? 10 : 11, color: colors.inkSoft }}>
+              {g.sub}
+            </Text>
           </View>
         ))}
       </View>
@@ -187,7 +195,7 @@ export default function ListingDetail() {
   );
 
   const info = (
-    <View style={{ gap: spacing.md }}>
+    <View style={{ gap: isPhone ? 12 : spacing.md }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <Link href="/listings" style={{ fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.brand }}>
           ← Bulk Supply
@@ -195,7 +203,7 @@ export default function ListingDetail() {
         {category ? <Tag label={category} tone="brand" /> : null}
       </View>
 
-      <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: wide ? 30 : 25, color: colors.ink, lineHeight: wide ? 36 : 31 }}>
+      <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: wide ? 30 : 23, color: colors.ink, lineHeight: wide ? 36 : 29 }}>
         {listing.title}
       </Text>
 
@@ -205,15 +213,15 @@ export default function ListingDetail() {
       {(listing.dispatch_states?.length ?? 0) > 0 || (listing.transport_modes?.length ?? 0) > 0 ? (
         <View
           style={{
-            gap: spacing.md,
+            gap: isPhone ? 10 : spacing.md,
             backgroundColor: colors.surface,
-            padding: spacing.lg,
+            padding: isPhone ? 14 : spacing.lg,
             borderRadius: radius.lg,
             borderWidth: 1,
             borderColor: colors.border,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.brandSoft, alignItems: "center", justifyContent: "center" }}>
               <Svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke={colors.brand} strokeWidth={2}>
                 <Rect x={2} y={7} width={13} height={9} rx={1} />
@@ -222,11 +230,11 @@ export default function ListingDetail() {
                 <Circle cx={18.5} cy={18} r={2} />
               </Svg>
             </View>
-            <View>
-              <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: 15.5, color: colors.ink }}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: 15, color: colors.ink }}>
                 Logistics & Dispatch Corridor
               </Text>
-              <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.inkSoft }}>
+              <Text style={{ fontFamily: fonts.body, fontSize: 12, lineHeight: 16, color: colors.inkSoft }}>
                 Direct nursery loading via road carrier or Indian Railways parcel van
               </Text>
             </View>
@@ -243,21 +251,21 @@ export default function ListingDetail() {
         style={{
           backgroundColor: colors.brandSoft,
           borderRadius: radius.lg,
-          padding: spacing.lg,
+          padding: isPhone ? 14 : spacing.lg,
           borderWidth: 1,
           borderColor: "rgba(18,56,36,0.15)",
           gap: spacing.sm,
         }}
       >
-        <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: 15.5, color: colors.brand }}>
+        <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: 15, color: colors.brand }}>
           Brokered by the FarmsClub Trade Desk
         </Text>
-        <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: colors.ink, lineHeight: 20 }}>
+        <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.ink, lineHeight: 19 }}>
           Lock your volume slab above or request a custom quote. Our team confirms batch readiness and transit charges to your city or railway station.
         </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: 4 }}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: 2 }}>
           <Link href={rfqHref} asChild>
-            <Button label={selectedQty ? `Request Quote (${formatQty(selectedQty)} units) →` : "Request a quote →"} />
+            <Button label={selectedQty ? `Request Quote (${formatQty(selectedQty)}) →` : "Request a quote →"} />
           </Link>
           <Button label="Ask Trellis AI" variant="outline" onPress={() => openChat()} />
         </View>
@@ -269,41 +277,85 @@ export default function ListingDetail() {
     <AppShell
       stickyBar={
         <StickyBar maxWidth={DETAIL_MAX_WIDTH}>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, minWidth: 0 }}>
             {price ? (
-              <Text numberOfLines={1} style={{ fontFamily: fonts.bodyBold, fontSize: wide ? 18 : 16, color: colors.brand }}>
+              <Text numberOfLines={1} style={{ fontFamily: fonts.bodyBold, fontSize: wide ? 18 : 15, color: colors.brand }}>
                 {price}
-                {gst ? <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: colors.inkSoft }}> + GST</Text> : null}
+                {gst ? <Text style={{ fontFamily: fonts.body, fontSize: 11, color: colors.inkSoft }}> + GST</Text> : null}
               </Text>
             ) : null}
-            <Text numberOfLines={1} style={{ fontFamily: fonts.bodyMedium, fontSize: 12.5, color: colors.inkSoft }}>
-              {selectedQty ? `Selected lot: ${formatQty(selectedQty)} units` : moq ?? "Wholesale bulk lot"}
+            <Text numberOfLines={1} style={{ fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.inkSoft }}>
+              {selectedQty ? `Lot: ${formatQty(selectedQty)} units` : moq ?? "Wholesale bulk lot"}
             </Text>
           </View>
           <View style={{ flexShrink: 0 }}>
             <Link href={rfqHref} asChild>
-              <Button label={selectedQty ? `Quote ${formatQty(selectedQty)} units →` : "Request a quote"} />
+              <Button label={selectedQty ? (isPhone ? `Quote (${formatQty(selectedQty)}) →` : `Quote ${formatQty(selectedQty)} units →`) : "Get Quote →"} />
             </Link>
           </View>
         </StickyBar>
       }
     >
       <SeoHead title={`${listing.title} · FarmsClub`} description={metaDescription} image={images[0] ?? null} />
-      <View style={[column, { padding: spacing.lg, gap: spacing.xxl }]}>
+      <View style={[column, { padding: isPhone ? 14 : spacing.lg, gap: isPhone ? spacing.xl : spacing.xxl }]}>
         {wide ? (
           <View style={{ flexDirection: "row", gap: spacing.xl, alignItems: "flex-start" }}>
             <View style={{ flex: 1, position: Platform.OS === "web" ? ("sticky" as "relative") : "relative", top: 16 }}>{gallery}</View>
             <View style={{ flex: 1.12 }}>{info}</View>
           </View>
         ) : (
-          <View style={{ gap: spacing.lg }}>
+          <View style={{ gap: spacing.md }}>
             {gallery}
             {info}
           </View>
         )}
 
-        {/* Interactive 3D Orchard & Acreage Simulator for this specific listing */}
-        <Orchard3DPlanner listing={listing} />
+        {/* Interactive 3D Orchard & Acreage Simulator — Collapsible on Mobile to keep Product Page compact */}
+        {wide ? (
+          <Orchard3DPlanner listing={listing} />
+        ) : (
+          <View style={{ gap: spacing.sm }}>
+            <LinearGradient
+              colors={["#071A10", "#123824"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                borderRadius: radius.lg,
+                padding: 14,
+                borderWidth: 1,
+                borderColor: "rgba(229,180,98,0.35)",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+              }}
+            >
+              <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.8, color: "#E5B462", textTransform: "uppercase" }}>
+                  📐 3D ACREAGE & LOAD CALCULATOR
+                </Text>
+                <Text style={{ fontFamily: fonts.heading, fontSize: 14.5, color: "#FFFFFF", lineHeight: 19 }}>
+                  Calculating saplings for your land?
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => setMobilePlannerOpen((v) => !v)}
+                accessibilityRole="button"
+                style={{
+                  backgroundColor: mobilePlannerOpen ? "rgba(255,255,255,0.14)" : "#E5B462",
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: radius.pill,
+                }}
+              >
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: mobilePlannerOpen ? "#FFFFFF" : "#081E12" }}>
+                  {mobilePlannerOpen ? "Hide ✕" : "Open 3D Sim →"}
+                </Text>
+              </Pressable>
+            </LinearGradient>
+            {mobilePlannerOpen ? <Orchard3DPlanner listing={listing} /> : null}
+          </View>
+        )}
 
         {farms.length > 0 ? (
           <View style={{ gap: spacing.md }}>
@@ -328,7 +380,7 @@ function InfoLine({ label, values }: { label: string; values: string[] }) {
   const { colors, fonts, spacing } = useTheme();
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: spacing.sm }}>
-      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.inkSoft, minWidth: 105 }}>{label}</Text>
+      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.inkSoft, minWidth: 92 }}>{label}</Text>
       {values.map((v) => (
         <Tag key={v} label={v} tone="brand" />
       ))}

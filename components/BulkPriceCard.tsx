@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { View, Text, Pressable, TextInput, StyleSheet } from "react-native";
+import { View, Text, Pressable, TextInput, StyleSheet, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/constants/theme-context";
 import { formatRupees, formatQty } from "@/lib/format";
@@ -18,7 +18,9 @@ export function BulkPriceCard({
   listing: B2bListing;
   onSelectQuantity?: (qty: number) => void;
 }) {
-  const { colors, fonts, radius, spacing } = useTheme();
+  const { fonts, radius, spacing } = useTheme();
+  const { width } = useWindowDimensions();
+  const isPhone = width < 560;
   const unit = listingUnit(listing);
   const moq = listingMoq(listing);
   const price = listingPriceLabel(listing);
@@ -90,7 +92,7 @@ export function BulkPriceCard({
       : `${formatQty(Number(t.minQty))}–${formatQty(Number(t.maxQty))}${u ? ` ${u}` : ""}`;
   };
 
-  const headStyle = { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.7, color: "#E5B462" };
+  const headStyle = { fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.6, color: "#E5B462" };
 
   return (
     <LinearGradient
@@ -99,27 +101,27 @@ export function BulkPriceCard({
       end={{ x: 1, y: 1 }}
       style={{
         borderRadius: radius.xl,
-        padding: spacing.lg,
+        padding: isPhone ? 14 : spacing.lg,
         borderWidth: 1,
         borderColor: "rgba(229,180,98,0.35)",
         shadowColor: "#081E12",
-        shadowOpacity: 0.18,
-        shadowRadius: 18,
-        shadowOffset: { width: 0, height: 8 },
-        elevation: 5,
+        shadowOpacity: 0.16,
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 4,
       }}
     >
       {/* Header Row */}
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
           <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#52C388" }} />
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: "#E5B462" }}>
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.8, textTransform: "uppercase", color: "#E5B462" }}>
             WHOLESALE VOLUME SLABS
           </Text>
         </View>
         {moq != null ? (
-          <View style={{ backgroundColor: "rgba(255,255,255,0.12)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill }}>
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, color: "#FFFFFF" }}>
+          <View style={{ backgroundColor: "rgba(255,255,255,0.12)", paddingHorizontal: 9, paddingVertical: 3, borderRadius: radius.pill }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: "#FFFFFF" }}>
               MOQ: {formatQty(Number(moq))} {unit ? pluralUnit(unit, Number(moq)) : ""}
             </Text>
           </View>
@@ -127,9 +129,9 @@ export function BulkPriceCard({
       </View>
 
       {price && (
-        <Text style={{ fontFamily: fonts.display, fontSize: 30, color: "#FFFFFF", marginTop: 8 }}>
+        <Text style={{ fontFamily: fonts.display, fontSize: isPhone ? 24 : 30, color: "#FFFFFF", marginTop: 6 }}>
           {price}
-          {gst ? <Text style={{ fontFamily: fonts.body, fontSize: 14, color: "rgba(255,255,255,0.85)" }}> + GST</Text> : null}
+          {gst ? <Text style={{ fontFamily: fonts.body, fontSize: 13, color: "rgba(255,255,255,0.85)" }}> + GST</Text> : null}
         </Text>
       )}
 
@@ -137,7 +139,7 @@ export function BulkPriceCard({
       {sortedTiers.length > 0 && (
         <View
           style={{
-            marginTop: spacing.md,
+            marginTop: isPhone ? 10 : spacing.md,
             borderRadius: radius.md,
             overflow: "hidden",
             backgroundColor: "rgba(0,0,0,0.24)",
@@ -145,9 +147,9 @@ export function BulkPriceCard({
             borderColor: "rgba(255,255,255,0.14)",
           }}
         >
-          <View style={[styles.row, { paddingHorizontal: spacing.md, backgroundColor: "rgba(255,255,255,0.1)" }]}>
-            <Text style={[styles.cell, headStyle]}>VOLUME SLAB (TAP TO SELECT)</Text>
-            <Text style={[styles.cell, styles.right, headStyle]}>RATE / {unit ? unit.toUpperCase() : "UNIT"}</Text>
+          <View style={[styles.row, { paddingHorizontal: isPhone ? 10 : spacing.md, paddingVertical: 8, backgroundColor: "rgba(255,255,255,0.1)" }]}>
+            <Text style={[styles.cell, headStyle]}>VOLUME SLAB</Text>
+            <Text style={[styles.right, headStyle]}>RATE / {unit ? unit.toUpperCase() : "UNIT"}</Text>
           </View>
           {sortedTiers.map((t, i) => {
             const isUnlocked = i === activeTierIndex;
@@ -160,7 +162,8 @@ export function BulkPriceCard({
                 style={[
                   styles.row,
                   {
-                    paddingHorizontal: spacing.md,
+                    paddingHorizontal: isPhone ? 10 : spacing.md,
+                    paddingVertical: isPhone ? 9 : 11,
                     backgroundColor: isUnlocked ? "rgba(229,180,98,0.18)" : "transparent",
                     borderLeftWidth: isUnlocked ? 3 : 0,
                     borderLeftColor: "#E5B462",
@@ -168,17 +171,17 @@ export function BulkPriceCard({
                   i > 0 && { borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.08)" },
                 ]}
               >
-                <View style={[styles.cell, { flexDirection: "row", alignItems: "center", gap: 6 }]}>
-                  <Text style={{ fontFamily: isUnlocked ? fonts.bodyBold : fonts.bodyMedium, fontSize: 14, color: isUnlocked ? "#E5B462" : "#FFFFFF" }}>
+                <View style={[styles.cell, { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6, minWidth: 0 }]}>
+                  <Text style={{ fontFamily: isUnlocked ? fonts.bodyBold : fonts.bodyMedium, fontSize: isPhone ? 13 : 14, color: isUnlocked ? "#E5B462" : "#FFFFFF" }}>
                     {qtyLabel(t)}
                   </Text>
                   {isUnlocked ? (
                     <View style={{ backgroundColor: "#E5B462", paddingHorizontal: 6, paddingVertical: 1, borderRadius: radius.pill }}>
-                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 9.5, color: "#081E12" }}>ACTIVE</Text>
+                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 9, color: "#081E12" }}>ACTIVE</Text>
                     </View>
                   ) : null}
                 </View>
-                <Text style={[styles.cell, styles.right, { fontFamily: fonts.bodyBold, fontSize: 15.5, color: isUnlocked ? "#E5B462" : "#FFFFFF" }]}>
+                <Text style={[styles.right, { fontFamily: fonts.bodyBold, fontSize: isPhone ? 14.5 : 15.5, color: isUnlocked ? "#E5B462" : "#FFFFFF" }]}>
                   {formatRupees(Number(t.pricePerUnit))}
                 </Text>
               </Pressable>
@@ -191,30 +194,30 @@ export function BulkPriceCard({
       {activeUnitPrice != null ? (
         <View
           style={{
-            marginTop: spacing.md,
-            padding: spacing.md,
+            marginTop: isPhone ? 10 : spacing.md,
+            padding: isPhone ? 10 : spacing.md,
             borderRadius: radius.md,
             backgroundColor: "rgba(255,255,255,0.07)",
             borderWidth: 1,
             borderColor: "rgba(229,180,98,0.26)",
-            gap: 10,
+            gap: 8,
           }}
         >
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.6, textTransform: "uppercase", color: "rgba(255,255,255,0.8)" }}>
-              SIMULATE YOUR BULK ORDER QUANTITY:
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.5, textTransform: "uppercase", color: "rgba(255,255,255,0.82)" }}>
+              SIMULATE ORDER QUANTITY:
             </Text>
             {estSavings > 0 ? (
-              <View style={{ backgroundColor: "rgba(82,195,136,0.22)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }}>
-                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: "#6FC28F" }}>
-                  Slab Savings: {formatRupees(estSavings)}
+              <View style={{ backgroundColor: "rgba(82,195,136,0.22)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.pill }}>
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, color: "#6FC28F" }}>
+                  Save {formatRupees(estSavings)}
                 </Text>
               </View>
             ) : null}
           </View>
 
-          {/* Quick Quantity Chips */}
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+          {/* Quick Quantity Chips — Single compact row */}
+          <View style={{ flexDirection: "row", gap: 6 }}>
             {presetQuantities.map((pq) => {
               const selected = simQty === pq;
               return (
@@ -222,15 +225,17 @@ export function BulkPriceCard({
                   key={pq}
                   onPress={() => setQty(pq)}
                   style={{
-                    paddingHorizontal: 11,
+                    flex: 1,
+                    minWidth: 0,
                     paddingVertical: 6,
                     borderRadius: radius.pill,
                     backgroundColor: selected ? "#E5B462" : "rgba(255,255,255,0.1)",
                     borderWidth: 1,
                     borderColor: selected ? "#E5B462" : "rgba(255,255,255,0.18)",
+                    alignItems: "center",
                   }}
                 >
-                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: selected ? "#081E12" : "#FFFFFF" }}>
+                  <Text numberOfLines={1} style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, color: selected ? "#081E12" : "#FFFFFF" }}>
                     {formatQty(pq)}
                   </Text>
                 </Pressable>
@@ -239,15 +244,15 @@ export function BulkPriceCard({
           </View>
 
           {/* Custom Quantity Input + Live Estimate */}
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", paddingTop: 4 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", paddingTop: 2 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
               <Pressable
                 onPress={() => setQty(simQty - (defaultQty >= 100 ? 50 : 10))}
                 accessibilityRole="button"
                 accessibilityLabel="Decrease quantity"
                 style={styles.stepBtn}
               >
-                <Text style={{ color: "#FFFFFF", fontFamily: fonts.bodyBold, fontSize: 16 }}>−</Text>
+                <Text style={{ color: "#FFFFFF", fontFamily: fonts.bodyBold, fontSize: 15 }}>−</Text>
               </Pressable>
               <TextInput
                 value={simQtyText}
@@ -261,17 +266,17 @@ export function BulkPriceCard({
                 maxLength={7}
                 accessibilityLabel="Simulated order quantity"
                 style={{
-                  minWidth: 84,
-                  height: 36,
+                  minWidth: 74,
+                  height: 32,
                   borderRadius: radius.sm,
                   backgroundColor: "rgba(0,0,0,0.35)",
                   borderWidth: 1,
                   borderColor: "rgba(229,180,98,0.45)",
                   color: "#FFFFFF",
                   fontFamily: fonts.bodyBold,
-                  fontSize: 14,
+                  fontSize: 13.5,
                   textAlign: "center",
-                  paddingHorizontal: 8,
+                  paddingHorizontal: 6,
                 }}
               />
               <Pressable
@@ -280,47 +285,36 @@ export function BulkPriceCard({
                 accessibilityLabel="Increase quantity"
                 style={styles.stepBtn}
               >
-                <Text style={{ color: "#FFFFFF", fontFamily: fonts.bodyBold, fontSize: 16 }}>+</Text>
+                <Text style={{ color: "#FFFFFF", fontFamily: fonts.bodyBold, fontSize: 15 }}>+</Text>
               </Pressable>
             </View>
 
             {estTotal != null ? (
-              <View style={{ alignItems: "flex-end" }}>
-                <Text style={{ fontFamily: fonts.body, fontSize: 11, color: "rgba(255,255,255,0.75)" }}>
+              <View style={{ alignItems: "flex-end", flexShrink: 1, minWidth: 0 }}>
+                <Text style={{ fontFamily: fonts.body, fontSize: 10.5, color: "rgba(255,255,255,0.75)" }}>
                   Est. Lot Total ({formatRupees(activeUnitPrice)}/{unit ?? "unit"})
                 </Text>
-                <Text style={{ fontFamily: fonts.display, fontSize: 22, color: "#E5B462" }}>
+                <Text style={{ fontFamily: fonts.display, fontSize: isPhone ? 19 : 22, color: "#E5B462" }}>
                   {formatRupees(estTotal)}
-                  {gst ? <Text style={{ fontSize: 11, fontFamily: fonts.body, color: "rgba(255,255,255,0.7)" }}> + GST</Text> : null}
+                  {gst ? <Text style={{ fontSize: 10.5, fontFamily: fonts.body, color: "rgba(255,255,255,0.7)" }}> + GST</Text> : null}
                 </Text>
               </View>
             ) : null}
           </View>
         </View>
       ) : null}
-
-      {moq != null && (
-        <View style={[styles.moqRow, { borderTopColor: "rgba(255,255,255,0.14)", marginTop: spacing.md, paddingTop: spacing.sm }]}>
-          <Text style={{ fontFamily: fonts.body, fontSize: 13, color: "rgba(255,255,255,0.82)" }}>Minimum order (MOQ)</Text>
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14.5, color: "#FFFFFF" }}>
-            {formatQty(Number(moq))}
-            {unit ? ` ${pluralUnit(unit, Number(moq))}` : ""}
-          </Text>
-        </View>
-      )}
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", paddingVertical: 11, gap: 12 },
+  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   cell: { flex: 1 },
   right: { textAlign: "right" },
-  moqRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderTopWidth: 1 },
   stepBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
+    width: 30,
+    height: 30,
+    borderRadius: 7,
     backgroundColor: "rgba(255,255,255,0.14)",
     alignItems: "center",
     justifyContent: "center",

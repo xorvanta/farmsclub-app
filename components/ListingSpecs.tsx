@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { View, Text, Image, Pressable, ScrollView, StyleSheet } from "react-native";
+import { View, Text, Image, Pressable, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { useTheme } from "@/constants/theme-context";
 import { listingUnit, propagationLabel } from "@/lib/listing";
@@ -72,6 +72,8 @@ export function specificationSummary(spec: string | null): string | null {
  *  followed by any additional custom specification rows or notes. */
 export function SpecificationSection({ listing }: { listing: B2bListing }) {
   const { colors, fonts, radius, spacing } = useTheme();
+  const { width } = useWindowDimensions();
+  const isPhone = width < 560;
   const { rows: specRows, text } = parseSpecification(listing.specification);
   const fixed: { label: string; value: string | null | undefined; icon: string }[] = [
     { label: "Variety", value: listing.variety?.trim(), icon: "leaf" },
@@ -89,38 +91,38 @@ export function SpecificationSection({ listing }: { listing: B2bListing }) {
   if (!filledFixed.length && !extraRows.length && !text) return null;
 
   return (
-    <View style={{ gap: spacing.md }}>
+    <View style={{ gap: isPhone ? 10 : spacing.md }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: 16.5, color: colors.ink }}>
+        <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: isPhone ? 15.5 : 16.5, color: colors.ink }}>
           Lot Specifications & Grading
         </Text>
       </View>
 
       {/* Visual Bento Grid for Primary Specs */}
       {filledFixed.length > 0 && (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: isPhone ? 8 : spacing.sm }}>
           {filledFixed.map((item) => (
             <View
               key={item.label}
               style={{
                 flexGrow: 1,
                 flexBasis: "45%",
-                minWidth: 140,
+                minWidth: 130,
                 backgroundColor: colors.surface,
                 borderRadius: radius.md,
                 borderWidth: 1,
                 borderColor: colors.border,
-                padding: spacing.md,
+                padding: isPhone ? 10 : spacing.md,
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 10,
+                gap: isPhone ? 8 : 10,
               }}
             >
               <View
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
+                  width: isPhone ? 30 : 36,
+                  height: isPhone ? 30 : 36,
+                  borderRadius: 9,
                   backgroundColor: colors.brandSoft,
                   alignItems: "center",
                   justifyContent: "center",
@@ -128,11 +130,11 @@ export function SpecificationSection({ listing }: { listing: B2bListing }) {
               >
                 <SpecGlyph kind={item.icon} color={colors.brand} />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.4, color: colors.inkFaint }}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3, color: colors.inkFaint }}>
                   {item.label}
                 </Text>
-                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink, marginTop: 1 }}>
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: isPhone ? 13 : 14, lineHeight: isPhone ? 17 : 19, color: colors.ink, marginTop: 1 }}>
                   {item.value}
                 </Text>
               </View>
@@ -164,8 +166,8 @@ export function SpecificationSection({ listing }: { listing: B2bListing }) {
                 i > 0 && { borderTopWidth: 1, borderTopColor: colors.border },
               ]}
             >
-              <Text style={{ flex: 1, fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.inkSoft }}>{r.label}</Text>
-              <Text style={{ flex: 1.4, fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: colors.ink, textAlign: "right" }}>{r.value}</Text>
+              <Text style={{ flex: 1, minWidth: 0, fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.inkSoft }}>{r.label}</Text>
+              <Text style={{ flex: 1.4, minWidth: 0, fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: colors.ink, textAlign: "right" }}>{r.value}</Text>
             </View>
           ))}
         </View>
@@ -173,7 +175,7 @@ export function SpecificationSection({ listing }: { listing: B2bListing }) {
 
       {text ? (
         <View style={{ backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md }}>
-          <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkSoft, lineHeight: 21 }}>{text}</Text>
+          <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: colors.inkSoft, lineHeight: 20 }}>{text}</Text>
         </View>
       ) : null}
     </View>
@@ -181,7 +183,7 @@ export function SpecificationSection({ listing }: { listing: B2bListing }) {
 }
 
 function SpecGlyph({ kind, color }: { kind: string; color: string }) {
-  const p = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const p = { width: 17, height: 17, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   switch (kind) {
     case "leaf":
       return (
@@ -273,15 +275,15 @@ export function ImageGallery({
         {current ? <Image source={{ uri: current }} style={styles.image} resizeMode="cover" alt={alt ? `${alt} — photo ${active + 1} of ${images.length}` : ""} /> : fallback}
 
         {/* Floating B2B Quality Stamp & Photo Counter */}
-        <View style={{ position: "absolute", top: 12, left: 12, right: 12, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <View style={{ backgroundColor: "rgba(8,30,18,0.82)", paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(229,180,98,0.4)" }}>
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.6, color: "#E5B462" }}>
+        <View style={{ position: "absolute", top: 10, left: 10, right: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
+          <View style={{ backgroundColor: "rgba(8,30,18,0.82)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(229,180,98,0.4)" }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 0.5, color: "#E5B462" }}>
               ✓ QUALITY GRADED STOCK
             </Text>
           </View>
           {images.length > 1 ? (
-            <View style={{ backgroundColor: "rgba(8,30,18,0.78)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill }}>
-              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: "#FFFFFF" }}>
+            <View style={{ backgroundColor: "rgba(8,30,18,0.78)", paddingHorizontal: 9, paddingVertical: 3, borderRadius: radius.pill }}>
+              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, color: "#FFFFFF" }}>
                 {active + 1} / {images.length}
               </Text>
             </View>
@@ -293,7 +295,7 @@ export function ImageGallery({
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: spacing.sm, paddingTop: spacing.md }}
+          contentContainerStyle={{ gap: spacing.sm, paddingTop: spacing.sm }}
         >
           {images.map((uri, i) => (
             <Pressable
@@ -303,8 +305,8 @@ export function ImageGallery({
               accessibilityLabel={`Show photo ${i + 1} of ${images.length}`}
               accessibilityState={{ selected: i === active }}
               style={{
-                width: 72,
-                height: 72,
+                width: 64,
+                height: 64,
                 borderRadius: radius.md,
                 overflow: "hidden",
                 borderWidth: 2,
@@ -322,6 +324,6 @@ export function ImageGallery({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", paddingVertical: 11, gap: 12 },
+  row: { flexDirection: "row", alignItems: "center", paddingVertical: 10, gap: 12 },
   image: { width: "100%", height: "100%" },
 });
