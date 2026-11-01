@@ -20,9 +20,9 @@ const TRACKS: {
 }[] = [
   {
     eyebrow: "TRACK 01 · FOR COMMERCIAL BUYERS",
-    title: "Buying planting material in bulk",
+    title: "Buying GI plant saplings & setup materials in bulk",
     steps: [
-      { badge: "STEP 1", title: "Pick your crop & quantity slab", body: "Browse live bulk supply and see transparent price tiers by volume.", icon: "plant" },
+      { badge: "STEP 1", title: "Pick your GI plant & quantity slab", body: "Browse live bulk supply of GI-tag plants and setup kits with transparent price tiers.", icon: "plant" },
       { badge: "STEP 2", title: "Send one consolidated quote request", body: "Share your required count, delivery city, or nearest railway station.", icon: "quote" },
       { badge: "STEP 3", title: "We confirm & arrange road or rail dispatch", body: "Our trade desk confirms live batch stock and dispatches from the nearest verified farm.", icon: "truck" },
     ],
@@ -33,7 +33,7 @@ const TRACKS: {
     eyebrow: "TRACK 02 · FOR FARM OWNERS & NURSERIES",
     title: "Listing your farm on FarmsClub",
     steps: [
-      { badge: "STEP 1", title: "Fill the 2-minute registration form", body: "Share your farm's location, main crops, acreage, and up to 3 photos in English or Hindi.", icon: "camera" },
+      { badge: "STEP 1", title: "Fill the 2-minute registration form", body: "Share your farm's location, plant varieties, acreage, and up to 3 photos in English or Hindi.", icon: "camera" },
       { badge: "STEP 2", title: "Our team reviews & builds your dossier", body: "We prepare your public farm page and send you a private edit link.", icon: "shield" },
       { badge: "STEP 3", title: "Connect with bulk buyers & future farmers", body: "Receive verified enquiries for planting material, farm visits, and training.", icon: "users" },
     ],

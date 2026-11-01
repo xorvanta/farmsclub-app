@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import Svg, { Polygon, Circle, Line, Path, Rect, Ellipse, G, Text as SvgText } from "react-native-svg";
+import Svg, { Polygon, Circle, Line, Path, Rect, Ellipse, G, Text as SvgText, Defs, Stop, LinearGradient as SvgLinearGradient } from "react-native-svg";
 import { useTheme } from "@/constants/theme-context";
 import { formatRupees, formatQty } from "@/lib/format";
 import type { B2bListing } from "@/lib/types";
@@ -26,11 +26,11 @@ type SpacingPreset = {
 const PRESETS: SpacingPreset[] = [
   {
     key: "orchard",
-    label: "Standard Orchard",
-    shortLabel: "Orchard",
+    label: "GI-Tag Fruit Plants",
+    shortLabel: "GI Plants",
     spacingFt: "12×12 ft",
     plantsPerAcre: 302,
-    cropsHint: "Mango · Guava · Citrus · Litchi",
+    cropsHint: "GI Alphonso Mango · GI Guava · Citrus · Shahi Litchi",
     gridCols: 5,
     gridRows: 4,
     foliageColor: "#28844E",
@@ -39,11 +39,11 @@ const PRESETS: SpacingPreset[] = [
   },
   {
     key: "high_density",
-    label: "High-Density",
+    label: "High-Density Grid",
     shortLabel: "HD Grid",
     spacingFt: "8×8 ft",
     plantsPerAcre: 680,
-    cropsHint: "HD Guava · Pomegranate · Apple Ber",
+    cropsHint: "Solapur Pomegranate · Allahabad Guava · Apple Ber",
     gridCols: 6,
     gridRows: 5,
     foliageColor: "#1E6F40",
@@ -56,7 +56,7 @@ const PRESETS: SpacingPreset[] = [
     shortLabel: "Timber",
     spacingFt: "10×6 ft",
     plantsPerAcre: 726,
-    cropsHint: "Tissue Teak · Mahogany · Bamboo",
+    cropsHint: "Nilambur Teak · African Mahogany · Tissue Bamboo",
     gridCols: 6,
     gridRows: 4,
     foliageColor: "#165B33",
@@ -65,11 +65,11 @@ const PRESETS: SpacingPreset[] = [
   },
   {
     key: "canopy",
-    label: "Large Canopy",
+    label: "Canopy & Estate",
     shortLabel: "Canopy",
     spacingFt: "20×20 ft",
     plantsPerAcre: 109,
-    cropsHint: "Grafted Mango · Coconut · Jackfruit",
+    cropsHint: "Grafted Mango · Coconut · Jackfruit Estates",
     gridCols: 4,
     gridRows: 3,
     foliageColor: "#237A48",
@@ -95,11 +95,11 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
       const perAcre = Math.max(1, Math.round(43560 / (rFt * pFt)));
       return {
         key: "crop_default",
-        label: "Crop Recommended",
-        shortLabel: "Crop Rec",
+        label: "Plant Recommended",
+        shortLabel: "Plant Rec",
         spacingFt: `${rFt}×${pFt} ft`,
         plantsPerAcre: perAcre,
-        cropsHint: listing?.crop?.name ? `${listing.crop.name} standard spacing` : listing?.title ?? "Recommended spacing",
+        cropsHint: listing?.crop?.name ? `${listing.crop.name} GI plant spacing` : listing?.title ?? "Recommended plant spacing",
         gridCols: perAcre >= 500 ? 6 : perAcre <= 150 ? 4 : 5,
         gridRows: perAcre >= 500 ? 5 : perAcre <= 150 ? 3 : 4,
         foliageColor: "#25854D",
@@ -226,7 +226,7 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
         params: { listingId: String(listing.id), ...plannerParams },
       });
     } else {
-      const summary = `${preset.label} (${preset.spacingFt}) · ${acres} ${acres === 1 ? "Acre" : "Acres"} · ${formatQty(totalPlants)} saplings${includeBuffer ? " (incl. 10% buffer)" : ""}`;
+      const summary = `${preset.label} (${preset.spacingFt}) · ${acres} ${acres === 1 ? "Acre" : "Acres"} · ${formatQty(totalPlants)} plant saplings${includeBuffer ? " (incl. 10% buffer)" : ""}`;
       router.push({
         pathname: "/contact",
         params: { product: summary, ...plannerParams },
@@ -234,7 +234,7 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
     }
   };
 
-  const svgWidth = isPhone ? Math.min(280, Math.max(220, Math.floor(width - 76))) : 420;
+  const svgWidth = isPhone ? Math.min(320, Math.max(200, Math.floor(width - 56))) : 420;
 
   return (
     <View
@@ -362,7 +362,7 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
             </View>
 
             {/* SVG 3D Stage */}
-            <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: isPhone ? 2 : 8 }}>
+            <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: isPhone ? 2 : 8, width: "100%", overflow: "hidden" }}>
               <IsometricOrchardScene preset={preset} acres={acres} camera={camera} compact={isPhone} svgW={svgWidth} />
             </View>
 
@@ -564,7 +564,7 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
                   <Text style={{ fontFamily: fonts.display, fontSize: isPhone ? 22 : 30, color: "#FFFFFF", lineHeight: isPhone ? 28 : 34 }}>
                     {formatQty(totalPlants)}{" "}
                     <Text style={{ fontSize: isPhone ? 13 : 15, fontFamily: fonts.bodySemiBold, color: "rgba(255,255,255,0.82)" }}>
-                      saplings
+                      plant saplings
                     </Text>
                   </Text>
                 </View>
@@ -615,8 +615,8 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
               >
                 <Text numberOfLines={1} style={{ fontFamily: fonts.bodyBold, fontSize: isPhone ? 13.5 : 14.5, color: "#FFFFFF" }}>
                   {listing
-                    ? `Lock Quote for ${formatQty(totalPlants)} Saplings →`
-                    : `Get Bulk Quote for ${formatQty(totalPlants)} Saplings →`}
+                    ? `Lock Quote for ${formatQty(totalPlants)} Plant Saplings →`
+                    : `Get Bulk Quote for ${formatQty(totalPlants)} Plant Saplings →`}
                 </Text>
               </Pressable>
             </View>
@@ -711,12 +711,12 @@ function IsometricOrchardScene({
     );
   }
 
-  // Default: 3D Isometric Terrain Block
+  // Default: 3D Isometric Terrain Block with Tinkercad-style Workplane Grid & Shaded Crust
   const cx0 = svgW / 2;
-  const topY = compact ? 14 : 24;
-  const halfW = compact ? Math.min(118, svgW * 0.43) : 178;
-  const halfH = compact ? 50 : 76;
-  const depth = compact ? 14 : 20;
+  const topY = compact ? 12 : 20;
+  const halfW = compact ? Math.min(108, svgW * 0.41) : 178;
+  const halfH = compact ? 44 : 74;
+  const depth = compact ? 16 : 22;
 
   const pTop = `${cx0},${topY}`;
   const pRight = `${cx0 + halfW},${topY + halfH}`;
@@ -724,31 +724,62 @@ function IsometricOrchardScene({
   const pLeft = `${cx0 - halfW},${topY + halfH}`;
 
   return (
-    <Svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`}>
+    <Svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} preserveAspectRatio="xMidYMid meet">
+      <Defs>
+        <SvgLinearGradient id="plannerTurfGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#1B4D31" />
+          <Stop offset="50%" stopColor="#123B24" />
+          <Stop offset="100%" stopColor="#0B2617" />
+        </SvgLinearGradient>
+      </Defs>
+
       {/* 3D Terrain Drop Shadow */}
       <Polygon
-        points={`${cx0},${topY + 10} ${cx0 + halfW + 5},${topY + halfH + 12} ${cx0},${topY + halfH * 2 + depth + 9} ${cx0 - halfW - 5},${topY + halfH + 12}`}
-        fill="rgba(0,0,0,0.42)"
+        points={`${cx0},${topY + 12} ${cx0 + halfW + 6},${topY + halfH + 14} ${cx0},${topY + halfH * 2 + depth + 10} ${cx0 - halfW - 6},${topY + halfH + 14}`}
+        fill="rgba(0,0,0,0.5)"
       />
 
       {/* Left 3D Soil Crust Wall */}
       <Polygon
         points={`${pLeft} ${pBottom} ${cx0},${topY + halfH * 2 + depth} ${cx0 - halfW},${topY + halfH + depth}`}
-        fill="#4A321D"
-        stroke="rgba(229,180,98,0.4)"
+        fill="#3D2817"
+        stroke="rgba(229,180,98,0.45)"
         strokeWidth={1}
       />
 
       {/* Right 3D Soil Crust Wall */}
       <Polygon
         points={`${pRight} ${pBottom} ${cx0},${topY + halfH * 2 + depth} ${cx0 + halfW},${topY + halfH + depth}`}
-        fill="#2F1F11"
-        stroke="rgba(229,180,98,0.4)"
+        fill="#26180D"
+        stroke="rgba(229,180,98,0.45)"
         strokeWidth={1}
       />
 
       {/* Top Isometric Plantation Turf Surface */}
-      <Polygon points={`${pTop} ${pRight} ${pBottom} ${pLeft}`} fill="#143D26" stroke="#E5B462" strokeWidth={1.8} />
+      <Polygon points={`${pTop} ${pRight} ${pBottom} ${pLeft}`} fill="url(#plannerTurfGrad)" stroke="#38BDF8" strokeWidth={1.8} />
+
+      {/* Tinkercad-style Workplane Gridlines across the 3D surface */}
+      {Array.from({ length: 5 }).map((_, gi) => {
+        const t = (gi + 1) / 6;
+        // Direction 1
+        const x1a = cx0 + (t - 0) * halfW;
+        const y1a = topY + (t + 0) * halfH;
+        const x2a = cx0 + (t - 1) * halfW;
+        const y2a = topY + (t + 1) * halfH;
+
+        // Direction 2
+        const x1b = cx0 - (t - 0) * halfW;
+        const y1b = topY + (t + 0) * halfH;
+        const x2b = cx0 - (t - 1) * halfW;
+        const y2b = topY + (t + 1) * halfH;
+
+        return (
+          <G key={`wp-grid-${gi}`}>
+            <Line x1={x1a} y1={y1a} x2={x2a} y2={y2a} stroke="rgba(56,189,248,0.18)" strokeWidth={0.8} />
+            <Line x1={x1b} y1={y1b} x2={x2b} y2={y2b} stroke="rgba(56,189,248,0.18)" strokeWidth={0.8} />
+          </G>
+        );
+      })}
 
       {/* Isometric Irrigation Drip Lines */}
       {Array.from({ length: rows }).map((_, r) => {
@@ -757,28 +788,39 @@ function IsometricOrchardScene({
         const y1 = topY + (0.08 + v) * halfH;
         const x2 = cx0 + (0.92 - v) * halfW;
         const y2 = topY + (0.92 + v) * halfH;
-        return <Line key={`iso-drip-${r}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(56,189,248,0.45)" strokeWidth={1.3} strokeDasharray="3 3" />;
+        return <Line key={`iso-drip-${r}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(56,189,248,0.55)" strokeWidth={1.5} strokeDasharray="3 3" />;
       })}
 
-      {/* 3D Trees rendered back-to-front */}
+      {/* 3D Trees rendered back-to-front with grow-pot bases */}
       {Array.from({ length: rows }).map((_, r) =>
         Array.from({ length: cols }).map((__, c) => {
           const u = (c + 0.55) / cols;
           const v = (r + 0.55) / rows;
           const x = cx0 + (u - v) * (halfW * 0.84);
-          const y = topY + (u + v) * (halfH * 0.84) + (compact ? 6 : 8);
-          const treeScale = compact ? 0.72 : 1;
+          const y = topY + (u + v) * (halfH * 0.84) + (compact ? 5 : 8);
+          const treeScale = compact ? 0.68 : 1;
           return (
             <G key={`iso-tree-${r}-${c}`}>
-              <Ellipse cx={x + 2.5} cy={y + 1.5} rx={8 * treeScale} ry={4 * treeScale} fill="rgba(0,0,0,0.45)" />
-              <Path d={`M${x - 1.5},${y} L${x - 1.1},${y - 12 * treeScale} L${x + 1.1},${y - 12 * treeScale} L${x + 1.5},${y} Z`} fill="#8B5A2B" />
-              <Ellipse cx={x} cy={y - 14 * treeScale} rx={9.5 * treeScale} ry={7.5 * treeScale} fill={preset.foliageColor} />
-              <Ellipse cx={x - 1.5} cy={y - 17 * treeScale} rx={6.8 * treeScale} ry={5.2 * treeScale} fill={preset.crownColor} />
-              <Circle cx={x + 2.5} cy={y - 15 * treeScale} r={1.6 * treeScale} fill={preset.fruitDotColor} />
+              {/* Drop Shadow */}
+              <Ellipse cx={x + 2} cy={y + 2} rx={8 * treeScale} ry={4 * treeScale} fill="rgba(0,0,0,0.5)" />
+              {/* Nursery pot base */}
+              <Rect x={x - 2.5 * treeScale} y={y - 4 * treeScale} width={5 * treeScale} height={4 * treeScale} rx={1} fill="#8A4318" stroke="#E5B462" strokeWidth={0.6} />
+              {/* Trunk */}
+              <Path d={`M${x - 1.3},${y - 4 * treeScale} L${x - 1},${y - 14 * treeScale} L${x + 1},${y - 14 * treeScale} L${x + 1.3},${y - 4 * treeScale} Z`} fill="#6E4420" />
+              {/* Canopy layers */}
+              <Ellipse cx={x} cy={y - 15 * treeScale} rx={9.8 * treeScale} ry={7.8 * treeScale} fill={preset.foliageColor} />
+              <Ellipse cx={x - 1.5} cy={y - 18 * treeScale} rx={7 * treeScale} ry={5.4 * treeScale} fill={preset.crownColor} />
+              <Circle cx={x + 2.6} cy={y - 16 * treeScale} r={1.7 * treeScale} fill={preset.fruitDotColor} />
             </G>
           );
         }),
       )}
+
+      {/* CAD Center Dimension Callout */}
+      <Rect x={cx0 - 45} y={svgH - 16} width={90} height={13} rx={3} fill="#FFFFFF" stroke="#0284C7" strokeWidth={0.8} />
+      <SvgText x={cx0} y={svgH - 7} fill="#081E12" fontSize={7.5} fontWeight="bold" textAnchor="middle">
+        {acres} ACRES · {preset.spacingFt}
+      </SvgText>
     </Svg>
   );
 }

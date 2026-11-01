@@ -161,7 +161,7 @@ export default function Listings() {
           </Pressable>
         </View>
 
-        <SearchBar value={query} onChangeText={setQuery} placeholder="Search plants, crops, varieties…" accessibilityLabel="Search bulk supply" />
+        <SearchBar value={query} onChangeText={setQuery} placeholder="Search GI plants, varieties, setup materials…" accessibilityLabel="Search bulk supply" />
       </LinearGradient>
 
       {showPlanner ? <Orchard3DPlanner /> : null}
@@ -199,14 +199,14 @@ export default function Listings() {
 
         {crops.length > 0 &&
           chipRow(
-            "Crop Belt",
+            "Plant Variety Belt",
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
-              data={[{ id: 0, name: "All crops" }, ...crops]}
+              data={[{ id: 0, name: "All plants" }, ...crops]}
               keyExtractor={(c) => String(c.id)}
               contentContainerStyle={{ gap: spacing.sm }}
-              accessibilityLabel="Filter by crop"
+              accessibilityLabel="Filter by plant variety"
               renderItem={({ item }) => (
                 <CategoryChip
                   label={item.name ?? ""}

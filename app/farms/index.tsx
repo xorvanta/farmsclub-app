@@ -172,7 +172,7 @@ export default function Farms() {
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
           <FilterSelect id="farms-state" label="State" allLabel="All states" value={state} options={withCurrent(stateOptions, state)} onChange={(v) => router.setParams({ state: v || undefined, district: undefined })} />
           <FilterSelect id="farms-type" label="Farm type" allLabel="All farm types" value={type} options={withCurrent(typeOptions, type)} onChange={(v) => setParam("type", v)} />
-          <FilterSelect id="farms-crop" label="Crop" allLabel="All crops" value={crop} options={withCurrent(cropOptions, crop)} onChange={(v) => setParam("crop", v)} />
+          <FilterSelect id="farms-crop" label="Plant variety" allLabel="All plants" value={crop} options={withCurrent(cropOptions, crop)} onChange={(v) => setParam("crop", v)} />
         </View>
         <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: spacing.sm }}>
           {filters == null || filters.training_farms > 0 || training ? (

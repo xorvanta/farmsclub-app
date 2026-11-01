@@ -7,7 +7,7 @@ import { useTheme } from "@/constants/theme-context";
 import { useTour } from "@/lib/tour-context";
 import { Photo } from "@/components/Photo";
 import { Button } from "@/components/Button";
-import { TiltCard } from "@/components/3d/TiltCard";
+import { Hero3DPlantStage } from "@/components/home/Hero3DPlantStage";
 
 export type HeroSlide = {
   key: string;
@@ -174,93 +174,13 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
               ) : null}
             </View>
 
-            {/* Right 3D Floating Trade Command Card (Desktop Only — High-Impact Position) */}
+            {/* Right 3D GI-Tag Plant Saplings Standing in Line with 360° Hover & Wind Breeze */}
             {wide ? (
-              <TiltCard maxTilt={3.5} scale={1.01} style={{ width: 350 }}>
-                <View
-                  style={{
-                    backgroundColor: "rgba(8, 28, 17, 0.78)",
-                    borderRadius: radius.xl,
-                    padding: spacing.lg,
-                    borderWidth: 1,
-                    borderColor: "rgba(229,180,98,0.36)",
-                    gap: spacing.md,
-                    shadowColor: "#000",
-                    shadowOpacity: 0.35,
-                    shadowRadius: 24,
-                    shadowOffset: { width: 0, height: 12 },
-                  }}
-                >
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.9, color: "#E5B462" }}>
-                      B2B TRADE TELEMETRY
-                    </Text>
-                    <View style={{ backgroundColor: "rgba(82,195,136,0.2)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }}>
-                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#6FC28F" }}>● LIVE DESK</Text>
-                    </View>
-                  </View>
-
-                  <View style={{ gap: 8 }}>
-                    {TRADE_STATS.map((st) => (
-                      <View
-                        key={st.badge}
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          backgroundColor: "rgba(255,255,255,0.06)",
-                          borderRadius: radius.md,
-                          paddingVertical: 9,
-                          paddingHorizontal: 12,
-                          borderWidth: 1,
-                          borderColor: "rgba(255,255,255,0.1)",
-                        }}
-                      >
-                        <View>
-                          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#E5B462", letterSpacing: 0.5 }}>{st.badge}</Text>
-                          <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: "rgba(255,255,255,0.72)" }}>{st.sub}</Text>
-                        </View>
-                        <Text style={{ fontFamily: fonts.display, fontSize: 15, color: "#FFFFFF" }}>{st.value}</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  <View style={{ flexDirection: "row", gap: 8, paddingTop: 2 }}>
-                    <Pressable
-                      onPress={scrollToPlanner}
-                      accessibilityRole="button"
-                      style={{
-                        flex: 1,
-                        paddingVertical: 10,
-                        paddingHorizontal: 10,
-                        borderRadius: radius.md,
-                        backgroundColor: "rgba(229,180,98,0.18)",
-                        borderWidth: 1,
-                        borderColor: "#E5B462",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: "#E5B462" }}>📐 3D Orchard Sim</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => openTour(0)}
-                      accessibilityRole="button"
-                      style={{
-                        flex: 1,
-                        paddingVertical: 10,
-                        paddingHorizontal: 10,
-                        borderRadius: radius.md,
-                        backgroundColor: "rgba(255,255,255,0.1)",
-                        borderWidth: 1,
-                        borderColor: "rgba(255,255,255,0.22)",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: "#FFFFFF" }}>✦ 30s Guide</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </TiltCard>
+              <Hero3DPlantStage
+                compact={false}
+                onOpenPlanner={scrollToPlanner}
+                onOpenTour={() => openTour(0)}
+              />
             ) : null}
           </View>
         </Animated.View>

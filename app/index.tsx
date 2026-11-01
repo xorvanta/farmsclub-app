@@ -30,13 +30,13 @@ import type { FcContent, FcFilters } from "@/lib/types";
 /** Spec §4 draft copy — used until /public/fc/content answers (admin edits the live text). */
 const DEFAULT_HERO = {
   headline: "India's trusted farm network",
-  subline: "Meet the farms behind India's orchards and plantations, and source planting material in bulk from the same network.",
-  searchPlaceholder: "Search a crop or state, e.g. mango, teak, Bihar",
+  subline: "Meet the farms behind India's GI-tag orchards and plantations, and source planting material in bulk from the same network.",
+  searchPlaceholder: "Search GI plant saplings or state, e.g. alphonso, teak, Bihar",
 };
 const DEFAULT_OFFERS = [
   { title: "Real farm stories", line: "Filmed on the ground" },
-  { title: "Bulk planting material", line: "Tiered volume pricing" },
-  { title: "Road & rail dispatch", line: "Nearest verified source" },
+  { title: "GI-Tag plant saplings", line: "Tiered volume pricing" },
+  { title: "Farm setup packages", line: "Plants, drip & inputs" },
   { title: "One point of contact", line: "Quote to delivery" },
 ];
 const HELP_BANNER = {
@@ -62,9 +62,9 @@ const TRACKS: {
     photo: HOME_PHOTOS.seedlings,
     cta: { label: "Browse Bulk Supply →", href: "/listings" },
     steps: [
-      { tag: "STEP 01", label: "Pick crop & quantity slab" },
+      { tag: "STEP 01", label: "Pick GI plant & quantity slab" },
       { tag: "STEP 02", label: "Submit 1-click quote request" },
-      { tag: "STEP 03", label: "Road or rail dispatch arranged" },
+      { tag: "STEP 03", label: "Complete setup package dispatch" },
     ],
   },
   {
@@ -205,7 +205,7 @@ export default function Home() {
               {popular.length > 0 ? (
                 <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6, flex: 1 }}>
                   <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, color: colors.inkSoft }}>
-                    Top Crops:
+                    Top Plant Varieties:
                   </Text>
                   {popular.map((c) => (
                     <PressableLink
@@ -305,7 +305,7 @@ export default function Home() {
       {/* 3 · Bulk Planting Material — Category Bento + Live Lots Rail */}
       {categories.length > 0 || listings.length > 0 ? (
         <View style={section}>
-          <SectionHead eyebrow="WHOLESALE SUPPLY LOTS" title="Bulk planting stock, priced by volume." linkLabel="Explore Bulk Supply" href="/listings" />
+          <SectionHead eyebrow="GI-TAG & PREMIUM PLANT SUPPLY" title="GI-Tag plant saplings & setup materials, priced by volume." linkLabel="Explore Bulk Supply" href="/listings" />
           {categories.length > 0 ? (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.lg }}>
               {categories.map((c) => (
@@ -437,7 +437,7 @@ export default function Home() {
             {stateChips.length > 0 && cropChips.length > 0 ? <View style={{ height: 1, backgroundColor: colors.border }} /> : null}
             {cropChips.length > 0 ? (
               <VisualFilterGrid
-                label="MAJOR CROPS"
+                label="POPULAR PLANTS & VARIETIES"
                 icon="🌱"
                 items={cropChips.map((c) => ({
                   key: c.slug,
@@ -586,8 +586,8 @@ function buildSlides(
     key: "bulk",
     image: HOME_PHOTOS.trellis,
     eyebrow: "WHOLESALE QUANTITY SLABS",
-    title: "Bulk planting material",
-    subline: "Saplings priced by quantity slab, dispatched by road truck or Indian Railways.",
+    title: "GI-Tag plant saplings & setup materials",
+    subline: "Plant saplings priced by quantity slab, plus complete farm setup packages dispatched by road or rail.",
     cta: { label: "Explore Bulk Supply →", href: "/listings" },
     secondary: { label: "Send Custom RFQ", href: "/contact" },
   });
@@ -638,7 +638,7 @@ function PhotoPanel({ photo, eyebrow, title, body, children }: { photo: string; 
 }
 
 function shortPlaceholder(_text: string): string {
-  return "Search crop or state…";
+  return "Search GI plants or state…";
 }
 
 function pickText<T extends object>(block: T | null | undefined): Partial<T> {
