@@ -20,9 +20,9 @@ const TRACKS: {
 }[] = [
   {
     eyebrow: "TRACK 01 · FOR COMMERCIAL BUYERS",
-    title: "Buying GI plant saplings & setup materials in bulk",
+    title: "Buying planting material in bulk",
     steps: [
-      { badge: "STEP 1", title: "Pick your GI plant & quantity slab", body: "Browse live bulk supply of GI-tag plants and setup kits with transparent price tiers.", icon: "plant" },
+      { badge: "STEP 1", title: "Pick your plants & quantity slab", body: "Browse live bulk supply with transparent price tiers by volume.", icon: "plant" },
       { badge: "STEP 2", title: "Send one consolidated quote request", body: "Share your required count, delivery city, or nearest railway station.", icon: "quote" },
       { badge: "STEP 3", title: "We confirm & arrange road or rail dispatch", body: "Our trade desk confirms live batch stock and dispatches from the nearest verified farm.", icon: "truck" },
     ],

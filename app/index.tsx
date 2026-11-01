@@ -30,12 +30,12 @@ import type { FcContent, FcFilters } from "@/lib/types";
 /** Spec §4 draft copy — used until /public/fc/content answers (admin edits the live text). */
 const DEFAULT_HERO = {
   headline: "India's trusted farm network",
-  subline: "Meet the farms behind India's GI-tag orchards and plantations, and source planting material in bulk from the same network.",
-  searchPlaceholder: "Search GI plant saplings or state, e.g. alphonso, teak, Bihar",
+  subline: "Meet the farms behind India's orchards and plantations, and source planting material in bulk from the same network.",
+  searchPlaceholder: "Search plants or state, e.g. mango, teak, Bihar",
 };
 const DEFAULT_OFFERS = [
   { title: "Real farm stories", line: "Filmed on the ground" },
-  { title: "GI-Tag plant saplings", line: "Tiered volume pricing" },
+  { title: "Bulk plant supply", line: "Tiered volume pricing" },
   { title: "Farm setup packages", line: "Plants, drip & inputs" },
   { title: "One point of contact", line: "Quote to delivery" },
 ];
@@ -62,9 +62,9 @@ const TRACKS: {
     photo: HOME_PHOTOS.seedlings,
     cta: { label: "Browse Bulk Supply →", href: "/listings" },
     steps: [
-      { tag: "STEP 01", label: "Pick GI plant & quantity slab" },
+      { tag: "STEP 01", label: "Pick plants & quantity slab" },
       { tag: "STEP 02", label: "Submit 1-click quote request" },
-      { tag: "STEP 03", label: "Complete setup package dispatch" },
+      { tag: "STEP 03", label: "Road or rail dispatch arranged" },
     ],
   },
   {
@@ -305,7 +305,7 @@ export default function Home() {
       {/* 3 · Bulk Planting Material — Category Bento + Live Lots Rail */}
       {categories.length > 0 || listings.length > 0 ? (
         <View style={section}>
-          <SectionHead eyebrow="GI-TAG & PREMIUM PLANT SUPPLY" title="GI-Tag plant saplings & setup materials, priced by volume." linkLabel="Explore Bulk Supply" href="/listings" />
+          <SectionHead eyebrow="WHOLESALE SUPPLY LOTS" title="Bulk planting material, priced by volume." linkLabel="Explore Bulk Supply" href="/listings" />
           {categories.length > 0 ? (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginTop: spacing.lg }}>
               {categories.map((c) => (
@@ -583,8 +583,8 @@ function buildSlides(
     key: "bulk",
     image: HOME_PHOTOS.trellis,
     eyebrow: "WHOLESALE QUANTITY SLABS",
-    title: "GI-Tag plant saplings & setup materials",
-    subline: "Plant saplings priced by quantity slab, plus complete farm setup packages dispatched by road or rail.",
+    title: "Bulk planting material",
+    subline: "Plant saplings priced by quantity slab, dispatched by road truck or Indian Railways.",
     cta: { label: "Explore Bulk Supply →", href: "/listings" },
     secondary: { label: "Send Custom RFQ", href: "/contact" },
   });
@@ -632,7 +632,7 @@ function PhotoPanel({ photo, eyebrow, title, body, children }: { photo: string; 
 }
 
 function shortPlaceholder(_text: string): string {
-  return "Search GI plants or state…";
+  return "Search plants or state…";
 }
 
 function pickText<T extends object>(block: T | null | undefined): Partial<T> {

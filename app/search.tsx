@@ -110,7 +110,7 @@ export default function Search() {
         <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: 28, color: "#FFFFFF" }}>
           Search Farms & Bulk Supply
         </Text>
-        <SearchBar value={text} onChangeText={setText} placeholder="Search GI plants, saplings, farm setup materials, or state" />
+        <SearchBar value={text} onChangeText={setText} placeholder="Search plants, varieties, setup materials, or state" />
         {quickSuggestions.length > 0 ? (
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
             <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Try:</Text>
@@ -140,7 +140,7 @@ export default function Search() {
         ) : !result ? (
           <LoadingState label="Searching Bulk Supply & Farms…" />
         ) : farms.length === 0 && listings.length === 0 ? (
-          <EmptyState title={`Nothing found for “${urlQ}”`} body="Try a GI plant (alphonso, teak), a state, or browse everything.">
+          <EmptyState title={`Nothing found for “${urlQ}”`} body="Try a plant (mango, teak), a state, or browse everything.">
             <Link href="/farms" asChild>
               <Button label="Explore farms" />
             </Link>
@@ -152,7 +152,7 @@ export default function Search() {
           <>
             {listings.length > 0 ? (
               <View style={{ gap: spacing.md }}>
-                <SectionTitle title="GI-Tag Plant Saplings & Setup Supply" linkLabel="See all" href={listingsHref} />
+                <SectionTitle title="Bulk planting material" linkLabel="See all" href={listingsHref} />
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
                   {listings.map((l) => (
                     <View key={l.id} style={{ width: cardWidth }}>

@@ -26,11 +26,11 @@ type SpacingPreset = {
 const PRESETS: SpacingPreset[] = [
   {
     key: "orchard",
-    label: "GI-Tag Fruit Plants",
-    shortLabel: "GI Plants",
+    label: "Standard Fruit Plants",
+    shortLabel: "Fruit Plants",
     spacingFt: "12×12 ft",
     plantsPerAcre: 302,
-    cropsHint: "GI Alphonso Mango · GI Guava · Citrus · Shahi Litchi",
+    cropsHint: "Alphonso Mango · Guava · Citrus · Shahi Litchi",
     gridCols: 5,
     gridRows: 4,
     foliageColor: "#28844E",

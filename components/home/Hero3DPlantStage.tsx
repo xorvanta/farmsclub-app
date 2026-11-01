@@ -307,7 +307,7 @@ export function Hero3DPlantStage({
       {/* Top Bar: Clean Title & 360° Inspection Button */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
         <Text numberOfLines={1} style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.8, color: "#E5B462", flexShrink: 1 }}>
-          3D GI-TAG PLANT SAPLINGS
+          3D PLANT SAPLINGS & VARIETIES
         </Text>
         <Pressable
           onPress={() => setAutoSpin((v) => !v)}
@@ -552,7 +552,7 @@ export function Hero3DPlantStage({
           <G>
             <Rect x={vw / 2 - 74} y={vh - 19} width={148} height={15} rx={4} fill="#FFFFFF" stroke="#0284C7" strokeWidth={1} />
             <SvgText x={vw / 2} y={vh - 8.5} fill="#081E12" fontSize={8.5} fontWeight="bold" textAnchor="middle">
-              5 GI-TAG PLANT SAPLINGS · 12.0 FT
+              5 PLANT SAPLINGS · 12.0 FT
             </SvgText>
           </G>
         </Svg>
@@ -562,10 +562,10 @@ export function Hero3DPlantStage({
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 6, flexWrap: "wrap" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 5, flexShrink: 1 }}>
           <View style={{ backgroundColor: "rgba(82,195,136,0.18)", paddingHorizontal: 7, paddingVertical: 3, borderRadius: radius.pill }}>
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#6FC28F" }}>✓ GI-Tag Plants</Text>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#6FC28F" }}>Verified Nursery Stock</Text>
           </View>
           <View style={{ backgroundColor: "rgba(229,180,98,0.16)", paddingHorizontal: 7, paddingVertical: 3, borderRadius: radius.pill }}>
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#E5B462" }}>+ Complete Farm Setup Kit</Text>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: "#E5B462" }}>Farm Setup Packages</Text>
           </View>
         </View>
 

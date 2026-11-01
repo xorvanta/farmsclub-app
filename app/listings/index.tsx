@@ -158,7 +158,7 @@ export default function Listings() {
           </Pressable>
         </View>
 
-        <SearchBar value={query} onChangeText={setQuery} placeholder="Search GI plants, varieties, setup materials…" accessibilityLabel="Search bulk supply" />
+        <SearchBar value={query} onChangeText={setQuery} placeholder="Search plants, varieties, setup materials…" accessibilityLabel="Search bulk supply" />
       </LinearGradient>
 
       {showPlanner ? <Orchard3DPlanner /> : null}
