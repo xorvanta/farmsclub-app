@@ -356,12 +356,9 @@ export default function Home() {
             <View style={{ marginTop: categories.length > 0 ? spacing.xxl : spacing.lg }}>
               {categories.length > 0 ? (
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.md }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.success }} />
-                    <Text accessibilityRole="header" aria-level={3} style={{ fontFamily: fonts.heading, fontSize: 18, color: colors.ink }}>
-                      {content?.featuredListingsSource === "admin" ? "Featured Bulk Lots" : "Live Bulk Lots"}
-                    </Text>
-                  </View>
+                  <Text accessibilityRole="header" aria-level={3} style={{ fontFamily: fonts.heading, fontSize: 18, color: colors.ink }}>
+                    {content?.featuredListingsSource === "admin" ? "Featured Bulk Lots" : "Live Bulk Lots"}
+                  </Text>
                   <Link href="/listings" style={{ fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: colors.brand }}>
                     View all lots →
                   </Link>
@@ -606,12 +603,9 @@ function SectionHead({ eyebrow, title, linkLabel, href }: { eyebrow: string; tit
   const { colors, fonts } = useTheme();
   return (
     <View style={{ gap: 4 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent }} />
-        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 1, textTransform: "uppercase", color: colors.accentDark }}>
-          {eyebrow}
-        </Text>
-      </View>
+      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 1, textTransform: "uppercase", color: colors.accentDark }}>
+        {eyebrow}
+      </Text>
       <SectionTitle title={title} linkLabel={linkLabel} href={href} />
     </View>
   );

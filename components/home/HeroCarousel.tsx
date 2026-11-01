@@ -121,7 +121,6 @@ export function HeroCarousel({ slides, height, children }: { slides: HeroSlide[]
                   maxWidth: "100%",
                 }}
               >
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#52C388" }} />
                 <Text
                   numberOfLines={1}
                   style={{ fontFamily: fonts.bodyBold, fontSize: compact ? 10 : 11, letterSpacing: 0.7, textTransform: "uppercase", color: "#E5B462", flexShrink: 1 }}

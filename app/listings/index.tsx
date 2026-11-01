@@ -125,12 +125,9 @@ export default function Listings() {
       >
         <View style={{ flexDirection: compact ? "column" : "row", flexWrap: "wrap", alignItems: compact ? "stretch" : "center", justifyContent: "space-between", gap: spacing.md }}>
           <View style={{ gap: 4, maxWidth: 640, flexShrink: 1, minWidth: 0 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#52C388" }} />
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: "#E5B462" }}>
-                WHOLESALE B2B SUPPLY CATALOG
-              </Text>
-            </View>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: "#E5B462" }}>
+              WHOLESALE B2B SUPPLY CATALOG
+            </Text>
             <Text accessibilityRole="header" aria-level={1} style={{ fontFamily: fonts.display, fontSize: compact ? 23 : 32, lineHeight: compact ? 29 : 38, color: "#FFFFFF" }}>
               {activeCategory ? activeCategory.name_en : "Bulk Supply & Plantation Stock"}
             </Text>

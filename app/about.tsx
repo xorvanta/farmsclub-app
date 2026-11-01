@@ -77,12 +77,9 @@ export default function About() {
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#52C388" }} />
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 1, color: "#E5B462", textTransform: "uppercase" }}>
-              PLATFORM ARCHITECTURE & TRUST
-            </Text>
-          </View>
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, letterSpacing: 1, color: "#E5B462", textTransform: "uppercase" }}>
+            PLATFORM ARCHITECTURE & TRUST
+          </Text>
           <Pressable
             onPress={() => openTour(0)}
             accessibilityRole="button"

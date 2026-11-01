@@ -304,29 +304,26 @@ export function Hero3DPlantStage({
         shadowOffset: { width: 0, height: 12 },
       }}
     >
-      {/* Top Bar: Tinkercad-style 360° Workplane Badge & Angle Readout */}
+      {/* Top Bar: Clean Title & 360° Inspection Button */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1, minWidth: 0 }}>
-          <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#38BDF8" }} />
-          <Text numberOfLines={1} style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.7, color: "#E5B462", flexShrink: 1 }}>
-            3D GI-TAG PLANT SAPLINGS · 360° WORKPLANE
-          </Text>
-        </View>
+        <Text numberOfLines={1} style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.8, color: "#E5B462", flexShrink: 1 }}>
+          3D GI-TAG PLANT SAPLINGS
+        </Text>
         <Pressable
           onPress={() => setAutoSpin((v) => !v)}
           accessibilityRole="button"
           accessibilityLabel="Toggle 360 degree rotation"
           style={{
             backgroundColor: autoSpin ? "#E5B462" : "rgba(56,189,248,0.18)",
-            paddingHorizontal: 8,
-            paddingVertical: 3,
+            paddingHorizontal: 9,
+            paddingVertical: 4,
             borderRadius: radius.pill,
             borderWidth: 1,
             borderColor: autoSpin ? "#E5B462" : "rgba(56,189,248,0.45)",
           }}
         >
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 9.5, color: autoSpin ? "#081E12" : "#7DD3FC" }}>
-            {autoSpin ? `⟳ 360° (${yawDeg}°)` : `↻ Hover / Drag 360° (${yawDeg}°)`}
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, color: autoSpin ? "#081E12" : "#7DD3FC" }}>
+            {autoSpin ? "⟳ Auto 360°" : "↻ Hover / Drag 360°"}
           </Text>
         </Pressable>
       </View>

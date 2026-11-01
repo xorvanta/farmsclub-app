@@ -270,7 +270,6 @@ export function Orchard3DPlanner({ listing, compactMode = false }: { listing?: B
         >
           <View style={{ gap: 3, flexShrink: 1, minWidth: 0 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#52C388" }} />
               <Text
                 numberOfLines={1}
                 style={{ fontFamily: fonts.bodyBold, fontSize: isPhone ? 10.5 : 11.5, letterSpacing: 1, textTransform: "uppercase", color: "#E5B462", flexShrink: 1 }}

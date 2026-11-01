@@ -137,12 +137,9 @@ export default function Farms() {
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#52C388" }} />
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: "#E5B462" }}>
-              GROUND-FILMED GROWER NETWORK
-            </Text>
-          </View>
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: "#E5B462" }}>
+            GROUND-FILMED GROWER NETWORK
+          </Text>
           <Link href="/list-your-farm" style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, color: "#E5B462" }}>
             + List Your Farm (Free) →
           </Link>

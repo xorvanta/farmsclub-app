@@ -123,12 +123,9 @@ export function BulkPriceCard({
     >
       {/* Header Row */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
-          <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#52C388" }} />
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.8, textTransform: "uppercase", color: "#E5B462" }}>
-            WHOLESALE VOLUME SLABS
-          </Text>
-        </View>
+        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.8, textTransform: "uppercase", color: "#E5B462" }}>
+          WHOLESALE VOLUME SLABS
+        </Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
           {listing.estimated_dispatch_days ? (
             <View style={{ backgroundColor: "rgba(82,195,136,0.22)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }}>

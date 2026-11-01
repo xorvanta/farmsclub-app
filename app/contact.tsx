@@ -102,7 +102,6 @@ export default function Contact() {
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#52C388" }} />
           <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, color: "#E5B462", textTransform: "uppercase" }}>
             DIRECT B2B PROCUREMENT DESK
           </Text>

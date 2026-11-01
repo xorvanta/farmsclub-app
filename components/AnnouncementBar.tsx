@@ -41,8 +41,7 @@ export function AnnouncementBar() {
       >
         {/* Left: Live B2B Telemetry */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1, minWidth: 0 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(82,195,136,0.14)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}>
-            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#52C388" }} />
+          <View style={{ backgroundColor: "rgba(82,195,136,0.14)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}>
             <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 0.6, color: "#6FC28F" }}>
               B2B WHOLESALE DESK
             </Text>
