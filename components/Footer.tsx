@@ -83,55 +83,28 @@ export function Footer() {
           style={{
             borderRadius: radius.lg,
             borderWidth: 1,
-            borderColor: "rgba(245,184,65,0.4)",
-            paddingVertical: 14,
+            borderColor: "rgba(245,184,65,0.38)",
+            paddingVertical: 12,
             paddingHorizontal: spacing.lg,
-            flexDirection: stacked ? "column" : "row",
-            alignItems: stacked ? "flex-start" : "center",
-            justifyContent: "space-between",
+            flexDirection: "row",
+            alignItems: "center",
             gap: 12,
-            shadowColor: "#F5B841",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.12,
-            shadowRadius: 16,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
-            <FooterDiya />
-            <View style={{ gap: 2, flex: 1 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                <Text style={{ fontFamily: fonts.devanagari ?? fonts.bodyBold, fontSize: 13, color: "#FFE066" }}>
-                  शुभ दीपावली
-                </Text>
-                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.8, color: "#F5B841" }}>
-                  · SHUBH DEEPAVALI & PROSPEROUS HARVEST
-                </Text>
-              </View>
-              <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: "rgba(255,255,255,0.84)", lineHeight: 17 }}>
-                Wishing India's growers, orchardists, and commercial farm partners abundant growth, light, and bumper harvests.
+          <FooterDiya />
+          <View style={{ gap: 2, flex: 1, minWidth: 0 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+              <Text style={{ fontFamily: fonts.devanagari ?? fonts.bodyBold, fontSize: 13.5, color: "#FFE066" }}>
+                शुभ दीपावली
+              </Text>
+              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: "#FFFFFF" }}>
+                · Happy Diwali
               </Text>
             </View>
+            <Text style={{ fontFamily: fonts.body, fontSize: 12, color: "rgba(255,255,255,0.82)", lineHeight: 16 }}>
+              Wishing you and your family an auspicious festive season of light, abundance, and prosperity.
+            </Text>
           </View>
-
-          <Link href="/listings" asChild>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Explore festive bulk supply lots"
-              style={({ pressed }) => ({
-                paddingHorizontal: 14,
-                paddingVertical: 7,
-                borderRadius: radius.pill,
-                backgroundColor: pressed ? "rgba(245,184,65,0.3)" : "rgba(245,184,65,0.18)",
-                borderWidth: 1,
-                borderColor: "rgba(245,184,65,0.5)",
-                alignSelf: stacked ? "flex-start" : "center",
-              })}
-            >
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, color: "#FFE066" }}>
-                Festive Supply Lots →
-              </Text>
-            </Pressable>
-          </Link>
         </LinearGradient>
 
         {/* Visual B2B Trust Strip */}
