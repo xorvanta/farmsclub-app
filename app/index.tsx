@@ -20,6 +20,7 @@ import { HeroCarousel, type HeroSlide } from "@/components/home/HeroCarousel";
 import { Rail } from "@/components/home/Rail";
 import { VideoShowcase, mergeVideos } from "@/components/home/VideoShowcase";
 import { Orchard3DPlanner } from "@/components/tools/Orchard3DPlanner";
+import { DiwaliBanner4D } from "@/components/home/DiwaliBanner4D";
 import { HOME_PHOTOS } from "@/constants/homePhotos";
 import { useFcCategories } from "@/lib/useFcCategories";
 import { fcApi } from "@/lib/api";
@@ -301,6 +302,9 @@ export default function Home() {
           </View>
         </View>
       </View>
+
+      {/* 2.5 · Auspicious 4D Diwali Showcase Banner */}
+      <DiwaliBanner4D />
 
       {/* 3 · Bulk Planting Material — Category Bento + Live Lots Rail */}
       {categories.length > 0 || listings.length > 0 ? (

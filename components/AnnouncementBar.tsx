@@ -41,18 +41,18 @@ export function AnnouncementBar() {
       >
         {/* Left: Live B2B Telemetry */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1, minWidth: 0 }}>
-          <View style={{ backgroundColor: "rgba(82,195,136,0.14)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}>
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 0.6, color: "#6FC28F" }}>
-              B2B WHOLESALE DESK
+          <View style={{ backgroundColor: "rgba(245,184,65,0.18)", borderWidth: 1, borderColor: "rgba(245,184,65,0.45)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}>
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 0.6, color: "#FFE066" }}>
+              🪔 SHUBH DEEPAVALI
             </Text>
           </View>
           {!compact ? (
-            <Text numberOfLines={1} style={{ fontFamily: fonts.bodyMedium, fontSize: 11.5, color: "rgba(255,255,255,0.82)", flexShrink: 1 }}>
-              Direct Farm Network · Volume Slab Pricing · Road & Rail Dispatch
+            <Text numberOfLines={1} style={{ fontFamily: fonts.bodyMedium, fontSize: 11.5, color: "rgba(255,255,255,0.85)", flexShrink: 1 }}>
+              Direct Farm Network · Festive Volume Slabs · Road & Rail Dispatch
             </Text>
           ) : (
-            <Text numberOfLines={1} style={{ fontFamily: fonts.bodyMedium, fontSize: 11, color: "rgba(255,255,255,0.78)", flexShrink: 1 }}>
-              Bulk Supply · Verified Farms
+            <Text numberOfLines={1} style={{ fontFamily: fonts.bodyMedium, fontSize: 11, color: "rgba(255,255,255,0.82)", flexShrink: 1 }}>
+              Festive Supply · Verified Farms
             </Text>
           )}
         </View>
