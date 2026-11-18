@@ -320,7 +320,7 @@ export default function ListYourFarm() {
             inputMode="tel"
             autoComplete="tel"
             maxLength={16}
-            placeholder="98765 43210"
+            placeholder="+91 9999999999"
             error={err("mobile")}
             {...labelProps}
           />
