@@ -430,7 +430,7 @@ export function RfqFormBody({
             autoComplete="tel"
             textContentType="telephoneNumber"
             maxLength={LIMITS.phone}
-            placeholder="10-digit mobile, e.g. 98765 43210"
+            placeholder="10-digit mobile, e.g. 9999999999"
             {...pick(field("phone", "contact"))}
           />
         </Slot>

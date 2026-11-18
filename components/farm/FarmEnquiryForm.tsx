@@ -101,7 +101,7 @@ export function FarmEnquiryForm({ slug, farmName }: { slug: string; farmName: st
         inputMode="tel"
         autoComplete="tel"
         maxLength={16}
-        placeholder="10-digit mobile, e.g. 98765 43210"
+        placeholder="10-digit mobile, e.g. 9999999999"
         error={errors.mobile}
       />
       <View style={{ gap: 6 }}>
